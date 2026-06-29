@@ -17,11 +17,13 @@
 - Cloud Build
 - Workload Identity Federation
 
-### Sprint 3 - Application Delivery 🚧
+### Sprint 3 - CI/CD ✅
 
-- Cloud Run
-- GitHub Actions CI/CD
-
+- GitHub Actions
+- Cloud Build
+- Artifact Registry
+- Workload Identity Federation
+- Immutable image tagging
 
 ## Authentication
 

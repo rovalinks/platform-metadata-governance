@@ -10,9 +10,6 @@
 - Registry Reader
 - Cloud Build
 - Workload Identity Federation
-
-## In Progress
-
 - Cloud Run
 - GitHub Actions
 
