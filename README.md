@@ -21,6 +21,18 @@ The platform uses GitHub OpenID Connect (OIDC) with Google Cloud Workload Identi
 
 No service account keys are stored in GitHub.
 
+## Platform Identities
+
+| Service Account      | Purpose                                                                     |
+| -------------------- | --------------------------------------------------------------------------- |
+| terraform-sa         | Provisions and manages Google Cloud infrastructure using Terraform.         |
+| governance-engine-sa | Runtime identity for the Metadata Governance Engine running on Cloud Run.   |
+| github-actions-sa    | Identity impersonated by GitHub Actions using Workload Identity Federation. |
+| cloud-build-sa       | Executes Cloud Build jobs and pushes container images to Artifact Registry. |
+
+Each identity follows the principle of least privilege and has a dedicated responsibility.
+
+
 ## CI/CD Authentication
 
 The platform authenticates GitHub Actions to Google Cloud using:
