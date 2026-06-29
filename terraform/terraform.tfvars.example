@@ -1,0 +1,5 @@
+project_id = "platform-metadata-demo"
+
+region = "europe-west2"
+
+artifact_registry_repository = "platform-images"
