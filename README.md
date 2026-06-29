@@ -22,7 +22,7 @@
 
 ### Sprint 4 - Governance Engine 🚧
 
-- Cloud Asset Inventory Client
+- Cloud Asset Inventory Client 🚧
 - Resource Discovery Service
 - Discovery API
 - Common Resource Model

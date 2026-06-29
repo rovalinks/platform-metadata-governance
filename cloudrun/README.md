@@ -10,8 +10,9 @@ Flask
 
 Responsibilities
 
+- Health API
+- Resource Discovery
 - Registry Reader
-- Registry Service
 - Governance Engine
 - Compliance Engine
 
