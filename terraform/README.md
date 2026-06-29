@@ -54,3 +54,12 @@ State locking is handled automatically by the GCS backend.
 * Google Cloud native services
 * Remote state stored in GCS
 * Modular Infrastructure as Code
+
+## Modules
+
+- artifact-registry
+- service-accounts
+- iam
+- workload-identity
+- cloud-build-trigger
+- cloud-run
