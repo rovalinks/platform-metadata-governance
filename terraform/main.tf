@@ -44,3 +44,13 @@ module "cloud_run" {
   service_account_email = module.service_accounts.emails["governance"]
 
 }
+
+module "workload_identity" {
+  source = "./modules/workload-identity"
+
+  project_id = var.project_id
+
+  github_service_account = module.service_accounts.emails["github"]
+
+  workload_identity = var.workload_identity
+}
