@@ -1,33 +1,56 @@
 # Terraform Infrastructure
 
-## Modules
+## Purpose
 
-- artifact-registry
-- service-accounts
-- iam
-- cloud-run
-- workload-identity (planned)
+This directory contains the Infrastructure as Code (IaC) used to provision the Metadata Governance Platform on Google Cloud.
+
+Terraform is used to provision and manage all platform infrastructure using the Google Cloud Terraform Provider.
 
 ## Remote State
 
-Google Cloud Storage backend
+Terraform state is stored remotely in a Google Cloud Storage bucket.
+
+Backend:
+
+* Google Cloud Storage (GCS)
+
+Bucket:
+
+* `platform-metadata-demo-tfstate`
+
+State locking is handled automatically by the GCS backend.
 
 ## Provider
 
-hashicorp/google# Terraform Infrastructure
+* hashicorp/google (v7.x)
 
-## Modules
+## Current Modules
 
-- artifact-registry
-- service-accounts
-- iam
-- cloud-run
-- workload-identity (planned)
+| Module            | Status | Purpose                                                                                    |
+| ----------------- | ------ | ------------------------------------------------------------------------------------------ |
+| artifact-registry | ✅      | Creates the Artifact Registry repository used to store Governance Engine container images. |
+| service-accounts  | ✅      | Creates platform service accounts.                                                         |
+| iam               | ✅      | Assigns IAM roles to service accounts.                                                     |
+| cloud-run         | 🚧     | Deploys the Governance Engine to Cloud Run.                                                |
+| workload-identity | 🚧     | Configures GitHub OIDC authentication using Workload Identity Federation.                  |
 
-## Remote State
+## Deployment Order
 
-Google Cloud Storage backend
+1. Terraform Backend
+2. Artifact Registry
+3. Service Accounts
+4. IAM
+5. Workload Identity Federation
+6. Cloud Build
+7. Cloud Run
+8. Cloud Asset Inventory
+9. Eventarc
 
-## Provider
+## Design Principles
 
-hashicorp/google
+* No hardcoded resource identifiers inside modules
+* Reusable Terraform modules
+* Least privilege IAM
+* Google Cloud native services
+* Remote state stored in GCS
+* Modular Infrastructure as Code
