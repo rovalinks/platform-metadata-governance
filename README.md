@@ -42,3 +42,34 @@ The platform authenticates GitHub Actions to Google Cloud using:
 - Service Account Impersonation
 
 No long-lived service account keys are used.
+
+
+## Deployment
+
+The platform uses GitHub Actions with Google Cloud Workload Identity Federation.
+
+Deployment flow:
+
+Git Push
+
+↓
+
+GitHub Actions
+
+↓
+
+OIDC Authentication
+
+↓
+
+Cloud Build
+
+↓
+
+Artifact Registry
+
+↓
+
+Cloud Run
+
+No service account keys are stored in GitHub.

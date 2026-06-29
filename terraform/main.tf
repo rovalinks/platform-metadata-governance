@@ -31,6 +31,8 @@ module "iam" {
 
 module "cloud_run" {
 
+  count = var.deploy_cloud_run ? 1 : 0
+
   source = "./modules/cloud-run"
 
   project_id = var.project_id
@@ -42,7 +44,6 @@ module "cloud_run" {
   image = var.cloud_run.image
 
   service_account_email = module.service_accounts.emails["governance"]
-
 }
 
 module "workload_identity" {
@@ -54,3 +55,4 @@ module "workload_identity" {
 
   workload_identity = var.workload_identity
 }
+

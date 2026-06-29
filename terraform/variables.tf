@@ -55,3 +55,10 @@ variable "workload_identity" {
     github_repository = string
   })
 }
+
+variable "deploy_cloud_run" {
+  description = "Deploy Cloud Run service"
+
+  type    = bool
+  default = false
+}
