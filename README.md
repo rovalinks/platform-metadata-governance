@@ -14,3 +14,9 @@
 - Cloud Build
 - Cloud Run
 - Workload Identity Federation
+
+## Authentication
+
+The platform uses GitHub OpenID Connect (OIDC) with Google Cloud Workload Identity Federation.
+
+No service account keys are stored in GitHub.
