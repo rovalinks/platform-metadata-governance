@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Application Registry",
+  "type": "object",
+
+  "required": [
+    "product",
+    "team",
+    "owner",
+    "budgetOwner",
+    "organization",
+    "department",
+    "costCenter",
+    "bindings"
+  ],
+
+  "properties": {
+
+    "product": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "team": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "owner": {
+      "type": "string",
+      "format": "email"
+    },
+
+    "budgetOwner": {
+      "type": "string",
+      "format": "email"
+    },
+
+    "organization": {
+      "type": "string"
+    },
+
+    "department": {
+      "type": "string"
+    },
+
+    "costCenter": {
+      "type": "string"
+    },
+
+    "bindings": {
+      "type": "object"
+    }
+
+  },
+
+  "additionalProperties": true
+}

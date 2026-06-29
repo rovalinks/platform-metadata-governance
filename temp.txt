@@ -1,5 +1,5 @@
 I want to give POC to client build a production ready demo for me no hadcoding. always refer to 100% GCP official documentation grounded.
-Always give me what steps to perform with explaination
+Always give me what steps to perform with explanation
 
 I'm not sure i want to give POC to client build a production ready demo for me no hadcoding. you should stick to 100% GCP official documentation grounded.
 

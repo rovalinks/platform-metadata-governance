@@ -15,3 +15,21 @@ variable "artifact_registry_repository" {
 
   type = string
 }
+
+variable "artifact_registry_description" {
+
+  description = "Artifact Registry description"
+
+  type = string
+
+}
+
+variable "service_accounts" {
+  description = "Service accounts used by the platform"
+
+  type = map(object({
+    account_id   = string
+    display_name = string
+    description  = string
+  }))
+}

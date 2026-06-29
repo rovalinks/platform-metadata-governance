@@ -3,3 +3,5 @@ project_id = "platform-metadata-demo"
 region = "europe-west2"
 
 artifact_registry_repository = "platform-images"
+
+artifact_registry_description = "Enterprise Metadata Governance Platform Images"
