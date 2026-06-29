@@ -32,14 +32,15 @@ variable "service_accounts" {
   }))
 }
 
-variable "cloud_run_service_name" {
-  description = "Cloud Run service name"
+variable "service_account_roles" {
+  description = "IAM roles assigned to service accounts"
 
-  type = string
+  type = map(list(string))
 }
 
-variable "container_image" {
-  description = "Container image URI"
-
-  type = string
+variable "cloud_run" {
+  type = object({
+    service_name = string
+    image        = string
+  })
 }
