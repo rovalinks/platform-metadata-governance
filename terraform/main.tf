@@ -50,7 +50,7 @@ module "workload_identity" {
 
   project_id = var.project_id
 
-  github_service_account = module.service_accounts.emails["github"]
+  github_service_account = module.service_accounts.names["github"]
 
   workload_identity = var.workload_identity
 }

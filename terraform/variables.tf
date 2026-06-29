@@ -49,9 +49,9 @@ variable "workload_identity" {
   description = "GitHub Workload Identity Federation configuration"
 
   type = object({
-    pool_id            = string
-    provider_id        = string
-    github_owner       = string
-    github_repository  = string
+    pool_id           = string
+    provider_id       = string
+    github_owner      = string
+    github_repository = string
   })
 }
