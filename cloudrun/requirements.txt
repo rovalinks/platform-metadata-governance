@@ -7,3 +7,5 @@ PyYAML==6.0.2
 jsonschema==4.25.0
 
 pydantic==2.11.7
+
+google-cloud-asset

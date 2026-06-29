@@ -3,9 +3,6 @@
 ### Sprint 1 - Foundation ✅
 
 - Terraform Backend
-- Artifact Registry
-- IAM
-- Service Accounts
 - Validation Framework
 - Registry Reader
 
@@ -14,16 +11,20 @@
 - Artifact Registry
 - Service Accounts
 - IAM
-- Cloud Build
 - Workload Identity Federation
 
-### Sprint 3 - CI/CD ✅
+### Sprint 3 - Application Platform ✅
 
-- GitHub Actions
 - Cloud Build
-- Artifact Registry
-- Workload Identity Federation
-- Immutable image tagging
+- Container Image
+- Cloud Run
+- GitHub Actions Authentication
+
+### Sprint 4 - Build Automation 🚧
+
+- Cloud Build Trigger
+- Automatic Container Builds
+
 
 ## Authentication
 

@@ -55,4 +55,3 @@ module "workload_identity" {
 
   workload_identity = var.workload_identity
 }
-
