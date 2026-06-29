@@ -13,17 +13,23 @@
 - IAM
 - Workload Identity Federation
 
-### Sprint 3 - Application Platform ✅
+### Sprint 3 - Runtime & CI/CD ✅
 
 - Cloud Build
 - Container Image
 - Cloud Run
 - GitHub Actions Authentication
 
-### Sprint 4 - Build Automation 🚧
+### Sprint 4 - Governance Engine 🚧
 
-- Cloud Build Trigger
-- Automatic Container Builds
+- Cloud Asset Inventory
+- Resource Discovery
+- Registry Comparison
+- Compliance Engine
+
+
+
+
 
 
 ## Authentication
