@@ -2,8 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Application Registry",
   "type": "object",
+  "additionalProperties": false,
 
   "required": [
+    "schemaVersion",
     "product",
     "team",
     "owner",
@@ -15,6 +17,10 @@
   ],
 
   "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "v1"
+    },
 
     "product": {
       "type": "string",
@@ -37,22 +43,78 @@
     },
 
     "organization": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
 
     "department": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
 
     "costCenter": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
 
     "bindings": {
-      "type": "object"
+      "type": "object",
+
+      "required": [
+        "gcp"
+      ],
+
+      "additionalProperties": false,
+
+      "properties": {
+
+        "gcp": {
+
+          "type": "array",
+
+          "minItems": 1,
+
+          "items": {
+
+            "type": "object",
+
+            "additionalProperties": false,
+
+            "required": [
+              "projectId",
+              "region",
+              "environment",
+              "businessCriticality"
+            ],
+
+            "properties": {
+
+              "projectId": {
+                "type": "string"
+              },
+
+              "region": {
+                "type": "string"
+              },
+
+              "environment": {
+                "type": "string"
+              },
+
+              "businessCriticality": {
+                "type": "string"
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
     }
 
-  },
+  }
 
-  "additionalProperties": true
 }
