@@ -1,3 +1,5 @@
+# Platform Roadmap
+
 ## Completed
 
 - Terraform Backend
@@ -7,14 +9,15 @@
 - Validation Framework
 - Registry Reader
 - Cloud Build
+- Container Image
 - Workload Identity Federation
 - Cloud Run
-- Container Image
 
 ## In Progress
 
 - Cloud Asset Inventory
 - Resource Discovery
+- Discovery API
 
 ## Planned
 
