@@ -17,11 +17,9 @@ variable "artifact_registry_repository" {
 }
 
 variable "artifact_registry_description" {
-
   description = "Artifact Registry description"
 
   type = string
-
 }
 
 variable "service_accounts" {
@@ -32,4 +30,16 @@ variable "service_accounts" {
     display_name = string
     description  = string
   }))
+}
+
+variable "cloud_run_service_name" {
+  description = "Cloud Run service name"
+
+  type = string
+}
+
+variable "container_image" {
+  description = "Container image URI"
+
+  type = string
 }
