@@ -3,11 +3,23 @@ steps:
     args:
       - build
       - "-t"
-      - "europe-west2-docker.pkg.dev/$PROJECT_ID/platform-images/governance-engine:$COMMIT_SHA"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/governance-engine:${_IMAGE_TAG}"
+      - "-f"
+      - "cloudrun/Dockerfile"
       - "./cloudrun"
 
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/governance-engine:${_IMAGE_TAG}"
+
 images:
-  - "europe-west2-docker.pkg.dev/$PROJECT_ID/platform-images/governance-engine:$COMMIT_SHA"
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/governance-engine:${_IMAGE_TAG}"
+
+substitutions:
+  _REGION: "europe-west2"
+  _REPOSITORY: "platform-images"
+  _IMAGE_TAG: "latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY

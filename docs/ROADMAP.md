@@ -2,28 +2,27 @@
 
 ## Completed
 
-* Terraform backend
-* Artifact Registry
-* Service Accounts
-* IAM
-* Registry
-* Validation
-* Governance Engine skeleton
+- Terraform Backend
+- Artifact Registry
+- Service Accounts
+- IAM
+- Validation Framework
+- Registry Reader
+- Cloud Build
+- Workload Identity Federation
 
 ## In Progress
 
-* Cloud Run
-* Workload Identity Federation
-* GitHub Actions
-* Cloud Build
+- Cloud Run
+- GitHub Actions
 
 ## Planned
 
-* Cloud Asset Inventory
-* Resource Discovery
-* Label Engine
-* Compliance Engine
-* Eventarc
-* Cloud Scheduler
-* Monitoring
-* Alerting
+- Cloud Asset Inventory
+- Resource Discovery
+- Governance Engine
+- Compliance Engine
+- Eventarc
+- Cloud Scheduler
+- Monitoring
+- Alerting

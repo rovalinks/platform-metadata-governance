@@ -9,11 +9,19 @@
 - Validation Framework
 - Registry Reader
 
-### Sprint 2 - In Progress
+### Sprint 2 - Platform Infrastructure ✅
 
+- Artifact Registry
+- Service Accounts
+- IAM
 - Cloud Build
-- Cloud Run
 - Workload Identity Federation
+
+### Sprint 3 - Application Delivery 🚧
+
+- Cloud Run
+- GitHub Actions CI/CD
+
 
 ## Authentication
 
@@ -73,3 +81,30 @@ Artifact Registry
 Cloud Run
 
 No service account keys are stored in GitHub.
+
+
+## Continuous Integration
+
+The platform uses GitHub Actions with Workload Identity Federation.
+
+Workflow:
+
+Git Push
+
+↓
+
+GitHub Actions
+
+↓
+
+Google Workload Identity Federation
+
+↓
+
+Cloud Build
+
+↓
+
+Artifact Registry
+
+Container images are tagged using the Git commit SHA.

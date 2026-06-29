@@ -1,11 +1,12 @@
 .terraform/
-
 terraform.tfstate
-
 terraform.tfstate.*
-
 terraform.tfvars
-
 *.tfvars
-
 crash.log
+
+# Python
+.venv/
+**/.venv/
+__pycache__/
+*.pyc
