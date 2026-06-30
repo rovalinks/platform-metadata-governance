@@ -1,21 +1,52 @@
-# Deployment Guide
+# Platform Metadata Governance - Deployment Guide
 
 # Overview
 
-This guide describes how to deploy the Platform Metadata Governance solution into a Google Cloud project.
+This document describes how to deploy the Platform Metadata Governance solution into a Google Cloud project using Terraform and GitHub Actions.
+
+---
+
+# Architecture
+
+Deployment pipeline
+
+Developer
+↓
+
+Git Push
+↓
+
+GitHub Actions
+
+↓
+
+Workload Identity Federation (OIDC)
+
+↓
+
+Docker Build
+
+↓
+
+Artifact Registry
+
+↓
+
+Cloud Run
+
+No long-lived service account keys are used.
 
 ---
 
 # Prerequisites
 
-## Required APIs
+## Google Cloud APIs
 
-Enable the following Google Cloud APIs:
+Enable:
 
-- Cloud Asset API
-- Cloud Build API
-- Cloud Run Admin API
 - Artifact Registry API
+- Cloud Asset API
+- Cloud Run Admin API
 - IAM API
 - IAM Credentials API
 - Resource Manager API
@@ -23,41 +54,40 @@ Enable the following Google Cloud APIs:
 
 ---
 
-## GitHub Actions IAM
+## GitHub
 
-The GitHub Actions service account must have the following IAM roles:
+Fork or clone the repository.
 
-- Cloud Build Editor (`roles/cloudbuild.builds.editor`)
-- Artifact Registry Writer (`roles/artifactregistry.writer`)
-- Storage Object Admin (`roles/storage.objectAdmin`)
-- Cloud Run Developer (`roles/run.developer`)
-- Service Usage Consumer (`roles/serviceusage.serviceUsageConsumer`)
+---
 
-These roles allow GitHub Actions to authenticate using Workload Identity Federation, submit Cloud Build jobs, upload source archives, and deploy the Cloud Run service.
+## Terraform
 
-# Clone Repository
+Install Terraform.
 
-```bash
-git clone <repository-url>
+---
 
-cd platform-metadata-governance
-```
+## Google Cloud CLI
+
+Install gcloud CLI.
+
+Authenticate.
 
 ---
 
 # Configure Terraform
 
-Copy the example configuration:
+Copy
 
-```bash
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-```
+terraform.tfvars.example
+
+↓
+
+terraform.tfvars
 
 Update:
 
 - project_id
 - region
-- artifact registry
 - GitHub owner
 - GitHub repository
 
@@ -65,7 +95,6 @@ Update:
 
 # Deploy Infrastructure
 
-```bash
 cd terraform
 
 terraform init
@@ -73,63 +102,61 @@ terraform init
 terraform plan
 
 terraform apply
-```
 
-Terraform creates:
+Terraform provisions:
 
+- Artifact Registry
 - Service Accounts
 - IAM
-- Artifact Registry
 - Workload Identity Federation
 - Cloud Run
-- Cloud Build Trigger
 
 ---
 
-# Configure GitHub
+# Configure GitHub Secrets
 
-Configure the following GitHub Secrets:
+Create:
 
 | Secret | Description |
-|--------|-------------|
-| WIF_PROVIDER | Workload Identity Provider resource name |
-| WIF_SERVICE_ACCOUNT | GitHub Actions service account |
+|----------|-------------|
+| WIF_PROVIDER | Workload Identity Provider |
+| WIF_SERVICE_ACCOUNT | GitHub Actions Service Account |
 
 ---
 
 # Deploy Application
 
-Push to the main branch:
+Push to main.
 
-```bash
-git push origin main
-```
+GitHub Actions will:
 
-GitHub Actions authenticates using Workload Identity Federation and submits the Cloud Build.
+1. Authenticate using Workload Identity Federation.
+2. Build the Docker image.
+3. Push the image to Artifact Registry.
+4. Deploy Cloud Run.
 
 ---
 
-# Verify Deployment
+# Verify
 
-Verify the following endpoints:
+Verify:
 
-```
 GET /health
+
 GET /discover
+
 GET /compliance
+
 GET /verify
+
 GET /enforce
+
 GET /report
-```
 
 ---
 
-# Cleanup
+# Remove Infrastructure
 
-To remove all infrastructure:
-
-```bash
 cd terraform
 
 terraform destroy
-```
