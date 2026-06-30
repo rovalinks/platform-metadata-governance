@@ -69,6 +69,11 @@
 - Compute Engine Label Update
 - Official Compute Engine Client
 
+### Sprint 14 - Generic Enforcement Engine 🚧
+
+- Generic Executor
+- Adapter-based Execution
+
 
 ## Authentication
 

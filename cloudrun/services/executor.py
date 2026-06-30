@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 from models.execution import ExecutionResult
 
 from services.adapter import AdapterService
@@ -33,14 +35,36 @@ class ExecutorService:
 
                 continue
 
-            results.append(
-                ExecutionResult(
-                    resource=action["resource"],
-                    asset_type=action["asset_type"],
-                    action=action["action"],
-                    success=False,
-                    message="Execution not implemented.",
-                )
-            )
+            try:
 
-        return results
+                client.apply_labels(
+                    action["resource"],
+                    action["labels"],
+                )
+
+                results.append(
+                    ExecutionResult(
+                        resource=action["resource"],
+                        asset_type=action["asset_type"],
+                        action=action["action"],
+                        success=True,
+                        message="Labels applied.",
+                    )
+                )
+
+            except Exception as exc:
+
+                results.append(
+                    ExecutionResult(
+                        resource=action["resource"],
+                        asset_type=action["asset_type"],
+                        action=action["action"],
+                        success=False,
+                        message=str(exc),
+                    )
+                )
+
+        return [
+            asdict(result)
+            for result in results
+        ]

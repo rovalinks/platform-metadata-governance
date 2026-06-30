@@ -34,6 +34,7 @@
 - Capability Service
 - Compliance Service
 - Enforcement Service
+- Executor Service
 
 ### Handlers
 
