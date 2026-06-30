@@ -1,6 +1,6 @@
 from clients.compute import ComputeClient
 from clients.bigquery import BigQueryClient
-from clients.storage import StorageClient
+# from clients.storage import StorageClient
 
 
 class AdapterService:
@@ -10,7 +10,7 @@ class AdapterService:
         self.clients = [
             ComputeClient(),
             BigQueryClient(),
-            StorageClient(),
+            # StorageClient(),
         ]
 
     def client_for(self, asset_type: str):

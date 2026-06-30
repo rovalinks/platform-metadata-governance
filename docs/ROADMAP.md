@@ -25,9 +25,12 @@
 - Metadata Enforcement Execution
 - Generic Enforcement Engine
 - Compute Engine Label Enforcement
+- Generic Execution Pipeline
+- Governance Reporting
 
 ## In Progress
-- BigQuery Dataset Enforcement
+
+- Production Hardening
 
 
 ## Planned

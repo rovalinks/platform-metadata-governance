@@ -86,6 +86,26 @@
 - Dataset Metadata Adapter
 
 
+
+### Current Status
+
+Completed:
+- Registry Management
+- Registry Validation
+- Cloud Asset Discovery
+- Governance Metadata
+- Compliance Evaluation
+- Enforcement Planning
+- Generic Execution Pipeline
+- Compute Engine Label Enforcement
+- BigQuery Dataset Label Enforcement
+- Governance Reporting
+
+Current Focus:
+- Production Hardening
+
+
+
 ## Authentication
 
 The platform uses GitHub OpenID Connect (OIDC) with Google Cloud Workload Identity Federation.

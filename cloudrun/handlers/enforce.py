@@ -7,7 +7,6 @@ service = EnforcementService()
 
 
 def enforce(project_id: str):
-
     return jsonify(
-        service.plan(project_id)
+        service.execute(project_id)
     )

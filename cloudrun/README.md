@@ -66,3 +66,20 @@ Returns resources discovered using Google Cloud Asset Inventory.
 ### GET /compliance
 
 Returns governance results by comparing discovered resources against the Metadata Registry.
+
+
+## Execution Flow
+
+Registry
+    ↓
+Discovery
+    ↓
+Compliance
+    ↓
+Enforcement Planner
+    ↓
+Executor
+    ↓
+Adapter
+    ├── Compute Engine
+    └── BigQuery

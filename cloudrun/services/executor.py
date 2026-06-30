@@ -1,14 +1,12 @@
-from dataclasses import asdict
-
-from models.execution import ExecutionResult
+from types import SimpleNamespace
 
 from services.adapter import AdapterService
 
 
 class ExecutorService:
+    """Executes enforcement actions."""
 
     def __init__(self):
-
         self.adapters = AdapterService()
 
     def execute(self, actions):
@@ -22,49 +20,28 @@ class ExecutorService:
             )
 
             if client is None:
-
                 results.append(
-                    ExecutionResult(
-                        resource=action["resource"],
-                        asset_type=action["asset_type"],
-                        action=action["action"],
-                        success=False,
-                        message="No adapter available.",
-                    )
+                    {
+                        "resource": action["resource"],
+                        "status": "unsupported",
+                    }
                 )
-
                 continue
 
-            try:
+            resource = SimpleNamespace(
+                name=action["resource"]
+            )
 
-                client.apply_labels(
-                    action["resource"],
-                    action["labels"],
-                )
+            client.apply_labels(
+                resource,
+                action["labels"],
+            )
 
-                results.append(
-                    ExecutionResult(
-                        resource=action["resource"],
-                        asset_type=action["asset_type"],
-                        action=action["action"],
-                        success=True,
-                        message="Labels applied.",
-                    )
-                )
+            results.append(
+                {
+                    "resource": action["resource"],
+                    "status": "updated",
+                }
+            )
 
-            except Exception as exc:
-
-                results.append(
-                    ExecutionResult(
-                        resource=action["resource"],
-                        asset_type=action["asset_type"],
-                        action=action["action"],
-                        success=False,
-                        message=str(exc),
-                    )
-                )
-
-        return [
-            asdict(result)
-            for result in results
-        ]
+        return results

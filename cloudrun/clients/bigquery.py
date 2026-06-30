@@ -8,26 +8,24 @@ class BigQueryClient(ResourceClient):
     """Applies labels to BigQuery datasets."""
 
     def __init__(self):
-
         self.client = bigquery.Client()
 
     def supports(self, asset_type: str):
-
         return asset_type == "bigquery.googleapis.com/Dataset"
 
     def apply_labels(self, resource, labels: dict):
 
-        info = parse_dataset_name(resource.name)
+        dataset_info = parse_dataset_name(resource.name)
 
         dataset = self.client.get_dataset(
-            f"{info['project']}.{info['dataset']}"
+            f"{dataset_info['project']}.{dataset_info['dataset']}"
         )
 
-        existing = dict(dataset.labels or {})
+        existing_labels = dict(dataset.labels or {})
 
-        existing.update(labels)
+        existing_labels.update(labels)
 
-        dataset.labels = existing
+        dataset.labels = existing_labels
 
         self.client.update_dataset(
             dataset,

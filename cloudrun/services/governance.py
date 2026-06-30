@@ -1,5 +1,5 @@
 from registry.reader import RegistryReader
-
+from utils.labels import normalize_label_value
 
 class GovernanceService:
     """Provides governance metadata from the registry."""
@@ -44,14 +44,14 @@ class GovernanceService:
 
         labels = {}
 
-        labels["application"] = application["product"]
-        labels["team"] = application["team"]
-        labels["owner"] = application["owner"]
-        labels["budgetowner"] = application["budgetOwner"]
-        labels["organization"] = application["organization"]
-        labels["department"] = application["department"]
-        labels["costcenter"] = application["costCenter"]
-        labels["environment"] = binding["environment"]
-        labels["businesscriticality"] = binding["businessCriticality"]
+        labels["application"] = normalize_label_value(application["product"])
+        labels["team"] = normalize_label_value(application["team"])
+        labels["owner"] = normalize_label_value(application["owner"])
+        labels["budgetowner"] = normalize_label_value(application["budgetOwner"])
+        labels["organization"] = normalize_label_value(application["organization"])
+        labels["department"] = normalize_label_value(application["department"])
+        labels["costcenter"] = normalize_label_value(application["costCenter"])
+        labels["environment"] = normalize_label_value(binding["environment"])
+        labels["businesscriticality"] = normalize_label_value(binding["businessCriticality"])
 
         return labels

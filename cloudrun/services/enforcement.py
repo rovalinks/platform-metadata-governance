@@ -1,11 +1,13 @@
 from services.compliance import ComplianceService
 from services.adapter import AdapterService
+from services.executor import ExecutorService
 
 
 class EnforcementService:
     def __init__(self):
         self.compliance = ComplianceService()
         self.adapters = AdapterService()
+        self.executor = ExecutorService()
 
     def plan(self, project_id: str):
         actions = []
@@ -28,3 +30,10 @@ class EnforcementService:
             )
 
         return actions
+
+    def execute(self, project_id: str):
+        actions = self.plan(project_id)
+
+        return self.executor.execute(
+            actions
+        )
