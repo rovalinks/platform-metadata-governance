@@ -22,7 +22,7 @@
 
 ## In Progress
 
-- Compliance Reporting
+- Metadata Enforcement
 
 ## Planned
 

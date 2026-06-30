@@ -10,9 +10,10 @@
 - Registry Reader
 - Governance Service
 - Resource Discovery Service
-- Resource Capability Service
+- Capability Service
 - Metadata Compliance Engine
-- Compliance Reporting API
+- Metadata Enforcement Engine
+
 
 ---
 
