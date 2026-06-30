@@ -1,3 +1,4 @@
+from utils.logger import logger
 from services.compliance import ComplianceService
 from services.adapter import AdapterService
 from services.executor import ExecutorService
@@ -32,8 +33,20 @@ class EnforcementService:
         return actions
 
     def execute(self, project_id: str):
+        logger.info(
+            "Executing enforcement for project %s",
+            project_id,
+        )
+        
         actions = self.plan(project_id)
-
-        return self.executor.execute(
+        
+        result = self.executor.execute(
             actions
         )
+        
+        logger.info(
+            "Completed enforcement with %d actions",
+            len(actions),
+        )
+        
+        return result

@@ -1,6 +1,6 @@
+from utils.logger import logger
 from clients.cloud_asset import CloudAssetClient
 from models.resource import Resource
-
 
 class DiscoveryService:
 
@@ -8,11 +8,14 @@ class DiscoveryService:
         self.client = CloudAssetClient()
 
     def discover(self, project_id: str):
+        logger.info(
+            "Starting resource discovery for project %s",
+            project_id,
+        )
 
         resources = []
 
         for asset in self.client.search_project_resources(project_id):
-
             resources.append(
                 Resource(
                     asset_type=asset.asset_type,
@@ -22,5 +25,10 @@ class DiscoveryService:
                     labels=dict(asset.labels),
                 )
             )
+
+        logger.info(
+            "Discovered %d resources",
+            len(resources),
+        )
 
         return resources

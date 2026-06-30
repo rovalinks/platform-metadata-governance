@@ -1,24 +1,21 @@
+from utils.logger import logger
 from models.report import GovernanceReport
-
 from services.discovery import DiscoveryService
 from services.compliance import ComplianceService
 from services.enforcement import EnforcementService
 
-
 class ReportService:
 
     def __init__(self):
-
         self.discovery = DiscoveryService()
         self.compliance = ComplianceService()
         self.enforcement = EnforcementService()
 
     def report(self, project_id: str):
+        logger.info("Generating governance report")
 
         resources = self.discovery.discover(project_id)
-
         compliance = self.compliance.evaluate(project_id)
-
         actions = self.enforcement.plan(project_id)
 
         compliant = sum(
