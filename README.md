@@ -28,11 +28,14 @@ Current supported enforcement targets:
 - IAM
 - Workload Identity Federation
 
-#### Sprint 3 - Runtime & CI/CD
-- Cloud Build
+### Sprint 3 - Runtime & CI/CD 
+
+- Docker Image Build
+- Artifact Registry
 - Cloud Run
 - GitHub Actions
-- GitHub OIDC Authentication
+- Workload Identity Federation (OIDC)
+- Automated Cloud Run Deployment
 
 #### Sprint 4 - Discovery
 - Cloud Asset Inventory client

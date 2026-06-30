@@ -30,6 +30,10 @@
 - Unit testing
 - API documentation
 - Registry duplicate project validation
+- GitHub Actions Deployment
+- Artifact Registry Deployment
+- Cloud Run Deployment
+- Workload Identity Federation
 
 ## In Progress
 
