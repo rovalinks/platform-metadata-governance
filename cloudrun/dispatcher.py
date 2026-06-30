@@ -3,6 +3,7 @@ from flask import request
 from handlers.health import health
 from handlers.discovery import discover
 from handlers.compliance import compliance
+from handlers.enforce import enforce
 from config import PROJECT_ID
 
 
@@ -19,6 +20,9 @@ class Dispatcher:
         
         if route == "compliance":
             return compliance(PROJECT_ID)
+
+        if route == "enforce":
+            return enforce(PROJECT_ID)
 
         return {
             "error": "Endpoint not found"

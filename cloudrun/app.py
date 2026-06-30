@@ -23,5 +23,10 @@ def discover():
 def compliance_endpoint():
     return Dispatcher.dispatch("compliance")
 
+@app.get("/enforce")
+def enforce_endpoint():
+
+    return Dispatcher.dispatch("enforce")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

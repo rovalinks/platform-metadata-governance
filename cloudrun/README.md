@@ -8,11 +8,11 @@
 ## Responsibilities
 
 - Registry Reader
-- Registry Metadata Builder
 - Governance Service
 - Resource Discovery Service
 - Capability Service
 - Metadata Compliance Engine
+- Metadata Enforcement Planner
 
 
 ---
@@ -31,7 +31,7 @@
 - Discovery Service
 - Capability Service
 - Compliance Service
-- Adapter Service
+- Enforcement Service
 
 ### Handlers
 
