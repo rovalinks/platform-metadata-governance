@@ -74,6 +74,12 @@
 - Generic Executor
 - Adapter-based Execution
 
+### Sprint 15 - Verification Engine 🚧
+
+- Verification Model
+- Verification Service
+- Verification API
+
 
 ## Authentication
 

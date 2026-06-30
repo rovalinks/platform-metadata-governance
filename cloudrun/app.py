@@ -28,5 +28,10 @@ def enforce_endpoint():
 
     return Dispatcher.dispatch("enforce")
 
+@app.get("/verify")
+def verify_endpoint():
+
+    return Dispatcher.dispatch("verify")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

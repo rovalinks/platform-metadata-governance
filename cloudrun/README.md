@@ -12,9 +12,8 @@
 - Resource Discovery Service
 - Capability Service
 - Metadata Compliance Engine
-- Metadata Enforcement Planner
-- Metadata Enforcement Executor
-- Compute Engine Metadata Adapter
+- Metadata Enforcement Engine
+- Metadata Verification Engine
 
 
 ---

@@ -24,9 +24,10 @@
 - Resource Adapter Layer
 - Metadata Enforcement Execution
 - Compute Engine Label Enforcement
+- Generic Enforcement Engine
 
 ## In Progress
-- Generic Enforcement Engine
+- Metadata Verification
 
 
 ## Planned
