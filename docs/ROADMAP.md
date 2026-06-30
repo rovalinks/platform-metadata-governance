@@ -18,7 +18,6 @@
 - Cloud Asset Inventory
 - Resource Discovery
 - Discovery API
-- Resource Model
 
 ## Planned
 

@@ -8,17 +8,12 @@ from config import PROJECT_ID
 class Dispatcher:
 
     @staticmethod
-    def dispatch():
+    def dispatch(route: str):
 
-        path = request.path
-
-        if path == "/":
+        if route == "health":
             return health()
 
-        if path == "/health":
-            return health()
-
-        if path == "/discover":
+        if route == "discover":
             return discover(PROJECT_ID)
 
         return {

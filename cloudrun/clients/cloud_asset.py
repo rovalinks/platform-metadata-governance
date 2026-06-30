@@ -7,14 +7,10 @@ class CloudAssetClient:
     def __init__(self):
         self.client = asset_v1.AssetServiceClient()
 
-    def list_project_assets(self, project_id: str):
-        """
-        List all assets within a Google Cloud project.
-        """
+    def search_project_resources(self, project_id: str):
 
-        request = asset_v1.ListAssetsRequest(
-            parent=f"projects/{project_id}",
-            content_type=asset_v1.ContentType.RESOURCE,
+        request = asset_v1.SearchAllResourcesRequest(
+            scope=f"projects/{project_id}"
         )
 
-        return self.client.list_assets(request=request)
+        return self.client.search_all_resources(request=request)
