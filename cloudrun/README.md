@@ -19,9 +19,11 @@
 
 ## Runtime Components
 
-### Clients
+## Clients
 
 - Cloud Asset Inventory Client
+- Compute Client
+- Storage Client
 
 ## Services
 
@@ -29,6 +31,7 @@
 - Discovery Service
 - Capability Service
 - Compliance Service
+- Adapter Service
 
 ### Handlers
 

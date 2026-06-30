@@ -58,6 +58,11 @@
 - Registry Metadata Builder
 - Registry-driven Expected Labels
 
+### Sprint 10 - Resource Adapter Layer 🚧
+
+- Resource Adapter Service
+- Compute Adapter
+- Storage Adapter
 
 
 

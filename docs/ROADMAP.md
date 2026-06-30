@@ -20,10 +20,11 @@
 - Metadata Compliance
 - Resource Capability Catalogue
 - Capability-aware Compliance
+- Registry Metadata Builder
 
 ## In Progress
 
-- Registry Metadata Builder
+- Resource Adapter Layer
 
 ## Planned
 
