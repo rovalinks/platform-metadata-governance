@@ -1,51 +1,46 @@
 name: Deploy Metadata Governance
 
 on:
-
   push:
-
     branches:
-
       - main
 
 permissions:
-
   contents: read
-
   id-token: write
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout Repository
-
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-
         uses: google-github-actions/auth@v2
-
         with:
-
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: Setup Cloud SDK
-
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Submit Cloud Build
-
+      - name: Show Active Account
         run: |
+          gcloud auth list
 
+      - name: Show Project
+        run: |
+          gcloud config list
+
+      - name: Show IAM Identity
+        run: |
+          gcloud auth print-identity-token >/dev/null
+          gcloud config get-value account
+
+      - name: Submit Cloud Build
+        run: |
           gcloud builds submit \
-
             --config cloudbuild.yaml \
-
             --substitutions=_IMAGE_TAG=${GITHUB_SHA}

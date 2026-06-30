@@ -1,7 +1,43 @@
-project_id = "platform-metadata-demo"
+# Google Cloud Project configuration
+project_id = "my-gcp-project"
+region     = "europe-west2"
 
-region = "europe-west2"
-
+# Artifact Registry configuration
 artifact_registry_repository = "platform-images"
+artifact_registry_description = "Platform Metadata Governance Images"
 
-artifact_registry_description = "Enterprise Metadata Governance Platform Images"
+# Service Accounts definition
+# Provide a map of objects for each service account required
+service_accounts = {
+  "app-sa" = {
+    account_id   = "app-service-account"
+    display_name = "Application Service Account"
+    description  = "Service account for core application services"
+  }
+}
+
+# IAM roles mapping
+# Key should match the keys in 'service_accounts'
+service_account_roles = {
+  "app-sa" = [
+    "roles/logging.logWriter",
+    "roles/artifactregistry.reader"
+  ]
+}
+
+# Cloud Run service configuration
+cloud_run = {
+  service_name = "my-governance-service"
+  image        = "europe-west2-docker.pkg.dev/my-gcp-project/platform-images/my-app:latest"
+}
+
+# Workload Identity Federation for GitHub Actions
+workload_identity = {
+  pool_id           = "github-pool"
+  provider_id       = "github-provider"
+  github_owner      = "my-github-org"
+  github_repository = "my-repo-name"
+}
+
+# Feature flags
+deploy_cloud_run = false

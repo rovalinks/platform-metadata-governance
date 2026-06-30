@@ -1,19 +1,32 @@
+# Git and Project Configuration
 .gcloudignore
 .git
 .gitignore
+.vscode/
+.idea/
+.env
 
-**/.venv
-**/__pycache__
+# Dependencies and Cache
+.venv/
+__pycache__/
+**/.venv/
+**/__pycache__/
 **/*.pyc
+*.pyc
+.pytest_cache/
 
+# Terraform
 terraform/
-tests/
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.*
+terraform/terraform.tfvars
 
+# Documentation
 docs/
-
 README.md
-
 *.md
 
-.vscode
-.idea
+# Tests
+tests/
