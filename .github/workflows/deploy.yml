@@ -34,10 +34,10 @@ jobs:
         run: |
           gcloud config list
 
-      - name: Show IAM Identity
-        run: |
-          gcloud auth print-identity-token >/dev/null
-          gcloud config get-value account
+      # - name: Show IAM Identity
+      #   run: |
+      #     gcloud auth print-identity-token >/dev/null
+      #     gcloud config get-value account
 
       - name: Submit Cloud Build
         run: |
