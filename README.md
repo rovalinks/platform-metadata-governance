@@ -103,7 +103,11 @@ Implemented:
 - VerificationResult serialization
 - Consistent JSON responses across all REST endpoints
 
+### Sprint 24 - Test Framework
 
+- Configured pytest using `pytest.ini`
+- Tests automatically resolve Cloud Run modules
+- No import path changes required in test files
 
 
 

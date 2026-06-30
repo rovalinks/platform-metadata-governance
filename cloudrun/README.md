@@ -55,6 +55,14 @@ All Google Cloud API exceptions are handled centrally.
 
 Resource execution continues even if an individual resource update fails.
 
+
+## Testing
+
+The repository uses a root-level `pytest.ini` to configure the Python module search path.
+
+This allows test files to import application modules exactly as the application does.
+
+
 ## Endpoints
 
 ### GET /

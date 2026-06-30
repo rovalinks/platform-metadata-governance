@@ -30,6 +30,7 @@
 - Service-level operational logging
 - Centralised exception handling
 - API response model serialization
+- Pytest Configuration
 
 ## In Progress
 
