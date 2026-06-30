@@ -7,17 +7,17 @@ app = Flask(__name__)
 
 @app.get("/")
 def root():
-    return Dispatcher.dispatch()
+    return Dispatcher.dispatch("health")
 
 
 @app.get("/health")
 def health():
-    return Dispatcher.dispatch()
+    return Dispatcher.dispatch("health")
 
 
 @app.get("/discover")
 def discover():
-    return Dispatcher.dispatch()
+    return Dispatcher.dispatch("discover")
 
 
 if __name__ == "__main__":

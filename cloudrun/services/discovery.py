@@ -11,7 +11,7 @@ class DiscoveryService:
 
         resources = []
 
-        for asset in self.client.list_assets(project_id):
+        for asset in self.client.list_project_assets(project_id):
 
             resources.append(
                 Resource(

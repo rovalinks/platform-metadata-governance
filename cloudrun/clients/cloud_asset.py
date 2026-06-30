@@ -7,7 +7,7 @@ class CloudAssetClient:
     def __init__(self):
         self.client = asset_v1.AssetServiceClient()
 
-    def list_assets(self, project_id: str):
+    def list_project_assets(self, project_id: str):
         """
         List all assets within a Google Cloud project.
         """
