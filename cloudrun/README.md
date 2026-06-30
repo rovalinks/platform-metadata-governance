@@ -13,6 +13,8 @@
 - Capability Service
 - Metadata Compliance Engine
 - Metadata Enforcement Planner
+- Metadata Enforcement Executor
+- Compute Engine Metadata Adapter
 
 
 ---
@@ -22,8 +24,8 @@
 ## Clients
 
 - Cloud Asset Inventory Client
-- Compute Client
-- Storage Client
+- Compute Engine Client
+- Cloud Storage Client
 
 ## Services
 

@@ -64,6 +64,10 @@
 - Compute Adapter
 - Storage Adapter
 
+### Sprint 13 - Compute Engine Enforcement 🚧
+
+- Compute Engine Label Update
+- Official Compute Engine Client
 
 
 ## Authentication

@@ -22,10 +22,11 @@
 - Capability-aware Compliance
 - Registry Metadata Builder
 - Resource Adapter Layer
+- Metadata Enforcement Execution
 
 ## In Progress
 
-- Metadata Enforcement Planning
+- Compute Engine Label Enforcement
 
 ## Planned
 
