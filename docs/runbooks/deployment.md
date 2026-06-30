@@ -2,6 +2,7 @@
 
 # Overview
 
+<<<<<<< HEAD
 This guide describes how to deploy the Platform Metadata Governance solution into a Google Cloud project using Terraform, GitHub Actions, Workload Identity Federation, Artifact Registry, and Cloud Run.
 
 The deployment pipeline is fully automated and does not require long-lived service account keys.
@@ -31,11 +32,47 @@ Artifact Registry
       ▼
 Cloud Run
 ```
+=======
+This document describes how to deploy the Platform Metadata Governance solution into a Google Cloud project using Terraform and GitHub Actions.
+
+---
+
+# Architecture
+
+Deployment pipeline
+
+Developer
+↓
+
+Git Push
+↓
+
+GitHub Actions
+
+↓
+
+Workload Identity Federation (OIDC)
+
+↓
+
+Docker Build
+
+↓
+
+Artifact Registry
+
+↓
+
+Cloud Run
+
+No long-lived service account keys are used.
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
 ---
 
 # Prerequisites
 
+<<<<<<< HEAD
 ## Required Software
 
 Install the following tools:
@@ -64,28 +101,64 @@ Terraform will require these APIs to be enabled before deployment.
 ---
 
 # Clone the Repository
+=======
+## Google Cloud APIs
 
-```bash
-git clone <repository-url>
+Enable:
 
-cd platform-metadata-governance
-```
+- Artifact Registry API
+- Cloud Asset API
+- Cloud Run Admin API
+- IAM API
+- IAM Credentials API
+- Resource Manager API
+- Service Usage API
+
+---
+
+## GitHub
+
+Fork or clone the repository.
+
+---
+
+## Terraform
+
+Install Terraform.
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
+
+---
+
+## Google Cloud CLI
+
+Install gcloud CLI.
+
+Authenticate.
 
 ---
 
 # Configure Terraform
 
+<<<<<<< HEAD
 Copy the example configuration.
+=======
+Copy
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
-```bash
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-```
+terraform.tfvars.example
+
+↓
+
+terraform.tfvars
 
 Update the following values:
 
 - project_id
 - region
+<<<<<<< HEAD
 - artifact_registry_repository
+=======
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 - GitHub owner
 - GitHub repository
 
@@ -115,9 +188,12 @@ workload_identity = {
 
 # Deploy Infrastructure
 
+<<<<<<< HEAD
 Deploy the Google Cloud infrastructure.
 
 ```bash
+=======
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 cd terraform
 
 terraform init
@@ -125,20 +201,26 @@ terraform init
 terraform plan
 
 terraform apply
-```
 
 Terraform provisions:
 
 - Artifact Registry
 - Service Accounts
+<<<<<<< HEAD
 - IAM Roles
 - Workload Identity Federation
 - Cloud Run Service
+=======
+- IAM
+- Workload Identity Federation
+- Cloud Run
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
 ---
 
 # Configure GitHub Secrets
 
+<<<<<<< HEAD
 Open
 
 Settings
@@ -171,11 +253,20 @@ WIF_SERVICE_ACCOUNT
 
 github-actions-sa@my-project.iam.gserviceaccount.com
 ```
+=======
+Create:
+
+| Secret | Description |
+|----------|-------------|
+| WIF_PROVIDER | Workload Identity Provider |
+| WIF_SERVICE_ACCOUNT | GitHub Actions Service Account |
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
 ---
 
 # GitHub Actions Deployment
 
+<<<<<<< HEAD
 Deployment is fully automated.
 
 Whenever code is merged into the **main** branch:
@@ -234,11 +325,22 @@ Platform Metadata Governance
 ```
 
 No Python code changes are required when onboarding new applications.
+=======
+Push to main.
+
+GitHub Actions will:
+
+1. Authenticate using Workload Identity Federation.
+2. Build the Docker image.
+3. Push the image to Artifact Registry.
+4. Deploy Cloud Run.
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
 ---
 
-# Verify Deployment
+# Verify
 
+<<<<<<< HEAD
 After deployment, verify the following endpoints.
 
 | Endpoint | Description |
@@ -346,3 +448,26 @@ Cloud Run
 
 Platform Metadata Governance
 ```
+=======
+Verify:
+
+GET /health
+
+GET /discover
+
+GET /compliance
+
+GET /verify
+
+GET /enforce
+
+GET /report
+
+---
+
+# Remove Infrastructure
+
+cd terraform
+
+terraform destroy
+>>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
