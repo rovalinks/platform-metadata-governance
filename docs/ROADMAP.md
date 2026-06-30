@@ -2,46 +2,42 @@
 
 ## Completed
 
-- Terraform Backend
-- Artifact Registry
-- Service Accounts
-- IAM
-- Validation Framework
-- Registry Reader
+- Terraform backend
+- Validation framework
+- Registry reader
 - Cloud Build
 - Cloud Run
-- GitHub OIDC
-- Application Registry
-- Registry Validation
-- Governance Service
-- Cloud Asset Inventory
-- Resource Discovery
-- Compliance Engine
-- Metadata Compliance
-- Resource Capability Catalogue
-- Capability-aware Compliance
-- Registry Metadata Builder
-- Resource Adapter Layer
-- Metadata Enforcement Execution
-- Generic Enforcement Engine
-- Compute Engine Label Enforcement
-- Generic Execution Pipeline
-- Governance Reporting
-- Service-level operational logging
+- GitHub OIDC authentication
+- Artifact Registry
+- IAM
+- Application registry
+- Registry validation
+- Governance service
+- Cloud Asset Inventory discovery
+- Resource discovery API
+- Compliance engine
+- Capability service
+- Verification engine
+- Generic enforcement engine
+- Compute Engine enforcement
+- BigQuery Dataset enforcement
+- Generic execution pipeline
+- Governance reporting
+- Centralised logging
 - Centralised exception handling
-- API response model serialization
-- Pytest Configuration
-- ExecutorService Unit Tests
-- ReportService Unit Tests
+- API model serialization
+- Pytest configuration
+- Unit testing
 
 ## In Progress
 
-- API Documentation
+- API documentation
 
 ## Planned
 
-- Eventarc Integration
-- Automatic Metadata Enforcement
-- Cloud Scheduler
+- Deployment guide
+- Client demonstration guide
+- Eventarc integration
+- Event-driven enforcement
 - Monitoring
 - Alerting

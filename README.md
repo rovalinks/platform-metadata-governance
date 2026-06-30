@@ -1,121 +1,113 @@
-## Current Progress
+# Platform Metadata Governance
 
-### Sprint 1 - Foundation ✅
+## Overview
 
-- Terraform Backend
-- Validation Framework
-- Registry Reader
+Platform Metadata Governance is a registry-driven metadata governance platform for Google Cloud.
 
-### Sprint 2 - Platform Infrastructure ✅
+The platform discovers cloud resources using Cloud Asset Inventory, compares them against a centrally managed application registry, evaluates metadata compliance, and automatically applies metadata to supported resources.
+
+Current supported enforcement targets:
+
+- Compute Engine Instances
+- BigQuery Datasets
+
+---
+
+# Project Progress
+
+## Completed
+
+### Sprint 1 - Foundation
+
+- Terraform backend
+- Registry reader
+- Validation framework
+
+### Sprint 2 - Platform Infrastructure
 
 - Artifact Registry
 - Service Accounts
 - IAM
 - Workload Identity Federation
 
-### Sprint 3 - Runtime & CI/CD ✅
+### Sprint 3 - Runtime & CI/CD
 
 - Cloud Build
 - Cloud Run
 - GitHub Actions
-- OIDC Authentication
+- GitHub OIDC Authentication
 
-### Sprint 4 - Discovery ✅
+### Sprint 4 - Discovery
 
-- Cloud Asset Inventory Client
-- Resource Discovery Service
+- Cloud Asset Inventory client
+- Discovery service
 - Discovery API
-- Common Resource Model
+- Common resource model
 
-### Sprint 5 - Registry ✅
+### Sprint 5 - Registry
 
-- Application Registry
-- JSON Schema
-- Registry Validation
-- Governance Service
+- Application registry
+- JSON Schema validation
+- Registry validation
+- Governance service
 
-### Sprint 6 - Compliance Engine ✅
+### Sprint 6 - Compliance Engine
 
-- Expected Metadata Model
-- Metadata Comparison
-- Compliance Evaluation
+- Expected metadata model
+- Compliance evaluation
 - Compliance API
 
-### Sprint 7 - Compliance Reporting ✅
+### Sprint 7 - Compliance Reporting
 
-- Compliance Summary
-- Compliance Dashboard API
+- Compliance summary
+- Governance reporting API
 
+### Sprint 8 - Capability Filtering
 
-### Sprint 8 - Resource Capability Filtering ✅
+- Resource capability catalogue
+- Capability service
+- Supported resource filtering
 
-- Resource Capability Catalogue
-- Capability Service
-- Label-Capable Resource Filtering
+### Sprint 9 - Registry Metadata
 
-### Sprint 9 - Registry Metadata Model 🚧
+- Registry-driven metadata model
+- Registry-driven expected labels
 
-- Registry Metadata Builder
-- Registry-driven Expected Labels
+### Sprint 10 - Resource Adapter Layer
 
-### Sprint 10 - Resource Adapter Layer 🚧
+- Adapter framework
+- Compute adapter
+- BigQuery adapter
 
-- Resource Adapter Service
-- Compute Adapter
-- Storage Adapter
+### Sprint 11 - Enforcement Engine
 
-### Sprint 13 - Compute Engine Enforcement 🚧
+- Generic enforcement engine
+- Generic executor
+- Adapter-based execution
 
-- Compute Engine Label Update
-- Official Compute Engine Client
+### Sprint 12 - Verification
 
-### Sprint 14 - Generic Enforcement Engine 🚧
-
-- Generic Executor
-- Adapter-based Execution
-
-### Sprint 15 - Verification Engine 🚧
-
-- Verification Model
-- Verification Service
+- Verification service
 - Verification API
+- Verification model
 
-### Sprint 16 - BigQuery Dataset Enforcement 🚧
+### Sprint 13 - Compute Engine Enforcement
 
-- BigQuery Client
-- Dataset Metadata Adapter
+- Compute Engine label enforcement
+- Official Google Cloud Compute client
 
-### Sprint 22 - Centralised Exception Handling
+### Sprint 14 - BigQuery Dataset Enforcement
 
-Implemented:
+- BigQuery Dataset label enforcement
+- Official BigQuery client
 
-- Centralised Google Cloud exception formatting
-- Executor-level exception handling
-- Per-resource execution results
+### Sprint 15 - Production Hardening
 
-### Sprint 23 - API Model Serialization
-
-Implemented:
-
-- ComplianceResult serialization
-- ComplianceSummary serialization
-- GovernanceReport serialization
-- VerificationResult serialization
-- Consistent JSON responses across all REST endpoints
-
-### Sprint 24 - Unit Testing
-
-Completed:
-
-- CapabilityService
-- GovernanceService
-- ComplianceService
-- AdapterService
-- ExecutorService
-- ReportService
-
-All business logic is covered by unit tests using mocked dependencies.
-
+- Centralised logging
+- Centralised exception handling
+- API model serialization
+- Unit testing
+- Pytest configuration
 
 
 ### Logging
@@ -131,6 +123,7 @@ All business logic is covered by unit tests using mocked dependencies.
 The platform uses GitHub OpenID Connect (OIDC) with Google Cloud Workload Identity Federation.
 
 No service account keys are stored in GitHub.
+
 
 ## Platform Identities
 
@@ -211,3 +204,20 @@ Cloud Build
 Artifact Registry
 
 Container images are tagged using the Git commit SHA.
+
+
+## REST API
+
+| Endpoint | Description |
+|----------|-------------|
+| GET / | Service information |
+| GET /health | Service health |
+| GET /discover | Discover supported Google Cloud resources |
+| GET /compliance | Evaluate metadata compliance |
+| GET /verify | Verify metadata after enforcement |
+| GET /enforce | Apply metadata to supported resources |
+| GET /report | Governance summary report |
+
+Detailed API documentation is available in:
+
+docs/api/API.md
