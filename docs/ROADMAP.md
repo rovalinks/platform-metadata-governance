@@ -28,10 +28,10 @@
 - API model serialization
 - Pytest configuration
 - Unit testing
+- API documentation
+- Registry duplicate project validation
 
 ## In Progress
-
-- API documentation
 
 ## Planned
 

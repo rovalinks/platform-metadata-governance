@@ -110,6 +110,15 @@ Current supported enforcement targets:
 - Pytest configuration
 
 
+### Registry Validation
+
+The registry enforces:
+
+- JSON Schema validation
+- Required fields
+- Valid field formats
+- Unique `projectId` across all registry files
+
 ### Logging
 
 - Shared application logger
