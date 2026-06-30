@@ -53,8 +53,8 @@ jobs:
       - name: Deploy Cloud Run
         run: |
           gcloud run deploy metadata-governance \
-            --image=europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }} \
-            --region=$REGION \
-            --service-account=governance-engine-sa@$PROJECT_ID.iam.gserviceaccount.com \
-            --platform=managed \
+            --project=platform-metadata-demo \
+            --region=europe-west2 \
+            --image=europe-west2-docker.pkg.dev/platform-metadata-demo/platform-images/governance-engine:${GITHUB_SHA} \
+            --service-account=governance-engine-sa@platform-metadata-demo.iam.gserviceaccount.com \
             --allow-unauthenticated

@@ -1,6 +1,6 @@
 resource "google_iam_workload_identity_pool" "github" {
 
-  project = var.project_id
+  project = data.google_project.current.number
 
   workload_identity_pool_id = var.workload_identity.pool_id
 
@@ -13,7 +13,7 @@ resource "google_iam_workload_identity_pool" "github" {
 
 resource "google_iam_workload_identity_pool_provider" "github" {
 
-  project = var.project_id
+  project = data.google_project.current.number
 
   workload_identity_pool_id = google_iam_workload_identity_pool.github.workload_identity_pool_id
 
@@ -44,4 +44,8 @@ resource "google_service_account_iam_member" "github_actions" {
   role = "roles/iam.workloadIdentityUser"
 
   member = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.workload_identity.github_owner}/${var.workload_identity.github_repository}"
+}
+
+data "google_project" "current" {
+  project_id = var.project_id
 }
