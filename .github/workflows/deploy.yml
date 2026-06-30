@@ -10,10 +10,19 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+
+  deploy:
+
     runs-on: ubuntu-latest
 
+    env:
+      PROJECT_ID: platform-metadata-demo
+      REGION: europe-west2
+      REPOSITORY: platform-images
+      IMAGE_NAME: governance-engine
+
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -26,21 +35,26 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Show Active Account
+      - name: Configure Docker
         run: |
-          gcloud auth list
+          gcloud auth configure-docker europe-west2-docker.pkg.dev --quiet
 
-      - name: Show Project
+      - name: Build Image
         run: |
-          gcloud config list
+          docker build \
+            -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }} \
+            ./cloudrun
 
-      # - name: Show IAM Identity
-      #   run: |
-      #     gcloud auth print-identity-token >/dev/null
-      #     gcloud config get-value account
-
-      - name: Submit Cloud Build
+      - name: Push Image
         run: |
-          gcloud builds submit \
-            --config cloudbuild.yaml \
-            --substitutions=_IMAGE_TAG=${GITHUB_SHA}
+          docker push \
+            europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}
+
+      - name: Deploy Cloud Run
+        run: |
+          gcloud run deploy metadata-governance \
+            --image=europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }} \
+            --region=$REGION \
+            --service-account=governance-engine-sa@$PROJECT_ID.iam.gserviceaccount.com \
+            --platform=managed \
+            --allow-unauthenticated
