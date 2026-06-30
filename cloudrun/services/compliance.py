@@ -1,14 +1,13 @@
+from utils.logger import logger
 from models.compliance import ComplianceResult, ComplianceSummary
 from services.discovery import DiscoveryService
 from services.governance import GovernanceService
 from services.capability import CapabilityService
-from utils.logger import logger
-
 
 class ComplianceService:
 
-    def __init__(self):
-        self.discovery = DiscoveryService()
+    def __init__(self, discovery):
+        self.discovery = discovery
         self.governance = GovernanceService()
         self.capability = CapabilityService()
 

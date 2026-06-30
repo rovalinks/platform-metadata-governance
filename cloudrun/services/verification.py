@@ -4,8 +4,8 @@ from services.discovery import DiscoveryService
 from services.governance import GovernanceService
 
 class VerificationService:
-    def __init__(self):
-        self.discovery = DiscoveryService()
+    def __init__(self, discovery):
+        self.discovery = discovery
         self.governance = GovernanceService()
 
     def verify(self, project_id: str):

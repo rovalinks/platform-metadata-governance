@@ -74,6 +74,11 @@ Returns resources discovered using Google Cloud Asset Inventory.
 Returns governance results by comparing discovered resources against the Metadata Registry.
 
 
+## Response Serialization
+
+All response models implement a `to_dict()` method, ensuring a consistent JSON contract for every REST endpoint.
+
+
 ## Logging
 
 The following services emit operational logs:

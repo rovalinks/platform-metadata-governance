@@ -29,10 +29,11 @@
 - Governance Reporting
 - Service-level operational logging
 - Centralised exception handling
+- API response model serialization
 
 ## In Progress
 
-- Discovery caching
+- Production stabilisation
 
 ## Planned
 

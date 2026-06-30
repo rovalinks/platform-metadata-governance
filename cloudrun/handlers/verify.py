@@ -1,18 +1,16 @@
-from dataclasses import asdict
-
 from flask import jsonify
 
+from services.context import RequestContext
 from services.verification import VerificationService
 
-
-service = VerificationService()
+context = RequestContext()
+service = VerificationService(context.discovery)
 
 
 def verify(project_id: str):
-
     return jsonify(
         [
-            asdict(result)
+            result.to_dict()
             for result in service.verify(project_id)
         ]
     )

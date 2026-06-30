@@ -5,8 +5,9 @@ from services.executor import ExecutorService
 
 
 class EnforcementService:
-    def __init__(self):
-        self.compliance = ComplianceService()
+    def __init__(self, discovery):
+        self.discovery = discovery
+        self.compliance = ComplianceService(discovery)
         self.adapters = AdapterService()
         self.executor = ExecutorService()
 

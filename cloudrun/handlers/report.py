@@ -1,17 +1,14 @@
-from dataclasses import asdict
-
 from flask import jsonify
 
+from services.context import RequestContext
 from services.report import ReportService
 
-
-service = ReportService()
+context = RequestContext()
+service = ReportService(context.discovery)
 
 
 def report(project_id: str):
 
     return jsonify(
-        asdict(
-            service.report(project_id)
-        )
+        service.report(project_id).to_dict()
     )

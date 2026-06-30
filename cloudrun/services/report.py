@@ -6,10 +6,10 @@ from services.enforcement import EnforcementService
 
 class ReportService:
 
-    def __init__(self):
-        self.discovery = DiscoveryService()
-        self.compliance = ComplianceService()
-        self.enforcement = EnforcementService()
+    def __init__(self, discovery):
+        self.discovery = discovery
+        self.compliance = ComplianceService(discovery)
+        self.enforcement = EnforcementService(discovery)
 
     def report(self, project_id: str):
         logger.info("Generating governance report")
