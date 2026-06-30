@@ -53,10 +53,10 @@
 - Capability Service
 - Label-Capable Resource Filtering
 
-### Sprint 9 - Metadata Enforcement 🚧
+### Sprint 9 - Registry Metadata Model 🚧
 
-- Enforcement Service
-- Resource Label Application
+- Registry Metadata Builder
+- Registry-driven Expected Labels
 
 
 

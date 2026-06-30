@@ -2,17 +2,17 @@ from registry.reader import RegistryReader
 
 
 class GovernanceService:
-    """Provides application governance metadata."""
+    """Provides governance metadata from the registry."""
 
     def __init__(self):
 
-        self.applications = RegistryReader().load_all()
+        self.registry = RegistryReader()
 
     def applications_for_project(self, project_id: str):
 
         matches = []
 
-        for application in self.applications:
+        for application in self.registry.load_all():
 
             for binding in application["bindings"]["gcp"]:
 
@@ -42,14 +42,16 @@ class GovernanceService:
 
         binding = application["bindings"]["gcp"][0]
 
-        return {
-            "application": application["product"],
-            "team": application["team"],
-            "owner": application["owner"],
-            "budgetowner": application["budgetOwner"],
-            "organization": application["organization"],
-            "department": application["department"],
-            "costcenter": application["costCenter"],
-            "environment": binding["environment"],
-            "businesscriticality": binding["businessCriticality"],
-        }
+        labels = {}
+
+        labels["application"] = application["product"]
+        labels["team"] = application["team"]
+        labels["owner"] = application["owner"]
+        labels["budgetowner"] = application["budgetOwner"]
+        labels["organization"] = application["organization"]
+        labels["department"] = application["department"]
+        labels["costcenter"] = application["costCenter"]
+        labels["environment"] = binding["environment"]
+        labels["businesscriticality"] = binding["businessCriticality"]
+
+        return labels

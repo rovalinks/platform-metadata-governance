@@ -19,10 +19,11 @@
 - Compliance Engine
 - Metadata Compliance
 - Resource Capability Catalogue
+- Capability-aware Compliance
 
 ## In Progress
 
-- Metadata Enforcement
+- Registry Metadata Builder
 
 ## Planned
 
