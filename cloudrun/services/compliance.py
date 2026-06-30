@@ -16,23 +16,39 @@ class ComplianceService:
 
         resources = self.discovery.discover(project_id)
 
-        registered_products = self.governance.registered_products(project_id)
+        expected_labels = self.governance.expected_labels(project_id)
 
         results = []
 
         for resource in resources:
 
-            registered = any(
-                product.lower() in resource.name.lower()
-                for product in registered_products
-            )
+            missing = []
+
+            incorrect = []
+
+            for key, expected_value in expected_labels.items():
+
+                actual = resource.labels.get(key)
+
+                if actual is None:
+
+                    missing.append(key)
+
+                elif str(actual) != str(expected_value):
+
+                    incorrect.append(key)
 
             results.append(
                 ComplianceResult(
                     asset_type=resource.asset_type,
                     name=resource.name,
                     project=resource.project,
-                    registered=registered,
+                    compliant=(
+                        len(missing) == 0
+                        and len(incorrect) == 0
+                    ),
+                    missing_labels=missing,
+                    incorrect_labels=incorrect,
                 )
             )
 

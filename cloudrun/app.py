@@ -20,8 +20,7 @@ def discover():
     return Dispatcher.dispatch("discover")
 
 @app.get("/compliance")
-def compliance():
-
+def compliance_endpoint():
     return Dispatcher.dispatch("compliance")
 
 if __name__ == "__main__":

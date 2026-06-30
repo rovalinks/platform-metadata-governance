@@ -27,11 +27,12 @@ class GovernanceService:
         applications = self.applications_for_project(project_id)
 
         if not applications:
+
             return None
 
         return applications[0]
 
-        def expected_labels(self, project_id: str):
+    def expected_labels(self, project_id: str):
 
         application = self.metadata_for_project(project_id)
 

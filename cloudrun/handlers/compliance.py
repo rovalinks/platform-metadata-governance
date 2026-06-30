@@ -15,6 +15,9 @@ def compliance(project_id: str):
     return jsonify(
         {
             "resourceCount": len(results),
-            "results": [asdict(result) for result in results],
+            "results": [
+                asdict(result)
+                for result in results
+            ],
         }
     )
