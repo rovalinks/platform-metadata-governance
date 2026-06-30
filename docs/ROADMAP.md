@@ -16,12 +16,10 @@
 - Resource Discovery
 - Governance Foundation
 - Registry Validation
+- Governance Service
 
 ## In Progress
-
-- Registry Policy Evaluation
 - Mandatory Label Validation
-- Governance Decision Engine
 
 ## Planned
 
