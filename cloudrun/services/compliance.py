@@ -1,24 +1,22 @@
 from models.compliance import ComplianceResult
+
 from services.discovery import DiscoveryService
-from registry.reader import RegistryReader
+from services.governance import GovernanceService
 
 
 class ComplianceService:
 
     def __init__(self):
+
         self.discovery = DiscoveryService()
-        self.registry = RegistryReader()
+
+        self.governance = GovernanceService()
 
     def evaluate(self, project_id: str):
 
         resources = self.discovery.discover(project_id)
 
-        applications = self.registry.load_all()
-
-        registered_products = {
-            application["product"]
-            for application in applications
-        }
+        registered_products = self.governance.registered_products(project_id)
 
         results = []
 

@@ -21,3 +21,20 @@ class GovernanceService:
                     matches.append(application)
 
         return matches
+
+    def registered_products(self, project_id: str):
+
+        return {
+            application["product"]
+            for application in self.applications_for_project(project_id)
+        }
+
+    def governance_policy(self, product: str):
+
+        for application in self.applications:
+
+            if application["product"] == product:
+
+                return application["governance"]
+
+        return None
