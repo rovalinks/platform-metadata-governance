@@ -63,3 +63,9 @@ State locking is handled automatically by the GCS backend.
 - workload-identity
 - cloud-build-trigger
 - cloud-run
+
+## GitHub Actions
+
+The GitHub Actions service account must be granted the required IAM roles defined in `terraform.tfvars`.
+
+These permissions are required for Cloud Build submission and Cloud Run deployment.

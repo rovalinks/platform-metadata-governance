@@ -1,43 +1,107 @@
-# Google Cloud Project configuration
-project_id = "my-gcp-project"
-region     = "europe-west2"
+# ------------------------------------------------------------------
+# Google Cloud Project
+# ------------------------------------------------------------------
 
-# Artifact Registry configuration
+project_id = "my-gcp-project"
+
+region = "europe-west2"
+
+# ------------------------------------------------------------------
+# Artifact Registry
+# ------------------------------------------------------------------
+
 artifact_registry_repository = "platform-images"
+
 artifact_registry_description = "Platform Metadata Governance Images"
 
-# Service Accounts definition
-# Provide a map of objects for each service account required
+# ------------------------------------------------------------------
+# Service Accounts
+# ------------------------------------------------------------------
+
 service_accounts = {
-  "app-sa" = {
-    account_id   = "app-service-account"
-    display_name = "Application Service Account"
-    description  = "Service account for core application services"
+
+  terraform = {
+    account_id   = "terraform-sa"
+    display_name = "Terraform Service Account"
+    description  = "Deploys platform infrastructure using Terraform"
+  }
+
+  governance = {
+    account_id   = "governance-engine-sa"
+    display_name = "Metadata Governance Engine"
+    description  = "Runs the Cloud Run governance service"
+  }
+
+  github = {
+    account_id   = "github-actions-sa"
+    display_name = "GitHub Actions"
+    description  = "Used by GitHub Actions through Workload Identity Federation"
+  }
+
+  cloudbuild = {
+    account_id   = "cloud-build-sa"
+    display_name = "Cloud Build"
+    description  = "Builds and deploys the governance platform"
   }
 }
 
-# IAM roles mapping
-# Key should match the keys in 'service_accounts'
+# ------------------------------------------------------------------
+# IAM Roles
+# ------------------------------------------------------------------
+
 service_account_roles = {
-  "app-sa" = [
+
+  terraform = [
+    "roles/serviceusage.serviceUsageAdmin",
+    "roles/iam.serviceAccountAdmin",
+    "roles/artifactregistry.admin"
+  ]
+
+  github = [
+    "roles/cloudbuild.builds.editor",
+    "roles/artifactregistry.writer",
+    "roles/storage.objectAdmin",
+    "roles/run.developer",
+    "roles/serviceusage.serviceUsageConsumer"
+  ]
+
+  governance = [
     "roles/logging.logWriter",
-    "roles/artifactregistry.reader"
+    "roles/cloudasset.viewer",
+    "roles/viewer"
+  ]
+
+  cloudbuild = [
+    "roles/artifactregistry.writer",
+    "roles/logging.logWriter",
+    "roles/storage.objectViewer",
+    "roles/run.developer"
   ]
 }
 
-# Cloud Run service configuration
+# ------------------------------------------------------------------
+# Cloud Run
+# ------------------------------------------------------------------
+
 cloud_run = {
-  service_name = "my-governance-service"
-  image        = "europe-west2-docker.pkg.dev/my-gcp-project/platform-images/my-app:latest"
+  service_name = "metadata-governance"
+
+  image = "europe-west2-docker.pkg.dev/my-gcp-project/platform-images/governance-engine:latest"
 }
 
-# Workload Identity Federation for GitHub Actions
+# ------------------------------------------------------------------
+# Workload Identity Federation
+# ------------------------------------------------------------------
+
 workload_identity = {
   pool_id           = "github-pool"
   provider_id       = "github-provider"
   github_owner      = "my-github-org"
-  github_repository = "my-repo-name"
+  github_repository = "my-repository"
 }
 
-# Feature flags
-deploy_cloud_run = false
+# ------------------------------------------------------------------
+# Feature Flags
+# ------------------------------------------------------------------
+
+deploy_cloud_run = true
