@@ -33,11 +33,11 @@
 - Compliance API
 - Governance Service
 
-### Sprint 6 - Registry-based Governance 🚧
+### Sprint 6 - Registry Validation ✅
 
-- Registry Policy Evaluation
-- Mandatory Label Validation
-- Governance Decision Engine
+- Application Schema
+- Registry Validation Framework
+- JSON Schema Validation
 
 
 

@@ -15,6 +15,7 @@
 - Cloud Asset Inventory
 - Resource Discovery
 - Governance Foundation
+- Registry Validation
 
 ## In Progress
 

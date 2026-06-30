@@ -8,6 +8,18 @@ organization: rba
 department: cloud-platform-engineering
 costCenter: PLACEHOLDER
 
+governance:
+  discoveryEnabled: true
+
+  resourceTypes:
+    - compute.googleapis.com/Instance
+    - storage.googleapis.com/Bucket
+
+  mandatoryLabels:
+    - application
+    - owner
+    - environment
+
 bindings:
   gcp:
     - projectId: platform-metadata-demo
