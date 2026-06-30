@@ -8,11 +8,10 @@
 ## Responsibilities
 
 - Registry Reader
-- Cloud Asset Inventory Integration
-- Resource Discovery
-- Governance Evaluation
-- Compliance Evaluation
-
+- Governance Service
+- Resource Discovery Service
+- Metadata Compliance Engine
+- Compliance API
 
 ---
 
@@ -22,13 +21,11 @@
 
 - Cloud Asset Inventory Client
 
-### Services
-
-### Services
+## Services
 
 - Governance Service
-- Resource Discovery
-- Compliance Evaluation
+- Discovery Service
+- Compliance Service
 
 ### Handlers
 

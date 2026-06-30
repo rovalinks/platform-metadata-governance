@@ -13,39 +13,40 @@
 - IAM
 - Workload Identity Federation
 
-### Sprint 3 - Runtime & Deployment ✅
+### Sprint 3 - Runtime & CI/CD ✅
 
 - Cloud Build
-- Container Image
 - Cloud Run
-- GitHub Actions Authentication
+- GitHub Actions
+- OIDC Authentication
 
-### Sprint 4 - Resource Discovery ✅
+### Sprint 4 - Discovery ✅
 
 - Cloud Asset Inventory Client
 - Resource Discovery Service
 - Discovery API
 - Common Resource Model
 
-### Sprint 5 - Governance Foundation ✅
+### Sprint 5 - Registry ✅
 
-- Registry Comparison
-- Compliance API
-- Governance Service
-
-### Sprint 6 - Registry Validation ✅
-
-- Application Schema
-- Registry Validation Framework
-- JSON Schema Validation
-
-
-### Sprint 7 - Governance Engine 🚧
-
-- Registry Schema
+- Application Registry
+- JSON Schema
 - Registry Validation
 - Governance Service
-- Compliance Engine
+
+### Sprint 6 - Compliance Engine ✅
+
+- Expected Metadata Model
+- Metadata Comparison
+- Compliance Evaluation
+- Compliance API
+
+### Sprint 7 - Compliance Reporting 🚧
+
+- Compliance Summary
+- Compliance Dashboard API
+
+
 
 
 

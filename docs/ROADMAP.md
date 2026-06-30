@@ -9,22 +9,23 @@
 - Validation Framework
 - Registry Reader
 - Cloud Build
-- Container Image
-- Workload Identity Federation
 - Cloud Run
-- Cloud Asset Inventory
-- Resource Discovery
-- Governance Foundation
+- GitHub OIDC
+- Application Registry
 - Registry Validation
 - Governance Service
+- Cloud Asset Inventory
+- Resource Discovery
+- Compliance Engine
 
 ## In Progress
-- Compliance Engine
-- Registry Policy Evaluation
+
+- Compliance Reporting
 
 ## Planned
 
 - Eventarc Integration
+- Automatic Metadata Enforcement
 - Cloud Scheduler
 - Monitoring
 - Alerting
