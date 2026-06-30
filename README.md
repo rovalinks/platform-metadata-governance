@@ -40,7 +40,12 @@
 - JSON Schema Validation
 
 
+### Sprint 7 - Governance Engine 🚧
 
+- Registry Schema
+- Registry Validation
+- Governance Service
+- Compliance Engine
 
 
 

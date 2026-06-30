@@ -19,7 +19,8 @@
 - Governance Service
 
 ## In Progress
-- Mandatory Label Validation
+- Compliance Engine
+- Registry Policy Evaluation
 
 ## Planned
 
