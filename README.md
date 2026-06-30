@@ -27,11 +27,17 @@
 - Discovery API
 - Common Resource Model
 
-### Sprint 5 - Compliance Engine ✅
+### Sprint 5 - Governance Foundation ✅
 
 - Registry Comparison
-- Compliance Evaluation
 - Compliance API
+- Governance Service
+
+### Sprint 6 - Registry-based Governance 🚧
+
+- Registry Policy Evaluation
+- Mandatory Label Validation
+- Governance Decision Engine
 
 
 

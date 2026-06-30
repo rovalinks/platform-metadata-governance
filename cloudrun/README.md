@@ -10,7 +10,9 @@
 - Registry Reader
 - Cloud Asset Inventory Integration
 - Resource Discovery
+- Governance Evaluation
 - Compliance Evaluation
+
 
 ---
 
@@ -23,6 +25,7 @@
 ### Services
 
 - Resource Discovery
+- Governance Evaluation
 - Compliance Evaluation
 
 ### Handlers

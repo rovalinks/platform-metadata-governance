@@ -14,19 +14,13 @@
 - Cloud Run
 - Cloud Asset Inventory
 - Resource Discovery
-- Discovery API
-- Registry Comparison
-- Compliance Engine
-
----
+- Governance Foundation
 
 ## In Progress
 
-- Label Compliance Engine
 - Registry Policy Evaluation
-- Metadata Validation
-
----
+- Mandatory Label Validation
+- Governance Decision Engine
 
 ## Planned
 
@@ -34,6 +28,3 @@
 - Cloud Scheduler
 - Monitoring
 - Alerting
-- Automatic Metadata Remediation
-- Multi-project Discovery
-- Organization-level Governance
