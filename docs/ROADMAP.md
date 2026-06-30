@@ -17,10 +17,11 @@
 - Cloud Asset Inventory
 - Resource Discovery
 - Compliance Engine
+- Metadata Compliance
 
 ## In Progress
 
-- Compliance Reporting
+- Resource Capability Filtering
 
 ## Planned
 

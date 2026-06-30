@@ -1,4 +1,4 @@
-from models.compliance import ComplianceResult
+from models.compliance import ComplianceResult, ComplianceSummary
 
 from services.discovery import DiscoveryService
 from services.governance import GovernanceService
@@ -53,3 +53,29 @@ class ComplianceService:
             )
 
         return results
+
+    def summary(self, project_id: str):
+
+        results = self.evaluate(project_id)
+
+        total = len(results)
+
+        compliant = sum(
+            1 for result in results
+            if result.compliant
+        )
+
+        non_compliant = total - compliant
+
+        percentage = (
+            (compliant / total) * 100
+            if total > 0
+            else 100
+        )
+
+        return ComplianceSummary(
+            total_resources=total,
+            compliant_resources=compliant,
+            non_compliant_resources=non_compliant,
+            compliance_percentage=round(percentage, 2),
+        )

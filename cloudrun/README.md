@@ -12,6 +12,7 @@
 - Resource Discovery Service
 - Metadata Compliance Engine
 - Compliance API
+- Resource Capability Filtering
 
 ---
 
