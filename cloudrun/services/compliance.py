@@ -2,6 +2,7 @@ from models.compliance import ComplianceResult, ComplianceSummary
 
 from services.discovery import DiscoveryService
 from services.governance import GovernanceService
+from services.capability import CapabilityService
 
 
 class ComplianceService:
@@ -12,6 +13,8 @@ class ComplianceService:
 
         self.governance = GovernanceService()
 
+        self.capability = CapabilityService()
+
     def evaluate(self, project_id: str):
 
         resources = self.discovery.discover(project_id)
@@ -21,6 +24,9 @@ class ComplianceService:
         results = []
 
         for resource in resources:
+
+            if not self.capability.supports_labels(resource.asset_type):
+                continue
 
             missing = []
 

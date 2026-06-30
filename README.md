@@ -47,10 +47,11 @@
 - Compliance Dashboard API
 
 
-### Sprint 8 - Resource Capability Catalogue 🚧
+### Sprint 8 - Resource Capability Filtering 🚧
 
-- Label Capability Catalogue
+- Resource Capability Catalogue
 - Capability Service
+- Label-Capable Resource Filtering
 
 
 

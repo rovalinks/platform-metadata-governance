@@ -12,7 +12,7 @@
 - Resource Discovery Service
 - Resource Capability Service
 - Metadata Compliance Engine
-- Compliance API
+- Compliance Reporting API
 
 ---
 
@@ -26,6 +26,7 @@
 
 - Governance Service
 - Discovery Service
+- Capability Service
 - Compliance Service
 
 ### Handlers

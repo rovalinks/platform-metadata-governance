@@ -18,10 +18,11 @@
 - Resource Discovery
 - Compliance Engine
 - Metadata Compliance
+- Resource Capability Catalogue
 
 ## In Progress
 
-- Resource Capability Catalogue
+- Compliance Reporting
 
 ## Planned
 
