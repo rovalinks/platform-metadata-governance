@@ -21,7 +21,7 @@
 
 ## In Progress
 
-- Resource Capability Filtering
+- Resource Capability Catalogue
 
 ## Planned
 

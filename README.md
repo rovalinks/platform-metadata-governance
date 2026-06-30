@@ -41,11 +41,16 @@
 - Compliance Evaluation
 - Compliance API
 
-### Sprint 7 - Compliance Reporting 🚧
+### Sprint 7 - Compliance Reporting ✅
 
 - Compliance Summary
 - Compliance Dashboard API
 
+
+### Sprint 8 - Resource Capability Catalogue 🚧
+
+- Label Capability Catalogue
+- Capability Service
 
 
 

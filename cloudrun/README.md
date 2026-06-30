@@ -10,9 +10,9 @@
 - Registry Reader
 - Governance Service
 - Resource Discovery Service
+- Resource Capability Service
 - Metadata Compliance Engine
 - Compliance API
-- Resource Capability Filtering
 
 ---
 
