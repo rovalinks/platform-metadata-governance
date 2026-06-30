@@ -5,6 +5,7 @@ from handlers.discovery import discover
 from handlers.compliance import compliance
 from handlers.enforce import enforce
 from handlers.verify import verify
+from handlers.report import report
 from config import PROJECT_ID
 
 
@@ -27,6 +28,9 @@ class Dispatcher:
 
         if route == "verify":
             return verify(PROJECT_ID)
+        
+        if route == "report":
+            return report(PROJECT_ID)
 
         return {
             "error": "Endpoint not found"

@@ -20,7 +20,7 @@ class EnforcementService:
 
             actions.append(
                 {
-                    "resource": result.resource,
+                    "resource": result.name,
                     "asset_type": result.asset_type,
                     "labels": self.compliance.governance.expected_labels(project_id),
                     "action": "apply_labels",

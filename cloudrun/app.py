@@ -33,5 +33,10 @@ def verify_endpoint():
 
     return Dispatcher.dispatch("verify")
 
+@app.get("/report")
+def report_endpoint():
+
+    return Dispatcher.dispatch("report")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
