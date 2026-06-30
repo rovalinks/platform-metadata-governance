@@ -24,8 +24,8 @@
 
 ### Services
 
+- Governance Service
 - Resource Discovery
-- Governance Evaluation
 - Compliance Evaluation
 
 ### Handlers
