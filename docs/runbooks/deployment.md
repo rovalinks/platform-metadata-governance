@@ -23,6 +23,18 @@ Enable the following Google Cloud APIs:
 
 ---
 
+## GitHub Actions IAM
+
+The GitHub Actions service account must have the following IAM roles:
+
+- Cloud Build Editor (`roles/cloudbuild.builds.editor`)
+- Artifact Registry Writer (`roles/artifactregistry.writer`)
+- Storage Object Admin (`roles/storage.objectAdmin`)
+- Cloud Run Developer (`roles/run.developer`)
+- Service Usage Consumer (`roles/serviceusage.serviceUsageConsumer`)
+
+These roles allow GitHub Actions to authenticate using Workload Identity Federation, submit Cloud Build jobs, upload source archives, and deploy the Cloud Run service.
+
 # Clone Repository
 
 ```bash
