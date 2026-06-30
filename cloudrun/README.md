@@ -49,6 +49,12 @@
 
 ---
 
+## Error Handling
+
+All Google Cloud API exceptions are handled centrally.
+
+Resource execution continues even if an individual resource update fails.
+
 ## Endpoints
 
 ### GET /

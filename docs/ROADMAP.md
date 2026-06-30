@@ -28,9 +28,11 @@
 - Generic Execution Pipeline
 - Governance Reporting
 - Service-level operational logging
+- Centralised exception handling
 
 ## In Progress
 
+- Discovery caching
 
 ## Planned
 

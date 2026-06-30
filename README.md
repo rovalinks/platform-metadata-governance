@@ -85,24 +85,14 @@
 - BigQuery Client
 - Dataset Metadata Adapter
 
+### Sprint 22 - Centralised Exception Handling
 
+Implemented:
 
-### Current Status
+- Centralised Google Cloud exception formatting
+- Executor-level exception handling
+- Per-resource execution results
 
-Completed:
-- Registry Management
-- Registry Validation
-- Cloud Asset Discovery
-- Governance Metadata
-- Compliance Evaluation
-- Enforcement Planning
-- Generic Execution Pipeline
-- Compute Engine Label Enforcement
-- BigQuery Dataset Label Enforcement
-- Governance Reporting
-
-Current Focus:
-- Production Hardening
 
 
 ### Logging

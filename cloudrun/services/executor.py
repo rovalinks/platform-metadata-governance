@@ -1,6 +1,7 @@
-from utils.logger import logger 
+from utils.logger import logger
 from types import SimpleNamespace
 from services.adapter import AdapterService
+from utils.exceptions import format_gcp_exception
 
 class ExecutorService:
     """Executes enforcement actions."""
@@ -36,22 +37,36 @@ class ExecutorService:
                 name=action["resource"]
             )
 
-            client.apply_labels(
-                resource,
-                action["labels"],
-            )
+            try:
+                client.apply_labels(
+                    resource,
+                    action["labels"],
+                )
 
-            # Log successful update
-            logger.info(
-                "Successfully updated %s",
-                action["resource"],
-            )
+                logger.info(
+                    "Successfully updated %s",
+                    action["resource"],
+                )
 
-            results.append(
-                {
-                    "resource": action["resource"],
-                    "status": "updated",
-                }
-            )
+                results.append(
+                    {
+                        "resource": action["resource"],
+                        "status": "updated",
+                    }
+                )
+
+            except Exception as error:
+                logger.exception(
+                    "Failed updating %s",
+                    action["resource"],
+                )
+
+                results.append(
+                    {
+                        "resource": action["resource"],
+                        "status": "failed",
+                        "error": format_gcp_exception(error),
+                    }
+                )
 
         return results
