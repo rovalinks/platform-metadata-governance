@@ -1,6 +1,7 @@
 from google.cloud import bigquery
 
 from clients.base import ResourceClient
+from utils.bigquery import parse_dataset_name
 
 
 class BigQueryClient(ResourceClient):
@@ -16,4 +17,21 @@ class BigQueryClient(ResourceClient):
 
     def apply_labels(self, resource, labels: dict):
 
-        raise NotImplementedError()
+        info = parse_dataset_name(resource.name)
+
+        dataset = self.client.get_dataset(
+            f"{info['project']}.{info['dataset']}"
+        )
+
+        existing = dict(dataset.labels or {})
+
+        existing.update(labels)
+
+        dataset.labels = existing
+
+        self.client.update_dataset(
+            dataset,
+            ["labels"],
+        )
+
+        return True
