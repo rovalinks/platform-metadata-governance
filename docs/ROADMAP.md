@@ -23,11 +23,11 @@
 - Registry Metadata Builder
 - Resource Adapter Layer
 - Metadata Enforcement Execution
-- Compute Engine Label Enforcement
 - Generic Enforcement Engine
+- Compute Engine Label Enforcement
 
 ## In Progress
-- Metadata Verification
+- BigQuery Dataset Enforcement
 
 
 ## Planned

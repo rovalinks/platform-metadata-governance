@@ -24,7 +24,8 @@
 
 - Cloud Asset Inventory Client
 - Compute Engine Client
-- Cloud Storage Client
+- BigQuery Client
+- Cloud Storage Client (future)
 
 ## Services
 

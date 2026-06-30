@@ -80,6 +80,11 @@
 - Verification Service
 - Verification API
 
+### Sprint 16 - BigQuery Dataset Enforcement 🚧
+
+- BigQuery Client
+- Dataset Metadata Adapter
+
 
 ## Authentication
 
