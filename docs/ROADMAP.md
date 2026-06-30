@@ -31,10 +31,12 @@
 - Centralised exception handling
 - API response model serialization
 - Pytest Configuration
+- ExecutorService Unit Tests
+- ReportService Unit Tests
 
 ## In Progress
 
-- Production stabilisation
+- API Documentation
 
 ## Planned
 

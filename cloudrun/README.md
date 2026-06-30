@@ -62,6 +62,16 @@ The repository uses a root-level `pytest.ini` to configure the Python module sea
 
 This allows test files to import application modules exactly as the application does.
 
+Unit tests cover:
+
+- Governance
+- Compliance
+- Capability
+- Adapter
+- Executor
+- Reporting
+
+Google Cloud SDK calls are mocked to ensure deterministic tests.
 
 ## Endpoints
 
