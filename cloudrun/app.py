@@ -19,6 +19,10 @@ def health():
 def discover():
     return Dispatcher.dispatch("discover")
 
+@app.get("/compliance")
+def compliance():
+
+    return Dispatcher.dispatch("compliance")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

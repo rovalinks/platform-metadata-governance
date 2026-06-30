@@ -1,39 +1,57 @@
 # Metadata Governance Engine
 
-Runtime:
+## Runtime
 
-Cloud Run
+- Cloud Run
+- Flask
 
-Framework:
+## Responsibilities
 
-Flask
-
-Responsibilities
-
-- Health API
-- Resource Discovery
 - Registry Reader
-- Governance Engine
-- Compliance Engine
+- Cloud Asset Inventory Integration
+- Resource Discovery
+- Compliance Evaluation
+
+---
 
 ## Runtime Components
 
 ### Clients
 
-- Cloud Asset Inventory client
+- Cloud Asset Inventory Client
 
 ### Services
 
-- Resource discovery
-- Governance processing (planned)
-- Compliance evaluation (planned)
+- Resource Discovery
+- Compliance Evaluation
 
 ### Handlers
 
 - Health
 - Discovery
+- Compliance
 
 ### Models
 
 - Resource
-- Application (planned)
+- Compliance Result
+
+---
+
+## Endpoints
+
+### GET /
+
+Returns service health.
+
+### GET /health
+
+Returns service status and registered applications.
+
+### GET /discover
+
+Returns resources discovered using Google Cloud Asset Inventory.
+
+### GET /compliance
+
+Returns governance results by comparing discovered resources against the Metadata Registry.

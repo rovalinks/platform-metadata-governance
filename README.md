@@ -13,19 +13,25 @@
 - IAM
 - Workload Identity Federation
 
-### Sprint 3 - Runtime & CI/CD ✅
+### Sprint 3 - Runtime & Deployment ✅
 
 - Cloud Build
 - Container Image
 - Cloud Run
 - GitHub Actions Authentication
 
-### Sprint 4 - Governance Engine 🚧
+### Sprint 4 - Resource Discovery ✅
 
-- Cloud Asset Inventory Client 🚧
+- Cloud Asset Inventory Client
 - Resource Discovery Service
 - Discovery API
 - Common Resource Model
+
+### Sprint 5 - Compliance Engine ✅
+
+- Registry Comparison
+- Compliance Evaluation
+- Compliance API
 
 
 
