@@ -27,10 +27,9 @@
 - Compute Engine Label Enforcement
 - Generic Execution Pipeline
 - Governance Reporting
+- Service-level operational logging
 
 ## In Progress
-
-- Production Hardening
 
 
 ## Planned

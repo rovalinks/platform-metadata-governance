@@ -1,7 +1,6 @@
+from utils.logger import logger 
 from types import SimpleNamespace
-
 from services.adapter import AdapterService
-
 
 class ExecutorService:
     """Executes enforcement actions."""
@@ -10,11 +9,9 @@ class ExecutorService:
         self.adapters = AdapterService()
 
     def execute(self, actions):
-
         results = []
 
         for action in actions:
-
             client = self.adapters.client_for(
                 action["asset_type"]
             )
@@ -28,6 +25,13 @@ class ExecutorService:
                 )
                 continue
 
+            # Log the start of the specific action
+            logger.info(
+                "Applying labels to %s using %s",
+                action["resource"],
+                client.__class__.__name__,
+            )
+
             resource = SimpleNamespace(
                 name=action["resource"]
             )
@@ -35,6 +39,12 @@ class ExecutorService:
             client.apply_labels(
                 resource,
                 action["labels"],
+            )
+
+            # Log successful update
+            logger.info(
+                "Successfully updated %s",
+                action["resource"],
             )
 
             results.append(

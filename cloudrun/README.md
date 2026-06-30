@@ -68,6 +68,20 @@ Returns resources discovered using Google Cloud Asset Inventory.
 Returns governance results by comparing discovered resources against the Metadata Registry.
 
 
+## Logging
+
+The following services emit operational logs:
+
+- Discovery
+- Governance
+- Compliance
+- Enforcement
+- Executor
+- Verification
+- Reporting
+
+Logs are written to stdout and collected automatically by Cloud Run and Cloud Logging.
+
 ## Execution Flow
 
 Registry

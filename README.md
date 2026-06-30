@@ -105,6 +105,13 @@ Current Focus:
 - Production Hardening
 
 
+### Logging
+
+- Shared application logger
+- Service-level operational logging
+- Cloud Run compatible stdout logging
+- Execution and verification lifecycle logging
+
 
 ## Authentication
 
