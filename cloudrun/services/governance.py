@@ -2,7 +2,7 @@ from registry.reader import RegistryReader
 
 
 class GovernanceService:
-    """Provides access to governance metadata."""
+    """Provides application governance metadata."""
 
     def __init__(self):
 
@@ -22,19 +22,11 @@ class GovernanceService:
 
         return matches
 
-    def registered_products(self, project_id: str):
+    def metadata_for_project(self, project_id: str):
 
-        return {
-            application["product"]
-            for application in self.applications_for_project(project_id)
-        }
+        applications = self.applications_for_project(project_id)
 
-    def governance_policy(self, product: str):
+        if not applications:
+            return None
 
-        for application in self.applications:
-
-            if application["product"] == product:
-
-                return application["governance"]
-
-        return None
+        return applications[0]

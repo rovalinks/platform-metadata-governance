@@ -12,7 +12,6 @@
     "organization",
     "department",
     "costCenter",
-    "governance",
     "bindings"
   ],
   "properties": {
@@ -47,34 +46,6 @@
     "costCenter": {
       "type": "string",
       "minLength": 1
-    },
-    "governance": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "discoveryEnabled",
-        "resourceTypes",
-        "mandatoryLabels"
-      ],
-      "properties": {
-        "discoveryEnabled": {
-          "type": "boolean"
-        },
-        "resourceTypes": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          }
-        },
-        "mandatoryLabels": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string"
-          }
-        }
-      }
     },
     "bindings": {
       "type": "object",
