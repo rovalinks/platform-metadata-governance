@@ -14,10 +14,14 @@ resource "google_cloud_run_v2_service" "this" {
 
     containers {
       image = var.image
+      env {
+          name  = "PROJECT_ID"
+          value = var.project_id
+        }
 
-      ports {
-        container_port = 8080
-      }
+        ports {
+          container_port = 8080
+        }
 
       # Add resource limits for CPU and Memory
       resources {
