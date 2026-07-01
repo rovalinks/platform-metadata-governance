@@ -1,9 +1,11 @@
 from google.cloud import compute_v1
+
 from clients.base import ResourceClient
 from utils.compute import parse_instance_name
 
 
 class ComputeClient(ResourceClient):
+    """Compute Engine resource adapter."""
 
     def __init__(self):
 
@@ -15,6 +17,18 @@ class ComputeClient(ResourceClient):
 
         return asset_type == "compute.googleapis.com/Instance"
 
+    def labels(self, resource):
+
+        info = parse_instance_name(resource.name)
+
+        instance = self.instances.get(
+            project=info["project"],
+            zone=info["zone"],
+            instance=info["instance"],
+        )
+
+        return dict(instance.labels or {})
+
     def apply_labels(self, resource, labels: dict):
 
         info = parse_instance_name(resource.name)
@@ -25,7 +39,7 @@ class ComputeClient(ResourceClient):
             instance=info["instance"],
         )
 
-        merged = dict(instance.labels)
+        merged = dict(instance.labels or {})
 
         merged.update(labels)
 
