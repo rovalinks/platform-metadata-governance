@@ -22,3 +22,8 @@ variable "service_account_email" {
   description = "Runtime service account"
   type        = string
 }
+
+variable "registry_bucket" {
+  description = "Registry Cloud Storage bucket"
+  type        = string
+}

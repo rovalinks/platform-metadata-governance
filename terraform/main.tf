@@ -44,6 +44,8 @@ module "cloud_run" {
   image = var.cloud_run.image
 
   service_account_email = module.service_accounts.emails["governance"]
+
+  registry_bucket = module.registry_bucket.bucket_name
 }
 
 module "workload_identity" {
