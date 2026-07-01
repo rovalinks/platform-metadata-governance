@@ -10,7 +10,6 @@ permissions:
   id-token: write
 
 jobs:
-
   deploy:
 
     runs-on: ubuntu-latest
@@ -42,9 +41,10 @@ jobs:
       - name: Build Image
         run: |
           docker build \
+            -f Dockerfile \
             -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }} \
             -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
-            ./cloudrun
+            .
 
       - name: Push Image
         run: |

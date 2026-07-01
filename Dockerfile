@@ -6,11 +6,14 @@ ENV PORT=8080
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY cloudrun/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY cloudrun/ ./cloudrun/
+COPY registry/ ./registry/
+
+WORKDIR /app/cloudrun
 
 CMD exec gunicorn \
     --bind :${PORT} \
