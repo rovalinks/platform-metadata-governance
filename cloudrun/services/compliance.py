@@ -53,6 +53,14 @@ class ComplianceService:
             incorrect = []
             for key, expected_value in expected_labels.items():
                 actual = resource.labels.get(key)
+                logger.info(
+                    "Resource=%s Key=%s Expected=%s Actual=%s Labels=%s",
+                    resource.name,
+                    key,
+                    expected_value,
+                    actual,
+                    resource.labels,
+                )
                 if actual is None:
                     missing.append(key)
                 elif str(actual) != str(expected_value):
