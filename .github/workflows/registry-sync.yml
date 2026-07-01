@@ -1,12 +1,9 @@
 name: Registry Sync
 
 on:
-
   push:
-
     branches:
       - main
-
     paths:
       - "registry/**"
 
@@ -15,21 +12,20 @@ permissions:
   id-token: write
 
 jobs:
-
   sync:
 
     runs-on: ubuntu-latest
 
     env:
-
       PROJECT_ID: platform-metadata-demo
-
       BUCKET: platform-metadata-demo-registry
 
     steps:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -40,11 +36,29 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Upload Registry
+      - name: Upload Changed Registry Files
+        shell: bash
         run: |
 
-          gcloud storage rsync \
-            registry/applications \
-            gs://$BUCKET/applications \
-            --recursive \
-            --delete-unmatched-destination-objects
+          echo "Finding changed registry files..."
+
+          FILES=$(git diff --name-only HEAD~1 HEAD | grep '^registry/applications/.*\.yaml$' || true)
+
+          if [ -z "$FILES" ]; then
+            echo "No registry files changed."
+            exit 0
+          fi
+
+          echo "Uploading..."
+
+          for file in $FILES
+          do
+            echo "Uploading $file"
+
+            gcloud storage cp \
+              "$file" \
+              "gs://$BUCKET/applications/$(basename "$file")"
+
+          done
+
+          echo "Registry upload complete."
