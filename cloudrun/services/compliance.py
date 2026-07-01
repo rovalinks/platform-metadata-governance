@@ -43,6 +43,8 @@ class ComplianceService:
 
         resources = self.discovery.discover(project_id)
         expected_labels = self.governance.expected_labels(project_id)
+        logger.info("Expected labels: %s", expected_labels)
+
 
         results = []
         for resource in resources:
@@ -54,12 +56,12 @@ class ComplianceService:
             for key, expected_value in expected_labels.items():
                 actual = resource.labels.get(key)
                 logger.info(
-                    "Resource=%s Key=%s Expected=%s Actual=%s Labels=%s",
+                    "Resource=%s Labels=%s Key=%s Expected=%s Actual=%s",
                     resource.name,
+                    resource.labels,
                     key,
                     expected_value,
                     actual,
-                    resource.labels,
                 )
                 if actual is None:
                     missing.append(key)
