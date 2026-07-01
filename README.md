@@ -1,109 +1,309 @@
 # Platform Metadata Governance
 
-## Overview
+A cloud-native metadata governance platform for Google Cloud that discovers resources, evaluates compliance against a central application registry, automatically remediates supported resources, and provides governance reporting.
 
-Platform Metadata Governance is a registry-driven metadata governance platform for Google Cloud.
-
-The platform discovers cloud resources using Cloud Asset Inventory, compares them against a centrally managed application registry, evaluates metadata compliance, and automatically applies metadata to supported resources.
-
-Current supported enforcement targets:
-
-- Compute Engine Instances
-- BigQuery Datasets
+The platform is designed using Google Cloud managed services and follows Infrastructure as Code, GitOps, and Zero Trust authentication principles.
 
 ---
 
-## Project Progress
+# Features
 
-### Completed
+- Registry-driven governance
+- Cloud Asset Inventory resource discovery
+- Metadata compliance evaluation
+- Registry-based expected metadata generation
+- Automated metadata enforcement
+- Metadata verification
+- Governance reporting
+- GitHub Pull Request validation
+- Infrastructure as Code using Terraform
+- Workload Identity Federation
+- Cloud Run deployment
+- Unit tested business services
 
-#### Sprint 1 - Foundation
-- Terraform backend
-- Registry reader
-- Validation framework
+---
 
-#### Sprint 2 - Platform Infrastructure
+# Architecture
+
+```
+                    +----------------------+
+                    |  Application Registry|
+                    |  APP000001.yaml      |
+                    |  APP000002.yaml      |
+                    +----------+-----------+
+                               |
+                               v
+                  +---------------------------+
+                  |   Governance Service      |
+                  +---------------------------+
+                               |
+         +---------------------+---------------------+
+         |                     |                     |
+         v                     v                     v
+  Discovery Service     Compliance Service   Enforcement Service
+         |                     |                     |
+         +----------+----------+----------+----------+
+                    |                     |
+                    v                     v
+           Cloud Asset Inventory     Adapter Layer
+                                           |
+                     +---------------------+----------------------+
+                     |                                            |
+                     v                                            v
+              Compute Engine                              BigQuery Dataset
+```
+
+---
+
+# Repository Structure
+
+```
+platform-metadata-governance/
+
+├── cloudrun/
+│   ├── clients/
+│   ├── handlers/
+│   ├── models/
+│   ├── registry/
+│   ├── services/
+│   ├── utils/
+│   ├── app.py
+│   └── Dockerfile
+│
+├── registry/
+│   ├── applications/
+│   └── schemas/
+│
+├── terraform/
+│
+├── validation/
+│
+├── tests/
+│
+└── docs/
+```
+
+---
+
+# Components
+
+## Registry
+
+Contains application metadata.
+
+Each application is defined in an individual YAML file.
+
+Example
+
+```
+registry/applications/APP000001.yaml
+```
+
+---
+
+## Discovery
+
+Uses Cloud Asset Inventory to discover supported Google Cloud resources.
+
+Currently supported:
+
+- Compute Engine
+- BigQuery Dataset
+- Cloud Storage (discovery)
+- Artifact Registry (discovery)
+
+---
+
+## Governance
+
+Builds the expected metadata model from the Application Registry.
+
+Produces:
+
+- application
+- owner
+- team
+- budgetowner
+- organization
+- department
+- costcenter
+- environment
+- businesscriticality
+
+---
+
+## Compliance
+
+Compares discovered metadata against registry metadata.
+
+Determines
+
+- compliant
+- missing labels
+- incorrect labels
+
+---
+
+## Enforcement
+
+Creates remediation plans.
+
+Delegates execution through adapters.
+
+Currently supports
+
+- Compute Engine labels
+- BigQuery Dataset labels
+
+---
+
+## Verification
+
+Verifies metadata after remediation.
+
+---
+
+## Reporting
+
+Produces governance summary including
+
+- Total resources
+- Supported resources
+- Compliant resources
+- Non-compliant resources
+- Enforcement candidates
+- Compliance percentage
+
+---
+
+# REST APIs
+
+| Endpoint | Description |
+|----------|-------------|
+| GET /health | Platform health |
+| GET /discover | Resource discovery |
+| GET /compliance | Compliance evaluation |
+| GET /verify | Metadata verification |
+| GET /enforce | Metadata enforcement |
+| GET /report | Governance reporting |
+
+---
+
+# Technology Stack
+
+Infrastructure
+
+- Terraform
+
+Runtime
+
+- Cloud Run
+- Flask
+
+Google Cloud Services
+
+- Cloud Asset Inventory
 - Artifact Registry
-- Service Accounts
+- Cloud Run
 - IAM
 - Workload Identity Federation
 
-### Sprint 3 - Runtime & CI/CD 
+CI/CD
 
-- Docker Image Build
-- Artifact Registry
-- Cloud Run
 - GitHub Actions
-- Workload Identity Federation (OIDC)
-- Automated Cloud Run Deployment
+- GitHub Pull Requests
 
-#### Sprint 4 - Discovery
-- Cloud Asset Inventory client
-- Discovery service
-- Discovery API
-- Common resource model
+Testing
 
-#### Sprint 5 - Registry
-- Application registry
-- JSON Schema validation
-- Registry validation
-- Governance service
-
-#### Sprint 6 - Compliance Engine
-- Expected metadata model
-- Compliance evaluation
-- Compliance API
-
-#### Sprint 7 - Compliance Reporting
-- Compliance summary
-- Governance reporting API
-
-#### Sprint 8 - Capability Filtering
-- Resource capability catalogue
-- Capability service
-- Supported resource filtering
-
-#### Sprint 9 - Registry Metadata
-- Registry-driven metadata model
-- Registry-driven expected labels
-
-#### Sprint 10 - Resource Adapter Layer
-- Adapter framework
-- Compute adapter
-- BigQuery adapter
-
-#### Sprint 11 - Enforcement Engine
-- Generic enforcement engine
-- Generic executor
-- Adapter-based execution
-
-#### Sprint 12 - Verification
-- Verification service
-- Verification API
-- Verification model
-
-#### Sprint 13 - Compute Engine Enforcement
-- Compute Engine label enforcement
-- Official Google Cloud Compute client
-
-#### Sprint 14 - BigQuery Dataset Enforcement
-- BigQuery Dataset label enforcement
-- Official BigQuery client
-
-#### Sprint 15 - Production Hardening
-- Centralised logging
-- Centralised exception handling
-- API model serialization
-- Unit testing
-- Pytest configuration
+- Pytest
 
 ---
 
-## Configuration
+# Security
 
-The repository includes a complete `terraform.tfvars.example` file.
+The platform follows Google Cloud security best practices.
 
-Create your own configuration by copying:
+- Workload Identity Federation
+- No service account keys
+- Least privilege IAM
+- Pull Request approval
+- Registry validation
+- Infrastructure as Code
+
+---
+
+# Deployment
+
+See
+
+```
+docs/runbooks/deployment.md
+```
+
+---
+
+# Customer Onboarding
+
+See
+
+```
+docs/runbooks/customer-onboarding.md
+```
+
+---
+
+# API Documentation
+
+See
+
+```
+docs/api/API.md
+```
+
+---
+
+# Architecture
+
+See
+
+```
+docs/architecture/platform-architecture.md
+```
+
+---
+
+# Testing
+
+Run all unit tests
 
 ```bash
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+pytest
+```
+
+---
+
+# Current Status
+
+| Feature | Status |
+|----------|--------|
+| Registry | ✅ |
+| Validation | ✅ |
+| Discovery | ✅ |
+| Governance | ✅ |
+| Compliance | ✅ |
+| Enforcement | ✅ |
+| Verification | ✅ |
+| Reporting | ✅ |
+| Terraform | ✅ |
+| GitHub Actions | ✅ |
+| Workload Identity Federation | ✅ |
+
+---
+
+# Future Enhancements
+
+- Eventarc automatic enforcement
+- Cloud Scheduler
+- Cloud Monitoring
+- Alerting
+- Additional Google Cloud resource adapters

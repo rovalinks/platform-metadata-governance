@@ -1,11 +1,25 @@
-# Platform Metadata Governance - Deployment Guide
+# Platform Metadata Governance
+
+# Deployment Guide
+
+---
 
 # Overview
 
-<<<<<<< HEAD
-This guide describes how to deploy the Platform Metadata Governance solution into a Google Cloud project using Terraform, GitHub Actions, Workload Identity Federation, Artifact Registry, and Cloud Run.
+This document describes how to deploy the Platform Metadata Governance solution into a Google Cloud project.
 
-The deployment pipeline is fully automated and does not require long-lived service account keys.
+The deployment provisions:
+
+- Artifact Registry
+- IAM
+- Service Accounts
+- Workload Identity Federation
+- Cloud Run
+- GitHub Actions CI/CD
+
+The platform uses GitHub Actions together with Google Cloud Workload Identity Federation.
+
+No service account keys are required.
 
 ---
 
@@ -13,295 +27,630 @@ The deployment pipeline is fully automated and does not require long-lived servi
 
 ```
 Developer
-      │
-      ▼
-Git Push
-      │
-      ▼
+
+    │
+
+    ▼
+
+GitHub Repository
+
+    │
+
+    ▼
+
 GitHub Actions
-      │
-      ▼
-Workload Identity Federation (OIDC)
-      │
-      ▼
+
+    │
+
+    ▼
+
+Workload Identity Federation
+
+    │
+
+    ▼
+
 Docker Build
-      │
-      ▼
+
+    │
+
+    ▼
+
 Artifact Registry
-      │
-      ▼
+
+    │
+
+    ▼
+
 Cloud Run
+
+    │
+
+    ▼
+
+Platform Metadata Governance
 ```
-=======
-This document describes how to deploy the Platform Metadata Governance solution into a Google Cloud project using Terraform and GitHub Actions.
-
----
-
-# Architecture
-
-Deployment pipeline
-
-Developer
-↓
-
-Git Push
-↓
-
-GitHub Actions
-
-↓
-
-Workload Identity Federation (OIDC)
-
-↓
-
-Docker Build
-
-↓
-
-Artifact Registry
-
-↓
-
-Cloud Run
-
-No long-lived service account keys are used.
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
 ---
 
 # Prerequisites
 
-<<<<<<< HEAD
-## Required Software
+Install the following software.
 
-Install the following tools:
+## Git
 
-- Git
-- Terraform
-- Google Cloud CLI (gcloud)
-- Docker
+Verify
 
----
-
-## Required Google Cloud APIs
-
-Enable the following APIs:
-
-- Artifact Registry API
-- Cloud Asset API
-- Cloud Run Admin API
-- IAM API
-- IAM Credentials API
-- Cloud Resource Manager API
-- Service Usage API
-
-Terraform will require these APIs to be enabled before deployment.
-
----
-
-# Clone the Repository
-=======
-## Google Cloud APIs
-
-Enable:
-
-- Artifact Registry API
-- Cloud Asset API
-- Cloud Run Admin API
-- IAM API
-- IAM Credentials API
-- Resource Manager API
-- Service Usage API
-
----
-
-## GitHub
-
-Fork or clone the repository.
+```bash
+git --version
+```
 
 ---
 
 ## Terraform
 
-Install Terraform.
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
+Verify
+
+```bash
+terraform version
+```
+
+Recommended version
+
+Terraform 1.8+
 
 ---
 
-## Google Cloud CLI
+## Google Cloud SDK
 
-Install gcloud CLI.
+Verify
 
-Authenticate.
+```bash
+gcloud version
+```
+
+---
+
+## Docker
+
+Verify
+
+```bash
+docker version
+```
+
+---
+
+# Create Google Cloud Project
+
+Create a project.
+
+```bash
+gcloud projects create PROJECT_ID
+```
+
+Example
+
+```bash
+gcloud projects create platform-metadata-demo
+```
+
+Set the active project.
+
+```bash
+gcloud config set project platform-metadata-demo
+```
+
+Attach a billing account.
+
+---
+
+# Enable Required APIs
+
+Enable the following services.
+
+```bash
+gcloud services enable \
+artifactregistry.googleapis.com \
+cloudasset.googleapis.com \
+run.googleapis.com \
+iam.googleapis.com \
+iamcredentials.googleapis.com \
+cloudresourcemanager.googleapis.com \
+serviceusage.googleapis.com
+```
+
+Verify
+
+```bash
+gcloud services list --enabled
+```
+
+---
+
+# Clone Repository
+
+Clone the repository.
+
+```bash
+git clone <repository>
+
+cd platform-metadata-governance
+```
 
 ---
 
 # Configure Terraform
 
-<<<<<<< HEAD
-Copy the example configuration.
-=======
 Copy
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
-terraform.tfvars.example
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+```
 
-↓
+Open
 
+```
 terraform.tfvars
+```
 
-Update the following values:
+Update
 
 - project_id
 - region
-<<<<<<< HEAD
-- artifact_registry_repository
-=======
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
-- GitHub owner
-- GitHub repository
+- repository
+- github owner
+- github repository
 
-Example:
+Example
 
 ```hcl
-project_id = "my-gcp-project"
+project_id = "platform-metadata-demo"
 
 region = "europe-west2"
 
 artifact_registry_repository = "platform-images"
 
-workload_identity = {
-
-  pool_id = "github-pool"
-
-  provider_id = "github-provider"
-
-  github_owner = "my-github-org"
-
-  github_repository = "platform-metadata-governance"
-
-}
+deploy_cloud_run = true
 ```
 
 ---
 
 # Deploy Infrastructure
 
-<<<<<<< HEAD
-Deploy the Google Cloud infrastructure.
+Move into Terraform.
 
 ```bash
-=======
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 cd terraform
+```
 
+Initialise.
+
+```bash
 terraform init
+```
 
+Validate.
+
+```bash
+terraform validate
+```
+
+Review.
+
+```bash
 terraform plan
+```
 
+Deploy.
+
+```bash
 terraform apply
+```
 
-Terraform provisions:
+Terraform provisions
 
-- Artifact Registry
 - Service Accounts
-<<<<<<< HEAD
 - IAM Roles
-- Workload Identity Federation
-- Cloud Run Service
-=======
-- IAM
+- Artifact Registry
 - Workload Identity Federation
 - Cloud Run
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
 
----
+Wait for deployment to complete successfully before continuing.
 
-# Configure GitHub Secrets
+# Configure GitHub
 
-<<<<<<< HEAD
-Open
+Open your GitHub repository.
 
+Navigate to:
+
+```
 Settings
 
 ↓
 
-Secrets and Variables
+Secrets and variables
 
 ↓
 
 Actions
-
-Create the following secrets.
-
-| Secret | Description |
-|---------|-------------|
-| WIF_PROVIDER | Full Workload Identity Provider resource name |
-| WIF_SERVICE_ACCOUNT | GitHub Actions service account email |
-
-Example
-
-```
-WIF_PROVIDER
-
-projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider
 ```
 
-```
-WIF_SERVICE_ACCOUNT
+Create the following repository secrets.
 
-github-actions-sa@my-project.iam.gserviceaccount.com
-```
-=======
-Create:
-
-| Secret | Description |
-|----------|-------------|
-| WIF_PROVIDER | Workload Identity Provider |
-| WIF_SERVICE_ACCOUNT | GitHub Actions Service Account |
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
+| Secret | Description | Example |
+|---------|-------------|----------|
+| WIF_PROVIDER | Full Workload Identity Provider resource name | `projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
+| WIF_SERVICE_ACCOUNT | GitHub Actions service account | `github-actions-sa@my-project.iam.gserviceaccount.com` |
 
 ---
 
-# GitHub Actions Deployment
+# Configure Branch Protection
 
-<<<<<<< HEAD
-Deployment is fully automated.
+Protect the **main** branch.
 
-Whenever code is merged into the **main** branch:
-
-1. GitHub Actions authenticates using Workload Identity Federation.
-2. Docker builds the application image.
-3. The image is pushed to Artifact Registry.
-4. Cloud Run is updated with the new image.
-
-No manual deployment steps are required.
-
----
-
-# Registry Governance Workflow
-
-New applications are onboarded using registry files.
-
-Developer creates:
+Navigate to
 
 ```
-registry/applications/APP000002.yaml
-```
-
-Workflow:
-
-```
-Feature Branch
+Settings
 
 ↓
 
+Branches
+
+↓
+
+Add Rule
+```
+
+Configure
+
+- Require a pull request before merging
+- Require approvals
+- Dismiss stale approvals
+- Require status checks
+- Require conversation resolution
+- Restrict direct pushes to main
+
+This ensures that registry changes cannot be merged without validation and approval.
+
+---
+
+# Configure GitHub Actions
+
+The deployment workflow is located at
+
+```
+.github/workflows/deploy.yml
+```
+
+Deployment is triggered automatically when code is merged into the **main** branch.
+
+Pipeline
+
+```
 Git Push
 
 ↓
 
-Registry Validation
+GitHub Actions
+
+↓
+
+Authenticate using Workload Identity Federation
+
+↓
+
+Build Docker Image
+
+↓
+
+Push Image to Artifact Registry
+
+↓
+
+Deploy Cloud Run
+```
+
+No service account keys are required.
+
+---
+
+# Verify Workload Identity Federation
+
+Verify authentication by checking the GitHub Actions logs.
+
+Successful authentication should show
+
+```
+Authenticated with Workload Identity Federation
+```
+
+No JSON service account keys should exist in the repository.
+
+---
+
+# Verify Infrastructure
+
+After Terraform completes, verify each component.
+
+## Service Accounts
+
+```bash
+gcloud iam service-accounts list
+```
+
+Expected
+
+- terraform-sa
+- github-actions-sa
+- governance-engine-sa
+- cloud-build-sa
+
+---
+
+## Artifact Registry
+
+```bash
+gcloud artifacts repositories list
+```
+
+Expected
+
+```
+platform-images
+```
+
+---
+
+## Cloud Run
+
+```bash
+gcloud run services list
+```
+
+Expected
+
+```
+metadata-governance
+```
+
+---
+
+## Workload Identity Pool
+
+```bash
+gcloud iam workload-identity-pools list \
+--location=global
+```
+
+Expected
+
+```
+github-pool
+```
+
+---
+
+## Workload Identity Provider
+
+```bash
+gcloud iam workload-identity-pools providers list \
+--workload-identity-pool=github-pool \
+--location=global
+```
+
+Expected
+
+```
+github-provider
+```
+
+---
+
+# Deploy the Application
+
+Create a feature branch.
+
+```bash
+git checkout -b feature/my-change
+```
+
+Make the required changes.
+
+Commit.
+
+```bash
+git add .
+
+git commit -m "Describe change"
+```
+
+Push.
+
+```bash
+git push origin feature/my-change
+```
+
+Open a Pull Request.
+
+After approval, merge into **main**.
+
+GitHub Actions automatically
+
+- Builds the Docker image
+- Pushes the image to Artifact Registry
+- Deploys Cloud Run
+
+No manual deployment is required.
+
+---
+
+# Verify Cloud Run
+
+Retrieve the service URL.
+
+```bash
+gcloud run services describe metadata-governance \
+--region=europe-west2 \
+--format="value(status.url)"
+```
+
+Example
+
+```
+https://metadata-governance-xxxxx-ew.a.run.app
+```
+
+---
+
+# Verify Platform APIs
+
+Verify each endpoint.
+
+## Health
+
+```
+GET /health
+```
+
+Expected
+
+```
+200 OK
+```
+
+---
+
+## Discovery
+
+```
+GET /discover
+```
+
+Returns all discovered Google Cloud resources.
+
+---
+
+## Compliance
+
+```
+GET /compliance
+```
+
+Returns
+
+- compliant resources
+- missing labels
+- incorrect labels
+- compliance summary
+
+---
+
+## Verification
+
+```
+GET /verify
+```
+
+Verifies that expected metadata exists after enforcement.
+
+---
+
+## Enforcement
+
+```
+GET /enforce
+```
+
+Applies missing labels to supported resources.
+
+Current supported resources
+
+- Compute Engine
+- BigQuery Dataset
+
+---
+
+## Report
+
+```
+GET /report
+```
+
+Returns
+
+- Total resources
+- Supported resources
+- Compliant resources
+- Non-compliant resources
+- Enforcement candidates
+- Compliance percentage
+
+---
+
+# Registry Workflow
+
+Every application is represented by an individual registry file.
+
+Example
+
+```
+registry/applications/
+
+APP000001.yaml
+
+APP000002.yaml
+
+APP000003.yaml
+```
+
+To onboard a new application
+
+1. Create a feature branch.
+
+2. Create a new YAML file.
+
+3. Commit the file.
+
+4. Push the branch.
+
+5. Open a Pull Request.
+
+6. Registry validation executes automatically.
+
+7. Obtain approval.
+
+8. Merge into **main**.
+
+9. GitHub Actions automatically deploys the latest platform.
+
+No Python code changes are required.
+
+---
+
+# Validate Registry
+
+Registry validation runs automatically during every Pull Request.
+
+Validation includes
+
+- YAML syntax
+- JSON Schema
+- Required fields
+- Project bindings
+- Metadata structure
+
+Pull Requests cannot be merged until validation succeeds.
+
+---
+
+# Platform Validation
+
+Verify the following workflow.
+
+```
+Create Registry File
 
 ↓
 
@@ -309,120 +658,15 @@ Pull Request
 
 ↓
 
+Registry Validation
+
+↓
+
 Approval
 
 ↓
 
-Merge to main
-
-↓
-
-Automatic Deployment
-
-↓
-
-Platform Metadata Governance
-```
-
-No Python code changes are required when onboarding new applications.
-=======
-Push to main.
-
-GitHub Actions will:
-
-1. Authenticate using Workload Identity Federation.
-2. Build the Docker image.
-3. Push the image to Artifact Registry.
-4. Deploy Cloud Run.
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
-
----
-
-# Verify
-
-<<<<<<< HEAD
-After deployment, verify the following endpoints.
-
-| Endpoint | Description |
-|----------|-------------|
-| GET /health | Service health |
-| GET /discover | Resource discovery |
-| GET /compliance | Compliance evaluation |
-| GET /verify | Metadata verification |
-| GET /enforce | Label enforcement |
-| GET /report | Governance reporting |
-
-Example:
-
-```text
-https://<cloud-run-url>/health
-```
-
----
-
-# Updating the Platform
-
-To deploy new application code:
-
-```bash
-git checkout -b feature/my-change
-
-git add .
-
-git commit -m "Describe change"
-
-git push origin feature/my-change
-```
-
-Create a Pull Request.
-
-After approval and merge into **main**, GitHub Actions automatically deploys the new version.
-
----
-
-# Destroy Infrastructure
-
-To remove the deployed infrastructure:
-
-```bash
-cd terraform
-
-terraform destroy
-```
-
-> **Note**
->
-> Google Cloud Workload Identity Pools use a soft-delete lifecycle. If a pool is deleted, its identifier remains reserved for a retention period. Recreating a pool with the same ID immediately after deletion may return a `409 Requested entity already exists` error. During development or testing, either restore the deleted pool or use a new pool ID. This is expected Google Cloud behaviour.
-
----
-
-# Security
-
-The platform follows Google Cloud security best practices.
-
-- No service account keys are stored in GitHub.
-- Authentication uses Workload Identity Federation (OIDC).
-- Service accounts follow the principle of least privilege.
-- Registry changes require Pull Request approval.
-- Registry files are validated before merging.
-- Deployments occur only after successful validation and approval.
-
----
-
-# Deployment Summary
-
-The deployment process is fully automated.
-
-```
-Terraform
-
-↓
-
-Google Cloud Infrastructure
-
-↓
-
-GitHub Push
+Merge
 
 ↓
 
@@ -430,44 +674,206 @@ GitHub Actions
 
 ↓
 
-Workload Identity Federation
+Cloud Run Deployment
 
 ↓
 
-Docker Build
-
-↓
-
-Artifact Registry
-
-↓
-
-Cloud Run
-
-↓
-
-Platform Metadata Governance
+Platform Ready
 ```
-=======
-Verify:
-
-GET /health
-
-GET /discover
-
-GET /compliance
-
-GET /verify
-
-GET /enforce
-
-GET /report
 
 ---
 
-# Remove Infrastructure
+# Operational Flow
 
+```
+Application Registry
+
+↓
+
+Governance Service
+
+↓
+
+Cloud Asset Inventory
+
+↓
+
+Discovery Service
+
+↓
+
+Compliance Service
+
+↓
+
+Enforcement Planner
+
+↓
+
+Executor
+
+↓
+
+Resource Adapter
+
+↓
+
+Google Cloud APIs
+```
+
+---
+
+# Monitoring
+
+Application logs are automatically written to Cloud Logging.
+
+View logs.
+
+```bash
+gcloud logging read \
+"resource.type=cloud_run_revision"
+```
+
+Logs include
+
+- Discovery
+- Compliance
+- Enforcement
+- Verification
+- Reporting
+
+---
+
+# Updating the Platform
+
+Create a feature branch.
+
+```bash
+git checkout -b feature/update
+```
+
+Commit changes.
+
+```bash
+git add .
+
+git commit -m "Platform enhancement"
+```
+
+Push.
+
+```bash
+git push origin feature/update
+```
+
+Create a Pull Request.
+
+After approval, merge into **main**.
+
+Deployment occurs automatically.
+
+---
+
+# Destroy Infrastructure
+
+Destroy the environment.
+
+```bash
 cd terraform
 
 terraform destroy
->>>>>>> 649cfac5f0154a8468ffb6b68da077cb026083db
+```
+
+---
+
+# Known Google Cloud Behaviour
+
+Google Cloud Workload Identity Pools use a soft-delete lifecycle.
+
+If a pool is deleted, Google reserves the pool identifier for a retention period.
+
+Attempting to recreate a pool immediately after deletion may result in
+
+```
+409 Requested entity already exists
+```
+
+If this occurs
+
+- Restore the existing pool
+
+or
+
+- Create a new Workload Identity Pool ID
+
+This is expected Google Cloud behaviour.
+
+---
+
+# Troubleshooting
+
+## GitHub Authentication
+
+Verify
+
+- WIF_PROVIDER
+- WIF_SERVICE_ACCOUNT
+
+Check GitHub Actions logs.
+
+---
+
+## Cloud Run Deployment
+
+Verify
+
+```bash
+gcloud run services list
+```
+
+---
+
+## Artifact Registry
+
+Verify
+
+```bash
+gcloud artifacts repositories list
+```
+
+---
+
+## Registry Validation Failure
+
+Run locally
+
+```bash
+python validation/validate_registry.py
+```
+
+---
+
+## Unit Tests
+
+Run
+
+```bash
+pytest
+```
+
+All tests should pass before merging into **main**.
+
+---
+
+# Next Steps
+
+After successful deployment you can
+
+- Onboard new applications
+- Discover resources
+- Evaluate compliance
+- Apply metadata
+- Verify remediation
+- Generate governance reports
+
+The platform is now ready for operational use.
