@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
     paths:
       - "cloudrun/**"
       - "Dockerfile"
@@ -16,7 +15,6 @@ permissions:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
 
     env:
@@ -26,20 +24,19 @@ jobs:
       IMAGE_NAME: governance-engine
 
     steps:
-
       - name: Checkout Repository
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.2
         with:
-            fetch-depth: 1
+          fetch-depth: 1
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2.2.0
+        uses: google-github-actions/auth@v2.16.0
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2.1.0
+        uses: google-github-actions/setup-gcloud@v2.1.1
 
       - name: Configure Docker
         run: |
