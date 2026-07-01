@@ -61,4 +61,4 @@ jobs:
 
           done
 
-          echo "Registry upload complete..."
+          echo "Registry upload complete."
