@@ -55,3 +55,19 @@ module "workload_identity" {
 
   workload_identity = var.workload_identity
 }
+
+module "registry_bucket" {
+
+  source = "./modules/registry-bucket"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  bucket_name = var.registry_bucket_name
+
+  governance_service_account = module.service_accounts.emails["governance"]
+
+  github_service_account = module.service_accounts.emails["github"]
+
+}

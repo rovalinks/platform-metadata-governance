@@ -62,3 +62,9 @@ variable "deploy_cloud_run" {
   type    = bool
   default = false
 }
+
+variable "registry_bucket_name" {
+
+  type = string
+
+}

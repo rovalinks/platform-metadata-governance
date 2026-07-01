@@ -1,15 +1,28 @@
 name: Registry Validation
 
 on:
+
   push:
+
     branches:
       - main
+
+    paths:
+      - "registry/**"
+      - "validation/**"
+      - ".github/workflows/registry-validation.yml"
 
   pull_request:
+
     branches:
       - main
 
+    paths:
+      - "registry/**"
+      - "validation/**"
+
 jobs:
+
   validate-registry:
 
     runs-on: ubuntu-latest

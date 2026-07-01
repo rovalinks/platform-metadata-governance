@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+    paths:
+      - "cloudrun/**"
+      - "Dockerfile"
+      - ".github/workflows/deploy.yml"
+
 permissions:
   contents: read
   id-token: write
