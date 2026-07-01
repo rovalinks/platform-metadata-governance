@@ -1577,3 +1577,44 @@ Thank you for your time.
 I'd now be happy to answer any questions about the architecture, implementation, deployment approach or future roadmap.
 
 I appreciate your feedback and look forward to discussing how this platform could evolve to support your governance requirements.
+
+---
+
+# Adapter Layer - Why It Is Critical
+
+One of the most important architectural decisions in this platform is the Adapter Layer.
+
+Google Cloud services do not expose a common API for managing metadata. Compute Engine, BigQuery, Cloud Storage, Cloud SQL and other services all use different APIs and request formats.
+
+The Governance Engine therefore never interacts directly with service-specific APIs. Instead, it delegates all resource-specific operations to adapters.
+
+The Governance Engine decides **what** action is required, while the Adapter decides **how** that action is performed.
+
+Current adapters include:
+
+- Compute Adapter
+- BigQuery Adapter
+
+Execution flow:
+
+Compliance Service
+↓
+Enforcement Service
+↓
+Adapter Service
+↓
+Resource-specific Adapter
+↓
+Google Cloud API
+
+Benefits:
+
+- Separation of business logic from Google Cloud implementation.
+- Easy support for new Google Cloud services.
+- No changes required in Compliance or Enforcement when adding a new resource type.
+- Reduced code duplication.
+- Easier unit testing.
+- Better maintainability.
+- Production-ready extensibility.
+
+For example, supporting Cloud Storage only requires implementing a Storage Adapter and registering it with the Adapter Service. The rest of the Governance Engine remains unchanged.
