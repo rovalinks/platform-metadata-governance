@@ -113,7 +113,7 @@ gcloud version
 
 ## Docker
 
-Verify
+Verify (Not Mandatory)
 
 ```bash
 docker version
