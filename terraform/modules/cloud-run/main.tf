@@ -1,19 +1,15 @@
 resource "google_cloud_run_v2_service" "this" {
-
   name     = var.service_name
   project  = var.project_id
   location = var.region
 
   ingress = "INGRESS_TRAFFIC_ALL"
-
   deletion_protection = false
 
   template {
-
     service_account = var.service_account_email
 
     containers {
-
       image = var.image
 
       env {
@@ -37,5 +33,12 @@ resource "google_cloud_run_v2_service" "this" {
         }
       }
     }
+  }
+
+  # Add the lifecycle block here
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image
+    ]
   }
 }

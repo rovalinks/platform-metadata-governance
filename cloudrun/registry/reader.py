@@ -15,39 +15,44 @@ class RegistryReader:
 
     def load_all(self):
 
-        logger.info(
-            "Loading registry from bucket %s",
-            REGISTRY_BUCKET,
-        )
+        logger.info("========== REGISTRY READER START ==========")
+        logger.info("Bucket: %s", REGISTRY_BUCKET)
+        logger.info("Prefix: %s", REGISTRY_PREFIX)
 
         applications = []
 
-        blobs = self.client.list_blobs(
-            REGISTRY_BUCKET,
-            prefix=REGISTRY_PREFIX,
-        )
+        try:
 
-        for blob in blobs:
-
-            if not blob.name.endswith(".yaml"):
-                continue
-
-            logger.info(
-                "Loading %s",
-                blob.name,
-            )
-
-            content = blob.download_as_text()
-
-            applications.append(
-                yaml.safe_load(
-                    StringIO(content)
+            blobs = list(
+                self.client.list_blobs(
+                    REGISTRY_BUCKET,
+                    prefix=REGISTRY_PREFIX,
                 )
             )
 
-        logger.info(
-            "Loaded %d applications",
-            len(applications),
-        )
+            logger.info("Blob count: %d", len(blobs))
+
+            for blob in blobs:
+
+                logger.info("Blob: %s", blob.name)
+
+                if not blob.name.endswith(".yaml"):
+                    continue
+
+                content = blob.download_as_text()
+
+                applications.append(
+                    yaml.safe_load(content)
+                )
+
+            logger.info("Applications loaded: %d", len(applications))
+
+        except Exception:
+
+            logger.exception("Failed loading registry")
+
+            raise
+
+        logger.info("========== REGISTRY READER END ==========")
 
         return applications
