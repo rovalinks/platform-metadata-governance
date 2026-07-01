@@ -3,8 +3,8 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent
 
-REGISTRY_DIRECTORY = (
-    BASE_DIR.parent / "registry" / "applications"
-)
-
 PROJECT_ID = os.environ["PROJECT_ID"]
+
+REGISTRY_BUCKET = os.environ["REGISTRY_BUCKET"]
+
+REGISTRY_PREFIX = "applications"

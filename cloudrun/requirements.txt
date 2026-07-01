@@ -9,5 +9,6 @@ jsonschema==4.25.0
 
 pydantic==2.11.7
 
+google-cloud-storage
 google-cloud-compute
 google-cloud-bigquery
