@@ -1,0 +1,16 @@
+schemaVersion: v1
+
+product: cpe-tagging-validation
+team: cloud-platform-engineering
+owner: camlong@ritchiebros.com
+budgetOwner: pfernandez@ritchiebros.com
+organization: rba
+department: cloud-platform-engineering
+costCenter: PLACEHOLDER
+
+bindings:
+  gcp:
+    - projectId: test
+      region: europe-west2
+      environment: sandbox
+      businessCriticality: low
