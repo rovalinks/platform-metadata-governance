@@ -11,9 +11,12 @@ class GovernanceService:
     def applications_for_project(self, project_id: str):
         matches = []
         for application in self.registry.load_all():
-            for binding in application["bindings"]["gcp"]:
+            for binding in application["bindings"]:
+                if binding["cloud"] != "gcp":
+                    continue
                 if binding["projectId"] == project_id:
                     matches.append(application)
+                    break
         return matches
 
     def metadata_for_project(self, project_id: str):
@@ -32,7 +35,12 @@ class GovernanceService:
         if application is None:
             return {}
 
-        binding = application["bindings"]["gcp"][0]
+        binding = next(
+            binding
+            for binding in application["bindings"]
+            if binding["cloud"] == "gcp"
+            and binding["projectId"] == project_id
+        )
         labels = {}
         
         labels["application"] = normalize_label_value(application["product"])

@@ -11,8 +11,8 @@ costCenter: PLACEHOLDER
 bindings:
 
   - cloud: gcp
-    projectId: platform-metadata-demo
+    projectId: project-a9c3b175-7f78-4ba6-9ad
     region: europe-west2
-    environment: sandbox
+    environment: test
     businessCriticality: low
 
