@@ -1,0 +1,17 @@
+schemaVersion: v1
+
+product: cpe-tagging-validation
+team: cloud-platform-engineering
+owner: kumar
+budgetOwner: rohit
+organization: rba
+department: cloud-platform-engineering
+costCenter: PLACEHOLDER
+
+bindings:
+
+  - cloud: gcp
+    projectId: project-a9c3b175-7f78-4ba6-9ad
+    region: europe-west2
+    environment: sandbox
+    businessCriticality: low
