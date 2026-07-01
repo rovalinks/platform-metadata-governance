@@ -43,18 +43,19 @@ jobs:
         run: |
           docker build \
             -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }} \
+            -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
             ./cloudrun
 
       - name: Push Image
         run: |
-          docker push \
-            europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}
+          docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}
+          docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest
 
       - name: Deploy Cloud Run
         run: |
           gcloud run deploy metadata-governance \
-            --project=platform-metadata-demo \
-            --region=europe-west2 \
-            --image=europe-west2-docker.pkg.dev/platform-metadata-demo/platform-images/governance-engine:${GITHUB_SHA} \
-            --service-account=governance-engine-sa@platform-metadata-demo.iam.gserviceaccount.com \
+            --project=$PROJECT_ID \
+            --region=$REGION \
+            --image=europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
+            --service-account=governance-engine-sa@$PROJECT_ID.iam.gserviceaccount.com \
             --allow-unauthenticated
