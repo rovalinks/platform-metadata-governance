@@ -264,25 +264,74 @@ Open your GitHub repository.
 
 Navigate to:
 
-```
+```text
 Settings
-
 ↓
-
 Secrets and variables
-
 ↓
-
 Actions
 ```
 
 Create the following repository secrets.
 
-| Secret | Description | Example |
-|---------|-------------|----------|
-| WIF_PROVIDER | Full Workload Identity Provider resource name | `projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
-| WIF_SERVICE_ACCOUNT | GitHub Actions service account | `github-actions-sa@my-project.iam.gserviceaccount.com` |
+| Secret                | Description                                   | Example                                                                                           |
+| --------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `WIF_PROVIDER`        | Full Workload Identity Provider resource name | `projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
+| `WIF_SERVICE_ACCOUNT` | GitHub Actions service account email          | `github-actions-sa@my-project.iam.gserviceaccount.com`                                            |
 
+## How to obtain the values
+
+### `WIF_PROVIDER`
+
+Retrieve the full Workload Identity Provider resource name:
+
+```bash
+gcloud iam workload-identity-pools providers describe github-provider \
+    --location=global \
+    --workload-identity-pool=github-pool \
+    --format="value(name)"
+```
+
+Example output:
+
+```text
+projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+```
+
+Copy this value into the `WIF_PROVIDER` GitHub secret.
+
+If you don't know the provider name, list the available providers first:
+
+```bash
+gcloud iam workload-identity-pools providers list \
+    --location=global \
+    --workload-identity-pool=github-pool
+```
+
+### `WIF_SERVICE_ACCOUNT`
+
+Retrieve the service account email:
+
+```bash
+gcloud iam service-accounts list
+```
+
+Example output:
+
+```text
+NAME                  EMAIL
+GitHub Actions SA     github-actions-sa@my-project.iam.gserviceaccount.com
+```
+
+Copy the **EMAIL** value into the `WIF_SERVICE_ACCOUNT` GitHub secret.
+
+If you already know the service account name, you can retrieve just its email:
+
+```bash
+gcloud iam service-accounts describe \
+    github-actions-sa@my-project.iam.gserviceaccount.com \
+    --format="value(email)"
+```
 ---
 
 # Configure Branch Protection
