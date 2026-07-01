@@ -9,8 +9,10 @@ department: cloud-platform-engineering
 costCenter: PLACEHOLDER
 
 bindings:
-  gcp:
-    - projectId: platform-metadata-demo
-      region: europe-west2
-      environment: sandbox
-      businessCriticality: low
+
+  - cloud: gcp
+    projectId: platform-metadata-demo
+    region: europe-west2
+    environment: sandbox
+    businessCriticality: low
+
