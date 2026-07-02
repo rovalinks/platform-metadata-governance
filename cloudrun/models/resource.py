@@ -9,3 +9,17 @@ class Resource:
     location: str | None = None
     labels: dict = field(default_factory=dict)
     tags: dict = field(default_factory=dict)
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable representation of the resource.
+        """
+
+        return {
+            "asset_type": self.asset_type,
+            "name": self.name,
+            "project": self.project,
+            "location": self.location,
+            "labels": self.labels,
+            "tags": self.tags,
+        }
