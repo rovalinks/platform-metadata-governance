@@ -31,16 +31,13 @@ class CloudSqlClient(ResourceClient):
             .execute()
         )
 
-        settings = instance.get("settings", {})
-
         return dict(
-            settings.get(
-                "userLabels",
-                {},
-            )
+            instance
+            .get("settings", {})
+            .get("userLabels", {})
         )
 
-    def apply_labels(self, resource, labels: dict):
+    def apply_labels(self, resource, labels):
 
         info = self._parse(resource.name)
 
@@ -70,15 +67,11 @@ class CloudSqlClient(ResourceClient):
             }
         }
 
-        (
-            self.client.instances()
-            .patch(
-                project=info["project"],
-                instance=info["instance"],
-                body=body,
-            )
-            .execute()
-        )
+        self.client.instances().patch(
+            project=info["project"],
+            instance=info["instance"],
+            body=body,
+        ).execute()
 
         return True
 
