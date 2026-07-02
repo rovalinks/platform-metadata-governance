@@ -2,6 +2,7 @@ from utils.logger import logger
 from clients.cloud_asset import CloudAssetClient
 from models.resource import Resource
 from services.adapter import AdapterService
+from repositories.snapshot_repository import SnapshotRepository
 
 
 class DiscoveryService:
@@ -12,6 +13,8 @@ class DiscoveryService:
         self.client = CloudAssetClient()
 
         self.adapter = AdapterService()
+
+        self.snapshot = SnapshotRepository()
 
     def discover(self, project_id: str):
 
@@ -38,6 +41,15 @@ class DiscoveryService:
         logger.info(
             "Discovered %d resources",
             len(resources),
+        )
+
+        run_id = self.snapshot.save_inventory(
+            resources
+        )
+
+        logger.info(
+            "Discovery snapshot %s saved.",
+            run_id,
         )
 
         return resources

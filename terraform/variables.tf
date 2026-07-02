@@ -92,3 +92,12 @@ variable "log_level" {
   type        = string
   default     = "INFO"
 }
+
+
+variable "bigquery" {
+  description = "BigQuery configuration"
+
+  type = object({
+    dataset_id = string
+  })
+}
