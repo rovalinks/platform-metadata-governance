@@ -19,24 +19,34 @@ def health():
 def discover():
     return Dispatcher.dispatch("discover")
 
+
 @app.get("/compliance")
 def compliance_endpoint():
     return Dispatcher.dispatch("compliance")
 
+
+@app.get("/plan")
+def plan_endpoint():
+    return Dispatcher.dispatch("plan")
+
+
 @app.get("/enforce")
 def enforce_endpoint():
-
     return Dispatcher.dispatch("enforce")
+
 
 @app.get("/verify")
 def verify_endpoint():
-
     return Dispatcher.dispatch("verify")
+
 
 @app.get("/report")
 def report_endpoint():
-
     return Dispatcher.dispatch("report")
 
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(
+        host="0.0.0.0",
+        port=8080,
+    )

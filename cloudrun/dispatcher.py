@@ -4,6 +4,7 @@ from handlers.compliance import compliance
 from handlers.verify import verify
 from handlers.report import report
 from handlers.enforce import enforce
+from handlers.plan import plan
 
 
 class Dispatcher:
@@ -25,6 +26,9 @@ class Dispatcher:
 
         if route == "report":
             return report()
+
+        if route == "plan":
+            return plan()
 
         if route == "enforce":
             return enforce()
