@@ -13,13 +13,15 @@ class ComputeClient(ResourceClient):
         self.zone_operations = compute_v1.ZoneOperationsClient()
 
     def supports(self, asset_type: str):
+        # We keep this for the AdapterService lookup, 
+        # but logic inside uses resource.name
         return asset_type in [
             "compute.googleapis.com/Instance",
             "compute.googleapis.com/Disk",
         ]
 
     def labels(self, resource):
-        if resource.asset_type == "compute.googleapis.com/Instance":
+        if "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
                 project=info["project"],
@@ -28,7 +30,7 @@ class ComputeClient(ResourceClient):
             )
             return dict(instance.labels or {})
         
-        elif resource.asset_type == "compute.googleapis.com/Disk":
+        elif "/disks/" in resource.name:
             info = parse_disk_name(resource.name)
             disk = self.disks.get(
                 project=info["project"],
@@ -37,10 +39,10 @@ class ComputeClient(ResourceClient):
             )
             return dict(disk.labels or {})
 
-        return {}
+        raise ValueError(f"Unsupported Compute resource: {resource.name}")
 
     def apply_labels(self, resource, labels: dict):
-        if resource.asset_type == "compute.googleapis.com/Instance":
+        if "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
                 project=info["project"], zone=info["zone"], instance=info["instance"]
@@ -60,7 +62,7 @@ class ComputeClient(ResourceClient):
                 instances_set_labels_request_resource=request,
             )
             
-        elif resource.asset_type == "compute.googleapis.com/Disk":
+        elif "/disks/" in resource.name:
             info = parse_disk_name(resource.name)
             disk = self.disks.get(
                 project=info["project"], zone=info["zone"], disk=info["disk"]
@@ -80,7 +82,7 @@ class ComputeClient(ResourceClient):
                 zone_set_labels_request_resource=request,
             )
         else:
-            return False
+            raise ValueError(f"Unsupported Compute resource: {resource.name}")
 
         # Wait for the operation to complete
         self.zone_operations.wait(
