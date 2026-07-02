@@ -3,56 +3,94 @@ from io import StringIO
 import yaml
 from google.cloud import storage
 
+from cache.registry_cache import RegistryCache
 from config import REGISTRY_BUCKET, REGISTRY_PREFIX
 from utils.logger import logger
 
 
 class RegistryReader:
-    """Reads registry YAML files from Cloud Storage."""
+    """
+    Reads application registry YAML files
+    from Cloud Storage.
+    """
 
     def __init__(self):
+
         self.client = storage.Client()
 
     def load_all(self):
 
-        logger.info("========== REGISTRY READER START ==========")
-        logger.info("Bucket: %s", REGISTRY_BUCKET)
-        logger.info("Prefix: %s", REGISTRY_PREFIX)
+        applications = RegistryCache.get()
+
+        if applications is not None:
+            return applications
+
+        logger.info(
+            "========== REGISTRY READER START =========="
+        )
+
+        logger.info(
+            "Bucket: %s",
+            REGISTRY_BUCKET,
+        )
+
+        logger.info(
+            "Prefix: %s",
+            REGISTRY_PREFIX,
+        )
 
         applications = []
 
-        try:
+        blobs = list(
 
-            blobs = list(
-                self.client.list_blobs(
-                    REGISTRY_BUCKET,
-                    prefix=REGISTRY_PREFIX,
-                )
+            self.client.list_blobs(
+
+                REGISTRY_BUCKET,
+
+                prefix=REGISTRY_PREFIX,
+
             )
 
-            logger.info("Blob count: %d", len(blobs))
+        )
 
-            for blob in blobs:
+        logger.info(
+            "Blob count: %d",
+            len(blobs),
+        )
 
-                logger.info("Blob: %s", blob.name)
+        for blob in blobs:
 
-                if not blob.name.endswith(".yaml"):
-                    continue
+            if not blob.name.endswith(".yaml"):
+                continue
 
-                content = blob.download_as_text()
+            logger.info(
+                "Blob: %s",
+                blob.name,
+            )
 
-                applications.append(
-                    yaml.safe_load(content)
+            applications.append(
+
+                yaml.safe_load(
+
+                    StringIO(
+
+                        blob.download_as_text()
+
+                    )
+
                 )
 
-            logger.info("Applications loaded: %d", len(applications))
+            )
 
-        except Exception:
+        logger.info(
+            "Applications loaded: %d",
+            len(applications),
+        )
 
-            logger.exception("Failed loading registry")
+        logger.info(
+            "========== REGISTRY READER END =========="
+        )
 
-            raise
-
-        logger.info("========== REGISTRY READER END ==========")
+        RegistryCache.set(applications)
 
         return applications

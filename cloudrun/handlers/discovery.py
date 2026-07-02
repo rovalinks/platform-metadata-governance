@@ -44,9 +44,14 @@ def discover():
 
             )
 
-    return jsonify(
-        [
-            resource.to_dict()
-            for resource in resources
-        ]
-    )
+    # --- Temporary Debugging Code ---
+    serialized = []
+
+    for resource in resources:
+        print(type(resource))
+        print(resource.__class__.__module__)
+
+        serialized.append(resource.to_dict())
+
+    return jsonify(serialized)
+    # --------------------------------

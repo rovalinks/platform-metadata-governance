@@ -13,3 +13,5 @@ PROJECT_ID = os.environ["PROJECT_ID"]
 REGISTRY_BUCKET = os.environ["REGISTRY_BUCKET"]
 
 REGISTRY_PREFIX = "applications"
+
+REGISTRY_CACHE_TTL = 60
