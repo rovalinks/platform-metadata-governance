@@ -12,16 +12,19 @@ bindings:
 
   - cloud: gcp
     projectId: app-dev
+    region: europe-west2
     environment: dev
     businessCriticality: low
 
   - cloud: gcp
     projectId: app-test
+    region: europe-west2
     environment: test
     businessCriticality: medium
 
   - cloud: gcp
     projectId: app-prod
+    region: europe-west1
     environment: prod
     businessCriticality: high
 
