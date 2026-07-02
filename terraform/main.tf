@@ -31,27 +31,16 @@ module "iam" {
 
 module "cloud_run" {
   count                 = var.deploy_cloud_run ? 1 : 0
-
   source                = "./modules/cloud-run"
-
   project_id            = var.project_id
   region                = var.region
-
   service_name          = var.cloud_run.service_name
   image                 = var.cloud_run.image
-
   service_account_email = module.service_accounts.emails["governance"]
-
   registry_bucket       = module.registry_bucket.bucket_name
-
   registry_cache_ttl    = var.registry_cache_ttl
-
   excluded_buckets      = var.excluded_buckets
-
-  bigquery_dataset      = var.bigquery.dataset_id
-
   dry_run               = var.dry_run
-
   log_level             = var.log_level
 }
 

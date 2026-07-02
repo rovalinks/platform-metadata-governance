@@ -35,7 +35,7 @@ resource "google_cloud_run_v2_service" "this" {
       }
       env {
         name  = "BIGQUERY_DATASET"
-        value = var.bigquery_dataset
+        value = var.bigquery.dataset_id
       }
       env {
         name  = "DRY_RUN"
