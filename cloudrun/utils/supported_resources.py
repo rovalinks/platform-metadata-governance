@@ -24,7 +24,7 @@ SUPPORTED_LABEL_RESOURCES = {
 
     "pubsub.googleapis.com/Topic",
 
-    # "container.googleapis.com/Cluster",
+    "container.googleapis.com/Cluster",
 
     # "container.googleapis.com/NodePool",
 }

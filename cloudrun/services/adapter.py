@@ -4,6 +4,7 @@ from clients.storage import StorageClient
 from clients.sql import CloudSqlClient
 from clients.artifact_registry import ArtifactRegistryClient
 from clients.pubsub import PubSubClient
+from clients.gke import GkeClient
 
 class AdapterService:
 
@@ -16,7 +17,7 @@ class AdapterService:
             CloudSqlClient(),
             ArtifactRegistryClient(),
             PubSubClient(),
-            
+            GkeClient(),            
         ]
 
     def client_for(self, asset_type: str):
