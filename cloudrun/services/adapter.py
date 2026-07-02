@@ -3,6 +3,7 @@ from clients.bigquery import BigQueryClient
 from clients.storage import StorageClient
 from clients.sql import CloudSqlClient
 from clients.artifact_registry import ArtifactRegistryClient
+from clients.pubsub import PubSubClient
 
 class AdapterService:
 
@@ -14,6 +15,8 @@ class AdapterService:
             StorageClient(),
             CloudSqlClient(),
             ArtifactRegistryClient(),
+            PubSubClient(),
+            
         ]
 
     def client_for(self, asset_type: str):

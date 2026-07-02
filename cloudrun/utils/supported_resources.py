@@ -22,7 +22,7 @@ SUPPORTED_LABEL_RESOURCES = {
 
     "artifactregistry.googleapis.com/Repository",
 
-    # "pubsub.googleapis.com/Topic",
+    "pubsub.googleapis.com/Topic",
 
     # "container.googleapis.com/Cluster",
 
