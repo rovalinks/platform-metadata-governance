@@ -25,11 +25,6 @@ def compliance_endpoint():
     return Dispatcher.dispatch("compliance")
 
 
-@app.get("/plan")
-def plan_endpoint():
-    return Dispatcher.dispatch("plan")
-
-
 @app.get("/enforce")
 def enforce_endpoint():
     return Dispatcher.dispatch("enforce")
@@ -46,7 +41,4 @@ def report_endpoint():
 
 
 if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=8080,
-    )
+    app.run(host="0.0.0.0", port=8080)
