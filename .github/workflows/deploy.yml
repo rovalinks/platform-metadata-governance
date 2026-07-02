@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
     paths:
       - "cloudrun/**"
       - "Dockerfile"
@@ -16,7 +15,6 @@ permissions:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
 
     env:
@@ -26,11 +24,10 @@ jobs:
       IMAGE_NAME: governance-engine
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4.2.0
         with:
-            fetch-depth: 1
+          fetch-depth: 1
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -41,22 +38,20 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configure Docker
-        run: |
-          gcloud auth configure-docker europe-west2-docker.pkg.dev --quiet
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build Image
-        run: |
-          docker build \
-            -f Dockerfile \
-            -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }} \
-            -t europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
-            .
-
-      - name: Push Image
-        run: |
-          docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}
-          docker push europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            europe-west2-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            europe-west2-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy Cloud Run
         run: |
