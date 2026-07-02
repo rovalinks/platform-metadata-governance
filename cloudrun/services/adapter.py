@@ -1,24 +1,26 @@
 from clients.compute import ComputeClient
 from clients.bigquery import BigQueryClient
 from clients.storage import StorageClient
+from clients.sql import CloudSqlClient
 
 
 class AdapterService:
-    """Routes resources to the correct Google Cloud resource client."""
 
     def __init__(self):
 
         self.clients = [
+
             ComputeClient(),
+
             BigQueryClient(),
+
             StorageClient(),
+
+            CloudSqlClient(),
+
         ]
 
     def client_for(self, asset_type: str):
-        """
-        Returns the client responsible for the supplied
-        Cloud Asset Inventory asset type.
-        """
 
         for client in self.clients:
 
@@ -29,11 +31,12 @@ class AdapterService:
 
     def enrich(self, resource):
         """
-        Enrich a discovered resource with live metadata
-        from the Google Cloud service API.
+        Populate a discovered resource with live metadata.
         """
 
-        client = self.client_for(resource.asset_type)
+        client = self.client_for(
+            resource.asset_type
+        )
 
         if client is None:
             return resource
@@ -44,16 +47,3 @@ class AdapterService:
             resource.labels = labels
 
         return resource
-
-    def apply_labels(self, resource, labels: dict):
-        """
-        Applies governance labels using the correct
-        Google Cloud resource client.
-        """
-
-        client = self.client_for(resource.asset_type)
-
-        if client is None:
-            return False
-
-        return client.apply_labels(resource, labels)
