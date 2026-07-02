@@ -2,22 +2,18 @@ from clients.compute import ComputeClient
 from clients.bigquery import BigQueryClient
 from clients.storage import StorageClient
 from clients.sql import CloudSqlClient
-
+from clients.artifact_registry import ArtifactRegistryClient
 
 class AdapterService:
 
     def __init__(self):
 
         self.clients = [
-
             ComputeClient(),
-
             BigQueryClient(),
-
             StorageClient(),
-
             CloudSqlClient(),
-
+            ArtifactRegistryClient(),
         ]
 
     def client_for(self, asset_type: str):

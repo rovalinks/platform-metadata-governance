@@ -16,3 +16,4 @@ google-cloud-compute
 google-cloud-bigquery
 google-api-python-client
 google-cloud-pubsub
+google-cloud-artifact-registry

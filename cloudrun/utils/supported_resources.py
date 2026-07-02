@@ -20,7 +20,7 @@ SUPPORTED_LABEL_RESOURCES = {
 
     "sqladmin.googleapis.com/Instance",
 
-    # "artifactregistry.googleapis.com/Repository",
+    "artifactregistry.googleapis.com/Repository",
 
     # "pubsub.googleapis.com/Topic",
 
