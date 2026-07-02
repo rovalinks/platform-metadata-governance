@@ -3,7 +3,7 @@ schemaVersion: v1
 product: cpe-tagging-validation
 team: cloud-platform-engineering
 owner: kumar
-budgetOwner: rohit_test
+budgetOwner: rohit
 organization: rba
 department: cloud-platform-engineering
 costCenter: PLACEHOLDER
