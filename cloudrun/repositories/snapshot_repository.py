@@ -12,12 +12,9 @@ class SnapshotRepository:
     def __init__(self):
 
         self.client = bigquery.Client()
-
-        self.dataset = "metadata_governance"
-
-        self.inventory_table = "resource_inventory"
-
-        self.compliance_table = "compliance_results"
+        self.dataset = "metadata_governance_dataset"
+        self.resource_table = "resource_snapshot"
+        self.compliance_table = "compliance_snapshot"
 
     def save_inventory(self, resources):
 
