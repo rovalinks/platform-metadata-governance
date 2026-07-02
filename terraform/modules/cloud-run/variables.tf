@@ -27,3 +27,22 @@ variable "registry_bucket" {
   description = "Registry Cloud Storage bucket"
   type        = string
 }
+
+variable "registry_cache_ttl" {
+  type    = number
+  default = 300
+}
+
+variable "excluded_buckets" {
+  type = list(string)
+}
+
+variable "dry_run" {
+  type    = bool
+  default = false
+}
+
+variable "log_level" {
+  type    = string
+  default = "INFO"
+}

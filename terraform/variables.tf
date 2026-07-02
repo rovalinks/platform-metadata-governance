@@ -68,3 +68,27 @@ variable "registry_bucket_name" {
   type = string
 
 }
+
+variable "registry_cache_ttl" {
+  description = "Registry cache TTL in seconds"
+  type        = number
+  default     = 300
+}
+
+variable "excluded_buckets" {
+  description = "Buckets excluded from enforcement"
+  type        = list(string)
+  default     = []
+}
+
+variable "dry_run" {
+  description = "Enable dry-run enforcement"
+  type        = bool
+  default     = false
+}
+
+variable "log_level" {
+  description = "Application log level"
+  type        = string
+  default     = "INFO"
+}

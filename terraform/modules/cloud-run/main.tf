@@ -1,13 +1,18 @@
 resource "google_cloud_run_v2_service" "this" {
-  name     = var.service_name
-  project  = var.project_id
-  location = var.region
-
-  ingress = "INGRESS_TRAFFIC_ALL"
+  name                = var.service_name
+  project             = var.project_id
+  location            = var.region
+  ingress             = "INGRESS_TRAFFIC_ALL"
   deletion_protection = false
 
   template {
     service_account = var.service_account_email
+    timeout         = "900s"
+
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 10
+    }
 
     containers {
       image = var.image
@@ -16,15 +21,25 @@ resource "google_cloud_run_v2_service" "this" {
         name  = "PROJECT_ID"
         value = var.project_id
       }
-
       env {
         name  = "REGISTRY_BUCKET"
         value = var.registry_bucket
       }
-
       env {
         name  = "EXCLUDED_BUCKETS"
-        value = "platform-metadata-demo-registry,platform-metadata-demo-tfstate,platform-metadata-demo_cloudbuild"
+        value = join(",", var.excluded_buckets)
+      }
+      env {
+        name  = "REGISTRY_CACHE_TTL"
+        value = tostring(var.registry_cache_ttl)
+      }
+      env {
+        name  = "DRY_RUN"
+        value = tostring(var.dry_run)
+      }
+      env {
+        name  = "LOG_LEVEL"
+        value = var.log_level
       }
 
       ports {
@@ -33,16 +48,17 @@ resource "google_cloud_run_v2_service" "this" {
 
       resources {
         limits = {
-          cpu    = "1"
-          memory = "512Mi"
+          cpu    = "2"
+          memory = "2Gi"
         }
       }
     }
   }
 
-  # Add the lifecycle block here
   lifecycle {
     ignore_changes = [
+      client,
+      client_version,
       template[0].containers[0].image
     ]
   }
