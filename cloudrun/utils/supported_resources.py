@@ -18,7 +18,7 @@ SUPPORTED_LABEL_RESOURCES = {
 
     "bigquery.googleapis.com/Dataset",
 
-    # "sqladmin.googleapis.com/Instance",
+    "sqladmin.googleapis.com/Instance",
 
     # "artifactregistry.googleapis.com/Repository",
 
