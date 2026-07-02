@@ -27,10 +27,10 @@
   },
   {
     "name": "missing_labels",
-    "type": "JSON"
+    "type": "STRING"
   },
   {
     "name": "incorrect_labels",
-    "type": "JSON"
+    "type": "STRING"
   }
 ]

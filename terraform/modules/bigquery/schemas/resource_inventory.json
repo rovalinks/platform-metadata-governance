@@ -26,11 +26,11 @@
     "type": "STRING"
   },
   {
-    "name": "labels",
-    "type": "JSON"
+  "name": "labels",
+  "type": "STRING"
   },
   {
     "name": "tags",
-    "type": "JSON"
+    "type": "STRING"
   }
 ]

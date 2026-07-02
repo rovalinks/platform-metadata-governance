@@ -11,26 +11,26 @@ resource "google_bigquery_dataset" "metadata" {
   delete_contents_on_destroy = true
 }
 
-resource "google_bigquery_table" "resource_inventory" {
+resource "google_bigquery_table" "resource_snapshot" {
 
   project = var.project_id
 
   dataset_id = google_bigquery_dataset.metadata.dataset_id
 
-  table_id = "resource_inventory"
+  table_id = "resource_snapshot"
 
   deletion_protection = false
 
   schema = file("${path.module}/schemas/resource_inventory.json")
 }
 
-resource "google_bigquery_table" "compliance_results" {
+resource "google_bigquery_table" "compliance_snapshot" {
 
   project = var.project_id
 
   dataset_id = google_bigquery_dataset.metadata.dataset_id
 
-  table_id = "compliance_results"
+  table_id = "compliance_snapshot"
 
   deletion_protection = false
 
