@@ -14,7 +14,7 @@ SUPPORTED_LABEL_RESOURCES = {
 
     # "compute.googleapis.com/InstanceTemplate",
 
-    # "storage.googleapis.com/Bucket",
+    "storage.googleapis.com/Bucket",
 
     "bigquery.googleapis.com/Dataset",
 
