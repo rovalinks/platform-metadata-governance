@@ -1,11 +1,11 @@
 name: Registry Sync
 
 on:
-  workflow_run:
-    workflows:
-      - Registry Validation
-    types:
-      - completed
+  push:
+    branches:
+      - main
+    paths:
+      - "registry/**"
 
 permissions:
   contents: read
@@ -14,9 +14,6 @@ permissions:
 jobs:
 
   sync:
-
-    if: >
-      github.event.workflow_run.conclusion == 'success'
 
     runs-on: ubuntu-latest
 
@@ -28,9 +25,6 @@ jobs:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
-          fetch-depth: 2
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -41,23 +35,15 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Upload Changed Registry Files
-        shell: bash
+      - name: Synchronise Registry
         run: |
 
-          FILES=$(git diff --name-only HEAD~1 HEAD | grep '^registry/applications/.*\.yaml$' || true)
+          echo "Synchronising registry..."
 
-          if [ -z "$FILES" ]; then
-            echo "No registry changes."
-            exit 0
-          fi
+          gcloud storage rsync \
+            registry/applications \
+            gs://$BUCKET/applications \
+            --recursive \
+            --delete-unmatched-destination-objects
 
-          for file in $FILES
-          do
-            echo "Uploading $file"
-
-            gcloud storage cp \
-              "$file" \
-              "gs://$BUCKET/applications/$(basename "$file")"
-
-          done
+          echo "Registry synchronisation complete."
