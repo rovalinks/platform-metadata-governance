@@ -2,7 +2,7 @@ SUPPORTED_LABEL_RESOURCES = {
 
     "compute.googleapis.com/Instance",
 
-    # "compute.googleapis.com/Disk",
+    "compute.googleapis.com/Disk",
 
     # "compute.googleapis.com/Image",
 
