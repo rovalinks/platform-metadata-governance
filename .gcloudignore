@@ -30,3 +30,5 @@ README.md
 
 # Tests
 tests/
+
+cloudrun/.env

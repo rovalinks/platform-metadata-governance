@@ -1,12 +1,9 @@
-from flask import request
-
 from handlers.health import health
 from handlers.discovery import discover
 from handlers.compliance import compliance
 from handlers.verify import verify
 from handlers.report import report
 from handlers.enforce import enforce
-from config import PROJECT_ID
 
 
 class Dispatcher:
@@ -18,19 +15,19 @@ class Dispatcher:
             return health()
 
         if route == "discover":
-            return discover(PROJECT_ID)
-        
+            return discover()
+
         if route == "compliance":
-            return compliance(PROJECT_ID)
+            return compliance()
 
         if route == "verify":
-            return verify(PROJECT_ID)
-        
+            return verify()
+
         if route == "report":
-            return report(PROJECT_ID)
+            return report()
 
         if route == "enforce":
-            return enforce(PROJECT_ID)
+            return enforce()
 
         return {
             "error": "Endpoint not found"
