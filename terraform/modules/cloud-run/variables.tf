@@ -46,3 +46,8 @@ variable "log_level" {
   type    = string
   default = "INFO"
 }
+
+variable "bigquery_dataset" {
+  description = "BigQuery dataset"
+  type        = string
+}
