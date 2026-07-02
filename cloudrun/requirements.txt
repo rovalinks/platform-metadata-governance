@@ -14,4 +14,4 @@ python-dotenv
 google-cloud-storage
 google-cloud-compute
 google-cloud-bigquery
-
+google-api-python-client
