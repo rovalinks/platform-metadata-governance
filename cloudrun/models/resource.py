@@ -11,10 +11,6 @@ class Resource:
     tags: dict = field(default_factory=dict)
 
     def to_dict(self):
-        """
-        Returns a JSON-serializable representation of the resource.
-        """
-
         return {
             "asset_type": self.asset_type,
             "name": self.name,

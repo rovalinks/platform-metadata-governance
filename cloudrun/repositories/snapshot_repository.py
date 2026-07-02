@@ -1,58 +1,97 @@
 import json
-import os
+import uuid
 from datetime import datetime
+
 from google.cloud import bigquery
+
 from utils.logger import logger
+
 
 class SnapshotRepository:
     """Persists and retrieves governance snapshots."""
 
     def __init__(self):
         self.client = bigquery.Client()
-        # Ensure this matches the dataset name exactly
         self.dataset = "metadata_governance_dataset"
-        # Using resource_table to match your previous logic
         self.resource_table = "resource_snapshot"
         self.compliance_table = "compliance_snapshot"
 
     def save_inventory(self, resources):
-        """Persists resource inventory with serialized JSON strings."""
+        """Persist discovered resources to BigQuery."""
+
+        run_id = str(uuid.uuid4())
+
         rows_to_insert = []
+
         for resource in resources:
-            rows_to_insert.append({
-                "run_id": resource.run_id,
-                "snapshot_time": datetime.utcnow().isoformat(),
-                "project_id": resource.project_id,
-                "asset_type": resource.asset_type,
-                "resource_name": resource.name,
-                "location": resource.location,
-                "labels": json.dumps(resource.labels or {}),
-                "tags": json.dumps(resource.tags or {}),
-            })
-        
+            rows_to_insert.append(
+                {
+                    "run_id": run_id,
+                    "snapshot_time": datetime.utcnow().isoformat(),
+                    "project_id": resource.project,
+                    "asset_type": resource.asset_type,
+                    "resource_name": resource.name,
+                    "location": resource.location,
+                    "labels": json.dumps(resource.labels or {}),
+                    "tags": json.dumps(resource.tags or {}),
+                }
+            )
+
         table_id = f"{self.dataset}.{self.resource_table}"
-        errors = self.client.insert_rows_json(table_id, rows_to_insert)
+
+        errors = self.client.insert_rows_json(
+            table_id,
+            rows_to_insert,
+        )
+
         if errors:
-            logger.error(f"Errors inserting resources into {table_id}: {errors}")
-        return errors
+            logger.error(
+                "Errors inserting resources into %s: %s",
+                table_id,
+                errors,
+            )
+
+        return run_id
 
     def save_compliance(self, results):
-        """Persists compliance results with serialized JSON strings."""
+        """Persist compliance results to BigQuery."""
+
         rows_to_insert = []
+
         for res in results:
-            rows_to_insert.append({
-                "run_id": res.run_id,
-                "evaluated_time": datetime.utcnow().isoformat(),
-                "project_id": res.project_id,
-                "asset_type": res.asset_type,
-                "resource_name": res.resource_name,
-                "compliant": res.compliant,
-                "missing_labels": json.dumps(res.missing_labels or []),
-                "incorrect_labels": json.dumps(res.incorrect_labels or {}),
-            })
-            
+            rows_to_insert.append(
+                {
+                    "run_id": getattr(res, "run_id", None),
+                    "evaluated_time": datetime.utcnow().isoformat(),
+                    "project_id": getattr(
+                        res,
+                        "project_id",
+                        getattr(res, "project", None),
+                    ),
+                    "asset_type": res.asset_type,
+                    "resource_name": res.resource_name,
+                    "compliant": res.compliant,
+                    "missing_labels": json.dumps(
+                        res.missing_labels or []
+                    ),
+                    "incorrect_labels": json.dumps(
+                        res.incorrect_labels or {}
+                    ),
+                }
+            )
+
         table_id = f"{self.dataset}.{self.compliance_table}"
-        errors = self.client.insert_rows_json(table_id, rows_to_insert)
+
+        errors = self.client.insert_rows_json(
+            table_id,
+            rows_to_insert,
+        )
+
         if errors:
-            logger.error(f"Errors inserting compliance data into {table_id}: {errors}")
+            logger.error(
+                "Errors inserting compliance data into %s: %s",
+                table_id,
+                errors,
+            )
+
         return errors

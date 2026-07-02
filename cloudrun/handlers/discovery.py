@@ -13,13 +13,11 @@ def discover():
     """
     Discovers supported resources.
 
-    Behaviour:
-
     GET /discover
-        Discover resources across every registered project.
+        Discover all registered projects.
 
     GET /discover?project=<project-id>
-        Discover resources for one project.
+        Discover a single project.
     """
 
     project_id = request.args.get("project")
@@ -37,21 +35,11 @@ def discover():
         for project in governance.projects():
 
             resources.extend(
-
                 context.discovery.discover(
                     project["projectId"]
                 )
-
             )
 
-    # --- Temporary Debugging Code ---
-    serialized = []
-
-    for resource in resources:
-        print(type(resource))
-        print(resource.__class__.__module__)
-
-        serialized.append(resource.to_dict())
-
-    return jsonify(serialized)
-    # --------------------------------
+    return jsonify(
+        [resource.to_dict() for resource in resources]
+    )

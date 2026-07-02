@@ -9,11 +9,8 @@ class DiscoveryService:
     """Discovers Google Cloud resources and enriches them with live metadata."""
 
     def __init__(self):
-
         self.client = CloudAssetClient()
-
         self.adapter = AdapterService()
-
         self.snapshot = SnapshotRepository()
 
     def discover(self, project_id: str):
@@ -48,7 +45,7 @@ class DiscoveryService:
         )
 
         logger.info(
-            "Discovery snapshot %s saved.",
+            "Discovery snapshot saved. Run ID: %s",
             run_id,
         )
 

@@ -5,22 +5,90 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Load .env only if present (local development)
+# Load .env only for local development
 load_dotenv(BASE_DIR / ".env")
+
+#
+# Google Cloud
+#
 
 PROJECT_ID = os.environ["PROJECT_ID"]
 
 REGISTRY_BUCKET = os.environ["REGISTRY_BUCKET"]
 
+BIGQUERY_DATASET = os.getenv(
+    "BIGQUERY_DATASET",
+    "metadata_governance_dataset",
+)
+
+#
+# Registry
+#
+
 REGISTRY_PREFIX = "applications"
 
-REGISTRY_CACHE_TTL = 60
-
-# Add this to your cloudrun/config.py
-EXCLUDED_BUCKETS = (
+REGISTRY_CACHE_TTL = int(
     os.getenv(
+        "REGISTRY_CACHE_TTL",
+        "300",
+    )
+)
+
+#
+# Snapshot storage
+#
+
+SNAPSHOT_PREFIX = "snapshots"
+
+RESOURCE_SNAPSHOT_PREFIX = (
+    f"{SNAPSHOT_PREFIX}/inventory"
+)
+
+COMPLIANCE_SNAPSHOT_PREFIX = (
+    f"{SNAPSHOT_PREFIX}/compliance"
+)
+
+#
+# Discovery
+#
+
+DISCOVERY_RETENTION_DAYS = int(
+    os.getenv(
+        "DISCOVERY_RETENTION_DAYS",
+        "10",
+    )
+)
+
+#
+# Enforcement
+#
+
+DRY_RUN = (
+    os.getenv(
+        "DRY_RUN",
+        "false",
+    ).lower()
+    == "true"
+)
+
+#
+# Logging
+#
+
+LOG_LEVEL = os.getenv(
+    "LOG_LEVEL",
+    "INFO",
+)
+
+#
+# Storage
+#
+
+EXCLUDED_BUCKETS = [
+    bucket.strip()
+    for bucket in os.getenv(
         "EXCLUDED_BUCKETS",
         "",
-    )
-    .split(",")
-)
+    ).split(",")
+    if bucket.strip()
+]

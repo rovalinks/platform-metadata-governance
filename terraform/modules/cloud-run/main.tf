@@ -34,6 +34,10 @@ resource "google_cloud_run_v2_service" "this" {
         value = tostring(var.registry_cache_ttl)
       }
       env {
+        name  = "BIGQUERY_DATASET"
+        value = var.bigquery.dataset_id
+      }
+      env {
         name  = "DRY_RUN"
         value = tostring(var.dry_run)
       }
