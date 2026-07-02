@@ -22,6 +22,11 @@ resource "google_cloud_run_v2_service" "this" {
         value = var.registry_bucket
       }
 
+      env {
+        name  = "EXCLUDED_BUCKETS"
+        value = "platform-metadata-demo-registry,platform-metadata-demo-tfstate,platform-metadata-demo_cloudbuild"
+      }
+
       ports {
         container_port = 8080
       }

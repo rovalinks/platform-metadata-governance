@@ -1,9 +1,14 @@
 from google.cloud import storage
+import logging
 
 from clients.base import ResourceClient
+from config import EXCLUDED_BUCKETS
 
+# Configure logger
+logger = logging.getLogger(__name__)
 
 class StorageClient(ResourceClient):
+
     """Cloud Storage resource adapter."""
 
     def __init__(self):
@@ -18,6 +23,13 @@ class StorageClient(ResourceClient):
 
         bucket_name = resource.name.split("/")[-1]
 
+        if bucket_name in EXCLUDED_BUCKETS:
+            logger.info(
+                "Skipping excluded bucket %s",
+                bucket_name,
+            )
+            return {}
+
         bucket = self.client.get_bucket(
             bucket_name
         )
@@ -29,6 +41,13 @@ class StorageClient(ResourceClient):
     def apply_labels(self, resource, labels: dict):
 
         bucket_name = resource.name.split("/")[-1]
+
+        if bucket_name in EXCLUDED_BUCKETS:
+            logger.info(
+                "Skipping excluded bucket %s",
+                bucket_name,
+            )
+            return False
 
         bucket = self.client.get_bucket(
             bucket_name

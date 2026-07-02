@@ -15,3 +15,12 @@ REGISTRY_BUCKET = os.environ["REGISTRY_BUCKET"]
 REGISTRY_PREFIX = "applications"
 
 REGISTRY_CACHE_TTL = 60
+
+# Add this to your cloudrun/config.py
+EXCLUDED_BUCKETS = (
+    os.getenv(
+        "EXCLUDED_BUCKETS",
+        "",
+    )
+    .split(",")
+)
