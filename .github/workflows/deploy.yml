@@ -30,10 +30,19 @@ jobs:
           fetch-depth: 1
 
       - name: Authenticate to Google Cloud
+        id: auth
         uses: google-github-actions/auth@v2
         with:
+          token_format: access_token
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Login to GAR
+        uses: docker/login-action@v3
+        with:
+          registry: europe-west2-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
