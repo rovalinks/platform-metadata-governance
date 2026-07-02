@@ -1,0 +1,27 @@
+schemaVersion: v1
+
+product: cpe-tagging-validation
+team: cloud-platform-engineering
+owner: kumar
+budgetOwner: rohit_test
+organization: rba
+department: cloud-platform-engineering
+costCenter: PLACEHOLDER
+
+bindings:
+
+  - cloud: gcp
+    projectId: app-dev
+    environment: dev
+    businessCriticality: low
+
+  - cloud: gcp
+    projectId: app-test
+    environment: test
+    businessCriticality: medium
+
+  - cloud: gcp
+    projectId: app-prod
+    environment: prod
+    businessCriticality: high
+
