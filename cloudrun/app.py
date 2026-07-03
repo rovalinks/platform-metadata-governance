@@ -29,6 +29,9 @@ def compliance_endpoint():
 def plan_endpoint():
     return Dispatcher.dispatch("plan")
 
+@app.get("/execute")
+def execute_endpoint():
+    return Dispatcher.dispatch("execute")
 
 @app.get("/enforce")
 def enforce_endpoint():
