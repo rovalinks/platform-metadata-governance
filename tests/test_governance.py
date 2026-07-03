@@ -9,20 +9,20 @@ def test_expected_labels(mocker):
             {
                 "product": "cpe-tagging-validation",
                 "team": "cloud-platform-engineering",
-                "owner": "camlong@ritchiebros.com",
-                "budgetOwner": "pfernandez@ritchiebros.com",
+                "owner": "kumar",
+                "budgetOwner": "rohit",
                 "organization": "rba",
                 "department": "cloud-platform-engineering",
                 "costCenter": "PLACEHOLDER",
-                "bindings": {
-                    "gcp": [
-                        {
-                            "projectId": "platform-metadata-demo",
-                            "environment": "sandbox",
-                            "businessCriticality": "low",
-                        }
-                    ]
-                },
+                "bindings": [
+                    {
+                        "cloud": "gcp",
+                        "projectId": "platform-metadata-demo",
+                        "region": "europe-west2",
+                        "environment": "sandbox",
+                        "businessCriticality": "low",
+                    }
+                ],
             }
         ],
     )

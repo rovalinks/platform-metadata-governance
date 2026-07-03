@@ -79,36 +79,62 @@ class ComplianceService:
             ):
                 continue
 
-            missing = []
-            incorrect = []
-
-            for key, expected in expected_labels.items():
-
-                actual = resource.labels.get(key)
-
-                if actual is None:
-                    missing.append(key)
-
-                elif str(actual) != str(expected):
-                    incorrect.append(key)
-
             project_results.append(
-
-                ComplianceResult(
-                    asset_type=resource.asset_type,
-                    name=resource.name,
-                    project=project_id,
-                    compliant=(
-                        len(missing) == 0
-                        and len(incorrect) == 0
-                    ),
-                    missing_labels=missing,
-                    incorrect_labels=incorrect,
+                self._evaluate_resource(
+                    resource,
+                    expected_labels,
                 )
-
             )
 
         return project_results
+
+    def _evaluate_resource(
+        self,
+        resource,
+        expected_labels,
+    ):
+        """Helper to evaluate compliance for a single resource."""
+        missing = []
+        incorrect = []
+
+        for key, expected in expected_labels.items():
+
+            actual = resource.labels.get(key)
+
+            if actual is None:
+                missing.append(key)
+
+            elif str(actual) != str(expected):
+                incorrect.append(key)
+
+        return ComplianceResult(
+            asset_type=resource.asset_type,
+            name=resource.name,
+            project=resource.project,
+            compliant=(
+                len(missing) == 0
+                and len(incorrect) == 0
+            ),
+            missing_labels=missing,
+            incorrect_labels=incorrect,
+        )
+
+    def evaluate_resource(
+        self,
+        resource,
+    ):
+        """
+        Evaluate compliance for a single
+        discovered resource.
+        """
+        expected = self.governance.expected_labels(
+            resource.project
+        )
+
+        return self._evaluate_resource(
+            resource,
+            expected,
+        )
 
     def summary(self, project_id: str | None = None):
 

@@ -3,8 +3,13 @@ from handlers.discovery import discover
 from handlers.compliance import compliance
 from handlers.verify import verify
 from handlers.report import report
+from handlers.execute import execute
 from handlers.enforce import enforce
-
+from handlers.plan import plan
+from handlers.runs import runs
+from handlers.history import history
+from handlers.dashboard import dashboard
+from handlers.metrics import metrics
 
 class Dispatcher:
 
@@ -26,8 +31,26 @@ class Dispatcher:
         if route == "report":
             return report()
 
+        if route == "runs":
+            return runs()
+
+        if route == "plan":
+            return plan()
+
+        if route == "execute":
+            return execute()
+            
         if route == "enforce":
             return enforce()
+
+        if route == "history":
+            return history()
+
+        if route == "dashboard":
+            return dashboard()
+        
+        if route == "metrics":
+            return metrics()
 
         return {
             "error": "Endpoint not found"

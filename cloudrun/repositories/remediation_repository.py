@@ -1,0 +1,181 @@
+import json
+
+from google.cloud import bigquery
+
+import config
+from models.remediation import RemediationPlan
+from utils.logger import logger
+
+
+class RemediationRepository:
+    """
+    Persists remediation plans.
+
+    This repository is responsible only for
+    storing and retrieving remediation plans.
+    """
+
+    def __init__(self):
+        self.client = bigquery.Client()
+        self.dataset = config.BIGQUERY_DATASET
+        self.table = "remediation_plan"
+
+    @property
+    def table_id(self):
+        return f"{self.dataset}.{self.table}"
+
+    @staticmethod
+    def _json_value(value):
+        """
+        BigQuery JSON columns are returned as native Python
+        objects, while STRING columns are returned as text.
+
+        Support both representations.
+        """
+        if isinstance(value, str):
+            return json.loads(value)
+
+        return value
+
+    def save(
+        self,
+        plans: list[RemediationPlan],
+    ) -> int:
+        if not plans:
+            return 0
+
+        rows = []
+        for plan in plans:
+            rows.append(
+                {
+                    "run_id": plan.run_id,
+                    "project_id": plan.project_id,
+                    "asset_type": plan.asset_type,
+                    "resource_name": plan.resource_name,
+                    "missing_labels": json.dumps(
+                        plan.missing_labels
+                    ),
+                    "planned_labels": json.dumps(
+                        plan.planned_labels
+                    ),
+                    "status": plan.status,
+                    "created_at": (
+                        plan.created_at.isoformat()
+                    ),
+                }
+            )
+
+        errors = self.client.insert_rows_json(
+            self.table_id,
+            rows,
+        )
+
+        if errors:
+            logger.error(
+                "Failed writing remediation plan: %s",
+                errors,
+            )
+            raise RuntimeError(
+                "Failed to persist remediation plan."
+            )
+
+        logger.info(
+            "Stored %d remediation plans",
+            len(rows),
+        )
+
+        return len(rows)
+
+    def get_planned(
+        self,
+        run_id: str,
+    ) -> list[RemediationPlan]:
+        """
+        Returns all remediation actions that are still
+        in the PLANNED state.
+        """
+        query = f"""
+        SELECT *
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+        AND status = 'PLANNED'
+        ORDER BY created_at
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        )
+
+        plans = []
+        for row in job.result():
+            plans.append(
+                RemediationPlan(
+                    run_id=row.run_id,
+                    project_id=row.project_id,
+                    asset_type=row.asset_type,
+                    resource_name=row.resource_name,
+                    missing_labels=self._json_value(
+                        row.missing_labels
+                    ),
+                    planned_labels=self._json_value(
+                        row.planned_labels
+                    ),
+                    status=row.status,
+                    created_at=row.created_at,
+                )
+            )
+        return plans
+
+    def update_status(
+        self,
+        run_id: str,
+        resource_name: str,
+        status: str,
+    ):
+        """
+        Update remediation execution status.
+        """
+        query = f"""
+        UPDATE `{self.table_id}`
+        SET status = @status
+        WHERE run_id = @run_id
+        AND resource_name = @resource_name
+        """
+
+        self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "status",
+                        "STRING",
+                        status,
+                    ),
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    ),
+                    bigquery.ScalarQueryParameter(
+                        "resource_name",
+                        "STRING",
+                        resource_name,
+                    ),
+                ]
+            ),
+        ).result()
+
+        logger.info(
+            "Updated %s -> %s",
+            resource_name,
+            status,
+        )
