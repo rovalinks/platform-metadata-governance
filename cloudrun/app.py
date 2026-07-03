@@ -56,7 +56,11 @@ def history_endpoint():
 
 @app.get("/dashboard")
 def dashboard_endpoint():
-    return Dispatcher.dispatch("dashboard"    )
+    return Dispatcher.dispatch("dashboard")
+
+@app.get("/metrics")
+def metrics_endpoint():
+    return Dispatcher.dispatch("metrics"
 
 if __name__ == "__main__":
     app.run(
