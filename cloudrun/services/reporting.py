@@ -34,3 +34,7 @@ class ReportingService:
                 run_id
             ),
         }
+
+    def dashboard(self):
+
+        return self.repository.dashboard()
