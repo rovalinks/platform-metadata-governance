@@ -8,6 +8,7 @@ from services.audit_log import AuditLogAdapter
 from services.classification import ClassificationService
 from services.governance import GovernanceService
 from services.execution import ExecutionService
+from services.adapters import AdaptersService  # Assuming this exists based on instructions
 
 
 class GreenfieldService:
@@ -23,6 +24,7 @@ class GreenfieldService:
         self.classification = ClassificationService()
         self.governance = GovernanceService()
         self.execution = ExecutionService()
+        self.adapters = AdaptersService()
 
     def process(
         self,
@@ -32,20 +34,22 @@ class GreenfieldService:
         Orchestrates the governance evaluation
         and enforcement flow.
         """
-        audit_event = self.audit.parse(
-            event
+        audit_event = self.audit.parse(event)
+
+        resource_event = self.classification.classify(
+            audit_event
         )
 
-        resource = (
-            self.classification.classify(
-                audit_event
-            )
+        client = self.adapters.client_for(
+            resource_event.asset_type
         )
 
-        expected = (
-            self.governance.expected_labels(
-                resource.project_id
-            )
+        resource = client.get(
+            resource_event.resource_name
+        )
+
+        expected = self.governance.expected_labels(
+            resource.project
         )
 
         # TODO
