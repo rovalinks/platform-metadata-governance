@@ -17,6 +17,14 @@ class ArtifactRegistryClassifier(ResourceClassifier):
         event: AuditLogEvent,
     ) -> bool:
 
+        #
+        # Ignore the intermediate location event:
+        #
+        # projects/<project>/locations/<region>
+        #
+        if "/repositories/" not in event.resource_name:
+            return False
+
         return (
             event.service_name == self.SERVICE
             and event.method_name == self.METHOD
