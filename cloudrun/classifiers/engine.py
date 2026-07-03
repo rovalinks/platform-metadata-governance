@@ -3,6 +3,7 @@ from typing import Optional
 
 from classifiers.base import ResourceClassifier
 from classifiers.compute import ComputeClassifier
+from classifiers.storage import StorageClassifier
 from models.audit_log_event import AuditLogEvent
 from models.resource_event import ResourceEvent
 from utils.logger import logger
@@ -17,7 +18,10 @@ class ClassificationEngine:
         self.classifiers = (
             classifiers
             if classifiers is not None
-            else [ComputeClassifier()]
+            else [
+                ComputeClassifier(),
+                StorageClassifier(),
+            ]
         )
 
     def classify(
