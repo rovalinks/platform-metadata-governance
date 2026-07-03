@@ -1,97 +1,204 @@
-from googleapiclient.discovery import build
+from google.cloud import container_v1
 
 from clients.base import ResourceClient
+from models.resource import Resource
 
 
 class GkeClient(ResourceClient):
-    """GKE Cluster adapter."""
+    """Google Kubernetes Engine resource adapter."""
 
     def __init__(self):
 
-        self.client = build(
-            "container",
-            "v1",
-            cache_discovery=False,
+        self.client = (
+            container_v1.ClusterManagerClient()
         )
 
-    def supports(self, asset_type: str):
+    def supports(
+        self,
+        asset_type: str,
+    ):
 
-        return asset_type == "container.googleapis.com/Cluster"
+        return asset_type in [
+            "container.googleapis.com/Cluster",
+            "container.googleapis.com/NodePool",
+        ]
 
-    def labels(self, resource):
+    def labels(
+        self,
+        resource,
+    ):
 
-        info = self._parse(resource.name)
+        if "/clusters/" in resource.name and "/nodePools/" not in resource.name:
 
-        cluster = (
-            self.client.projects()
-            .locations()
-            .clusters()
-            .get(
-                name=info["name"]
+            cluster = self.client.get_cluster(
+                name=self._cluster_name(
+                    resource.name
+                )
             )
-            .execute()
+
+            return dict(
+                cluster.resource_labels or {}
+            )
+
+        node_pool = self.client.get_node_pool(
+            name=self._nodepool_name(
+                resource.name
+            )
         )
 
         return dict(
-            cluster.get(
-                "resourceLabels",
-                {}
+            node_pool.config.labels or {}
+        )
+
+    def get(
+        self,
+        resource_name: str,
+    ) -> Resource:
+
+        if "/clusters/" in resource_name and "/nodePools/" not in resource_name:
+
+            cluster = self.client.get_cluster(
+                name=self._cluster_name(
+                    resource_name
+                )
+            )
+
+            parts = resource_name.split("/")
+
+            return Resource(
+
+                asset_type="container.googleapis.com/Cluster",
+
+                name=resource_name,
+
+                project=parts[1],
+
+                location=parts[3],
+
+                labels=dict(
+                    cluster.resource_labels or {}
+                ),
+
+                tags={},
+
+            )
+
+        node_pool = self.client.get_node_pool(
+            name=self._nodepool_name(
+                resource_name
             )
         )
 
-    def apply_labels(self, resource, labels):
+        parts = resource_name.split("/")
 
-        info = self._parse(resource.name)
+        return Resource(
 
-        cluster = (
-            self.client.projects()
-            .locations()
-            .clusters()
-            .get(
-                name=info["name"]
+            asset_type="container.googleapis.com/NodePool",
+
+            name=resource_name,
+
+            project=parts[1],
+
+            location=parts[3],
+
+            labels=dict(
+                node_pool.config.labels or {}
+            ),
+
+            tags={},
+
+        )
+
+    def apply_labels(
+        self,
+        resource,
+        labels: dict,
+    ):
+
+        #
+        # Cluster
+        #
+
+        if "/clusters/" in resource.name and "/nodePools/" not in resource.name:
+
+            cluster = self.client.get_cluster(
+                name=self._cluster_name(
+                    resource.name
+                )
             )
-            .execute()
+
+            merged = dict(
+                cluster.resource_labels or {}
+            )
+
+            merged.update(labels)
+
+            request = (
+                container_v1.SetLabelsRequest(
+
+                    name=cluster.name,
+
+                    resource_labels=merged,
+
+                    label_fingerprint=cluster.label_fingerprint,
+
+                )
+            )
+
+            self.client.set_labels(
+                request=request
+            )
+
+            return True
+
+        #
+        # Node Pool
+        #
+
+        node_pool = self.client.get_node_pool(
+            name=self._nodepool_name(
+                resource.name
+            )
         )
 
         merged = dict(
-            cluster.get(
-                "resourceLabels",
-                {}
-            )
+            node_pool.config.labels or {}
         )
 
         merged.update(labels)
 
-        body = {
-            "resourceLabels": merged,
-            "labelFingerprint": cluster["labelFingerprint"]
-        }
+        request = (
+            container_v1.UpdateNodePoolRequest(
 
-        (
-            self.client.projects()
-            .locations()
-            .clusters()
-            .resourceLabels(
-                name=info["name"],
-                body=body,
+                name=node_pool.name,
+
+                node_labels=merged,
+
             )
-            .execute()
+        )
+
+        self.client.update_node_pool(
+            request=request
         )
 
         return True
 
     @staticmethod
-    def _parse(asset_name):
+    def _cluster_name(
+        asset_name: str,
+    ):
 
-        #
-        # //container.googleapis.com/projects/p/locations/r/clusters/c
-        #
-
-        name = asset_name.replace(
+        return asset_name.replace(
             "//container.googleapis.com/",
             ""
         )
 
-        return {
-            "name": name
-        }
+    @staticmethod
+    def _nodepool_name(
+        asset_name: str,
+    ):
+
+        return asset_name.replace(
+            "//container.googleapis.com/",
+            ""
+        )
