@@ -7,7 +7,7 @@ from utils.cloudevent_parser import (
 from services.audit_log import AuditLogAdapter
 from services.classification import ClassificationService
 from services.governance import GovernanceService
-from services.execution import ExecutionService
+from services.execution import ExecutionService, ExecutionRequest # Assuming ExecutionRequest import
 from services.adapters import AdaptersService  # Assuming this exists based on instructions
 
 
@@ -68,11 +68,20 @@ class GreenfieldService:
             resource.name,
         )
 
-        # TODO
         # Build ExecutionRequest
+        request = ExecutionRequest(
+            project_id=resource.project,
+            asset_type=resource.asset_type,
+            resource_name=resource.name,
+            labels=self.governance.expected_labels(
+                resource.project
+            ),
+        )
+
         # Execute remediation
+        self.execution.execute(request)
 
         return {
-            "status": "non_compliant",
+            "status": "remediated",
             "resource": resource.name,
         }
