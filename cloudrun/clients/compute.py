@@ -1,6 +1,7 @@
 from google.cloud import compute_v1
 
 from clients.base import ResourceClient
+from models.resource import Resource
 from utils.compute import parse_instance_name, parse_disk_name
 
 
@@ -40,6 +41,80 @@ class ComputeClient(ResourceClient):
             return dict(disk.labels or {})
 
         raise ValueError(f"Unsupported Compute resource: {resource.name}")
+
+    def get(
+        self,
+        resource_name: str,
+    ) -> Resource:
+        """
+        Retrieves a Compute Engine resource and
+        returns the platform Resource model.
+        """
+
+        if "/instances/" in resource_name:
+
+            info = parse_instance_name(
+                resource_name
+            )
+
+            instance = self.instances.get(
+                project=info["project"],
+                zone=info["zone"],
+                instance=info["instance"],
+            )
+
+            return Resource(
+
+                asset_type="compute.googleapis.com/Instance",
+
+                name=resource_name,
+
+                project=info["project"],
+
+                location=info["zone"],
+
+                labels=dict(
+                    instance.labels or {}
+                ),
+
+                tags={},
+
+            )
+
+        if "/disks/" in resource_name:
+
+            info = parse_disk_name(
+                resource_name
+            )
+
+            disk = self.disks.get(
+                project=info["project"],
+                zone=info["zone"],
+                disk=info["disk"],
+            )
+
+            return Resource(
+
+                asset_type="compute.googleapis.com/Disk",
+
+                name=resource_name,
+
+                project=info["project"],
+
+                location=info["zone"],
+
+                labels=dict(
+                    disk.labels or {}
+                ),
+
+                tags={},
+
+            )
+
+        raise ValueError(
+            f"Unsupported Compute resource: "
+            f"{resource_name}"
+        )
 
     def apply_labels(self, resource, labels: dict):
         if "/instances/" in resource.name:
