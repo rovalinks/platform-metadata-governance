@@ -67,3 +67,11 @@ resource "google_cloud_run_v2_service" "this" {
     ]
   }
 }
+
+variable "bigquery" {
+  description = "BigQuery configuration"
+
+  type = object({
+    dataset_id = string
+  })
+}

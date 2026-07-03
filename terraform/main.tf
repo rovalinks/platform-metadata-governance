@@ -1,13 +1,10 @@
 module "artifact_registry" {
 
   source = "./modules/artifact-registry"
-
+  
   project_id = var.project_id
-
   region = var.region
-
   repository_id = var.artifact_registry_repository
-
   description = var.artifact_registry_description
 
 }
@@ -21,11 +18,8 @@ module "service_accounts" {
 
 module "iam" {
   source = "./modules/iam"
-
   project_id = var.project_id
-
   service_account_emails = module.service_accounts.emails
-
   service_account_roles = var.service_account_roles
 }
 
@@ -42,41 +36,38 @@ module "cloud_run" {
   excluded_buckets      = var.excluded_buckets
   dry_run               = var.dry_run
   log_level             = var.log_level
+  bigquery              = var.bigquery
+}
+
+module "eventarc" {
+  count = var.deploy_cloud_run ? 1 : 0
+  source = "./modules/eventarc"
+  project_id = var.project_id
+  region = var.region
+  trigger_name = var.eventarc.trigger_name
+  cloud_run_service = module.cloud_run[0].service_name
+  service_account_email = module.service_accounts.emails["governance"]
 }
 
 module "workload_identity" {
   source = "./modules/workload-identity"
-
   project_id = var.project_id
-
   github_service_account = module.service_accounts.names["github"]
-
   workload_identity = var.workload_identity
 }
 
 module "registry_bucket" {
-
   source = "./modules/registry-bucket"
-
   project_id = var.project_id
-
   region = var.region
-
   bucket_name = var.registry_bucket_name
-
   governance_service_account = module.service_accounts.emails["governance"]
-
   github_service_account = module.service_accounts.emails["github"]
-
 }
 
 module "bigquery" {
-
   source = "./modules/bigquery"
-
   project_id = var.project_id
-
   region = var.region
-
   dataset_id = var.bigquery.dataset_id
 }
