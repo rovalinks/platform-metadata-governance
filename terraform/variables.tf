@@ -104,6 +104,7 @@ variable "bigquery" {
 
 variable "eventarc" {
   description = "Eventarc configuration"
+
   type = object({
     triggers = list(object({
       name    = string

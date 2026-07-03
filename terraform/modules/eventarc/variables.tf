@@ -8,11 +8,6 @@ variable "region" {
   type        = string
 }
 
-variable "trigger_name" {
-  description = "Eventarc trigger name"
-  type        = string
-}
-
 variable "cloud_run_service" {
   description = "Cloud Run service name"
   type        = string

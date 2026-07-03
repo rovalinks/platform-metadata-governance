@@ -5,14 +5,13 @@ output "registry_bucket" {
 
 }
 
-output "eventarc_trigger" {
+output "eventarc_triggers" {
+
+  description = "Configured Eventarc triggers"
 
   value = (
     var.deploy_cloud_run
-    ? module.eventarc[0].trigger_name
-    : null
+      ? module.eventarc[0].trigger_names
+      : []
   )
-
-  description = "Eventarc trigger name"
-
 }

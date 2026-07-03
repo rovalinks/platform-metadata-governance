@@ -1,15 +1,19 @@
-output "trigger_name" {
-  value = google_eventarc_trigger.this.name
-}
-
-output "trigger_id" {
-  value = google_eventarc_trigger.this.id
-}
-
 output "trigger_names" {
 
-  value = keys(
-    google_eventarc_trigger.this
-  )
+  description = "Eventarc trigger names"
 
+  value = [
+    for trigger in google_eventarc_trigger.this :
+    trigger.name
+  ]
+}
+
+output "trigger_ids" {
+
+  description = "Eventarc trigger ids"
+
+  value = [
+    for trigger in google_eventarc_trigger.this :
+    trigger.id
+  ]
 }
