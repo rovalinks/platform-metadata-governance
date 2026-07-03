@@ -1,7 +1,14 @@
 def parse_instance_name(resource_name: str):
     """Parses a GCE instance resource name."""
-    # Expected format: //compute.googleapis.com/projects/<project>/zones/<zone>/instances/<instance>
+
+    if not resource_name.startswith("//"):
+        resource_name = (
+            "//compute.googleapis.com/"
+            + resource_name
+        )
+
     parts = resource_name.split("/")
+
     return {
         "project": parts[4],
         "zone": parts[6],
@@ -10,8 +17,15 @@ def parse_instance_name(resource_name: str):
 
 def parse_disk_name(resource_name: str):
     """Parses a GCE disk resource name."""
-    # Expected format: //compute.googleapis.com/projects/<project>/zones/<zone>/disks/<disk>
+
+    if not resource_name.startswith("//"):
+        resource_name = (
+            "//compute.googleapis.com/"
+            + resource_name
+        )
+
     parts = resource_name.split("/")
+
     return {
         "project": parts[4],
         "zone": parts[6],

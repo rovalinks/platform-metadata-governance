@@ -1,14 +1,16 @@
-from models.resource_event import ResourceEvent
+from models.audit_log_event import AuditLogEvent
 
 
 class CloudEventParser:
     """
-    Converts Google Cloud Audit Log events
-    into the internal ResourceEvent model.
+    Converts a Google Cloud Event into the
+    internal AuditLogEvent model.
     """
 
     @staticmethod
-    def parse(event: dict) -> ResourceEvent:
+    def parse(
+        event: dict,
+    ) -> AuditLogEvent:
 
         payload = event.get(
             "protoPayload",
@@ -40,23 +42,15 @@ class CloudEventParser:
             {}
         )
 
-        return ResourceEvent(
-
+        return AuditLogEvent(
+            service_name=service_name,
+            method_name=method_name,
+            resource_name=resource_name,
             project_id=labels.get(
                 "project_id",
                 "",
             ),
-
-            asset_type=service_name,
-
-            resource_name=resource_name,
-
-            service_name=service_name,
-
-            method_name=method_name,
-
             location=labels.get(
-                "location"
+                "location",
             ),
-
         )

@@ -94,6 +94,31 @@ class ExecutorService:
 
         return results
 
+
+    def execute_resource(
+        self,
+        resource,
+        labels: dict,
+    ):
+        """
+        Execute remediation for a single
+        resource.
+
+        Used by Greenfield enforcement.
+        """
+
+        results = self.execute(
+            [
+                {
+                    "resource": resource.name,
+                    "asset_type": resource.asset_type,
+                    "labels": labels,
+                }
+            ]
+        )
+
+        return results[0]
+        
     def execute_run(
         self,
         run_id: str,

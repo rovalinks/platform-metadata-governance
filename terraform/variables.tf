@@ -101,3 +101,11 @@ variable "bigquery" {
     dataset_id = string
   })
 }
+
+variable "eventarc" {
+  description = "Eventarc configuration"
+
+  type = object({
+    trigger_name = string
+  })
+}

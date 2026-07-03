@@ -1,61 +1,101 @@
 from utils.logger import logger
-from models.resource_event import ResourceEvent
-from utils.cloudevent_parser import (
-    CloudEventParser,
-)
+from utils.cloudevent_parser import CloudEventParser
 
-from services.audit_log import AuditLogAdapter
+from services.adapter import AdapterService
 from services.classification import ClassificationService
+from services.compliance import ComplianceService
+from services.discovery import DiscoveryService
+from services.executor import ExecutorService
 from services.governance import GovernanceService
-from services.execution import ExecutionService, ExecutionRequest # Assuming ExecutionRequest import
-from services.adapters import AdaptersService  # Assuming this exists based on instructions
 
 
 class GreenfieldService:
     """
     Handles real-time governance for newly
     created GCP resources.
-
-    Triggered by Cloud Audit Log events.
     """
 
     def __init__(self):
-        self.audit = AuditLogAdapter()
+
         self.classification = ClassificationService()
+
+        self.adapters = AdapterService()
+
+        self.discovery = DiscoveryService()
+
+        self.compliance = ComplianceService(
+            self.discovery
+        )
+
         self.governance = GovernanceService()
-        self.execution = ExecutionService()
-        self.adapters = AdaptersService()
+
+        self.executor = ExecutorService()
 
     def process(
         self,
         event: dict,
     ):
-        """
-        Orchestrates the governance evaluation
-        and enforcement flow.
-        """
-        audit_event = self.audit.parse(event)
 
-        resource_event = self.classification.classify(
-            audit_event
+        #
+        # Local testing using
+        # gcloud logging read
+        #
+        if isinstance(
+            event,
+            list,
+        ):
+            event = event[0]
+
+        audit_event = CloudEventParser.parse(
+            event
+        )
+
+        logger.info(
+            "Audit event received for %s",
+            audit_event.resource_name,
+        )
+
+        resource_event = (
+            self.classification.classify(
+                audit_event
+            )
+        )
+
+        logger.info(
+            "Resource classified as %s",
+            resource_event.asset_type,
         )
 
         client = self.adapters.client_for(
             resource_event.asset_type
         )
 
+        if client is None:
+
+            raise RuntimeError(
+                "No adapter registered for "
+                f"{resource_event.asset_type}"
+            )
+
         resource = client.get(
             resource_event.resource_name
         )
 
-        result = self.compliance.evaluate_resource(
-            resource
+        logger.info(
+            "Resolved resource %s",
+            resource.name,
         )
 
-        if result.compliant:
+        compliance = (
+            self.compliance.evaluate_resource(
+                resource
+            )
+        )
+
+        if compliance.compliant:
+
             logger.info(
-                "Resource %s is already compliant.",
-                resource.name,
+                "Resource already compliant."
             )
 
             return {
@@ -63,25 +103,26 @@ class GreenfieldService:
                 "resource": resource.name,
             }
 
-        logger.info(
-            "Resource %s requires remediation.",
-            resource.name,
-        )
-
-        # Build ExecutionRequest
-        request = ExecutionRequest(
-            project_id=resource.project,
-            asset_type=resource.asset_type,
-            resource_name=resource.name,
-            labels=self.governance.expected_labels(
+        labels = (
+            self.governance.expected_labels(
                 resource.project
-            ),
+            )
         )
 
-        # Execute remediation
-        self.execution.execute(request)
+        logger.info(
+            "Applying %d governance labels.",
+            len(labels),
+        )
+
+        result = (
+            self.executor.execute_resource(
+                resource,
+                labels,
+            )
+        )
 
         return {
             "status": "remediated",
             "resource": resource.name,
+            "result": result,
         }

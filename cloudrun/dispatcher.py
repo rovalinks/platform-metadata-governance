@@ -10,11 +10,15 @@ from handlers.runs import runs
 from handlers.history import history
 from handlers.dashboard import dashboard
 from handlers.metrics import metrics
+from handlers.greenfield import greenfield
 
 class Dispatcher:
 
     @staticmethod
-    def dispatch(route: str):
+    def dispatch(
+        route: str,
+        payload=None,
+    ):
 
         if route == "health":
             return health()
@@ -51,6 +55,9 @@ class Dispatcher:
         
         if route == "metrics":
             return metrics()
+
+        if route == "greenfield":
+            return greenfield(payload)
 
         return {
             "error": "Endpoint not found"
