@@ -5,14 +5,23 @@ from utils.exceptions import format_gcp_exception
 from repositories.remediation_repository import (
     RemediationRepository,
 )
+from repositories.execution_repository import (
+    ExecutionRepository,
+)
 
 class ExecutorService:
     """Executes enforcement actions."""
 
     def __init__(self):
+
         self.adapters = AdapterService()
+
         self.repository = (
             RemediationRepository()
+        )
+
+        self.execution_repository = (
+            ExecutionRepository()
         )
 
     def execute(self, actions):
@@ -119,18 +128,37 @@ class ExecutorService:
             actions
         )
 
+        plans_by_resource = {
+            plan.resource_name: plan
+            for plan in plans
+        }
+
         for result in results:
 
-            status = (
-                "SUCCESS"
-                if result["status"] == "updated"
-                else "FAILED"
-            )
+            plan = plans_by_resource[
+                result["resource"]
+            ]
 
-            self.repository.update_status(
+            self.execution_repository.save(
+
                 run_id=run_id,
-                resource_name=result["resource"],
-                status=status,
+
+                project_id=plan.project_id,
+
+                asset_type=plan.asset_type,
+
+                resource_name=plan.resource_name,
+
+                status=(
+                    "SUCCESS"
+                    if result["status"] == "updated"
+                    else "FAILED"
+                ),
+
+                error_message=result.get(
+                    "error"
+                ),
+
             )
 
         logger.info(
