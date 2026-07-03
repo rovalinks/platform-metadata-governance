@@ -57,11 +57,11 @@ class GreenfieldService:
             audit_event.resource_name,
         )
 
-        resource_event = (
-            self.classification.classify(
-                audit_event
-            )
-        )
+        resource_event = self.classification.classify(audit_event)
+
+        if resource_event is None:
+            logger.info("Ignoring unsupported audit event.")
+            return {"status": "ignored"}
 
         logger.info(
             "Resource classified as %s",
