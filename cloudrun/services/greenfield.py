@@ -1,5 +1,8 @@
 from utils.logger import logger
 from models.resource_event import ResourceEvent
+from utils.cloudevent_parser import (
+    CloudEventParser,
+)
 
 from services.governance import GovernanceService
 from services.adapter import AdapterService
@@ -27,34 +30,13 @@ class GreenfieldService:
         Returns a normalized governance
         request for later execution.
         """
-
-        payload = event.get(
-            "protoPayload",
-            {}
-        )
-
-        resource = payload.get(
-            "resourceName"
-        )
-
-        service = payload.get(
-            "serviceName"
-        )
-
-        method = payload.get(
-            "methodName"
+        resource = CloudEventParser.parse(
+            event
         )
 
         logger.info(
             "Received Greenfield event for %s",
-            resource,
+            resource.resource_name,
         )
 
-        return ResourceEvent(
-            project_id="",
-            asset_type="",
-            resource_name=resource,
-            service_name=service,
-            method_name=method,
-            location=None,
-        )
+        return resource
