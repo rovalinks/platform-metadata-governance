@@ -8,18 +8,19 @@ class BigQueryClassifier(ResourceClassifier):
 
     SERVICE = "bigquery.googleapis.com"
 
-    METHOD = (
-        "google.cloud.bigquery.v2.DatasetService.InsertDataset"
-    )
-
     def supports(
         self,
         event: AuditLogEvent,
     ) -> bool:
 
+        if event.service_name != self.SERVICE:
+            return False
+
         return (
-            event.service_name == self.SERVICE
-            and event.method_name == self.METHOD
+            event.method_name.endswith(
+                "InsertDataset"
+            )
+            and "/datasets/" in event.resource_name
         )
 
     def classify(
