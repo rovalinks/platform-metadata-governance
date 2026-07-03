@@ -44,7 +44,6 @@ module "eventarc" {
   source = "./modules/eventarc"
   project_id = var.project_id
   region = var.region
-  trigger_name = var.eventarc.trigger_name
   cloud_run_service = module.cloud_run[0].service_name
   service_account_email = module.service_accounts.emails["governance"]
   triggers = var.eventarc.triggers
