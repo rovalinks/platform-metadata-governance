@@ -86,3 +86,117 @@ class RemediationRepository:
         )
 
         return len(rows)
+
+    def get_planned(
+        self,
+        run_id: str,
+    ) -> list[RemediationPlan]:
+        """
+        Returns all remediation actions that are still
+        in the PLANNED state.
+        """
+
+        query = f"""
+        SELECT *
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+        AND status = 'PLANNED'
+        ORDER BY created_at
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        )
+
+        plans = []
+
+        for row in job.result():
+
+            plans.append(
+
+                RemediationPlan(
+
+                    run_id=row.run_id,
+
+                    project_id=row.project_id,
+
+                    asset_type=row.asset_type,
+
+                    resource_name=row.resource_name,
+
+                    missing_labels=json.loads(
+                        row.missing_labels
+                    ),
+
+                    planned_labels=json.loads(
+                        row.planned_labels
+                    ),
+
+                    status=row.status,
+
+                    created_at=row.created_at,
+
+                )
+
+            )
+
+        return plans
+
+    def update_status(
+        self,
+        run_id: str,
+        resource_name: str,
+        status: str,
+    ):
+        """
+        Update remediation execution status.
+        """
+
+        query = f"""
+        UPDATE `{self.table_id}`
+        SET status = @status
+        WHERE run_id = @run_id
+        AND resource_name = @resource_name
+        """
+
+        self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+
+                    bigquery.ScalarQueryParameter(
+                        "status",
+                        "STRING",
+                        status,
+                    ),
+
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    ),
+
+                    bigquery.ScalarQueryParameter(
+                        "resource_name",
+                        "STRING",
+                        resource_name,
+                    ),
+
+                ]
+            ),
+        ).result()
+
+        logger.info(
+            "Updated %s -> %s",
+            resource_name,
+            status,
+        )
