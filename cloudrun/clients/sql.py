@@ -1,13 +1,13 @@
 from googleapiclient.discovery import build
 
 from clients.base import ResourceClient
+from models.resource import Resource
 
 
 class CloudSqlClient(ResourceClient):
     """Cloud SQL resource adapter."""
 
     def __init__(self):
-
         self.client = build(
             "sqladmin",
             "v1beta4",
@@ -15,7 +15,6 @@ class CloudSqlClient(ResourceClient):
         )
 
     def supports(self, asset_type: str):
-
         return asset_type == "sqladmin.googleapis.com/Instance"
 
     def labels(self, resource):
@@ -32,12 +31,58 @@ class CloudSqlClient(ResourceClient):
         )
 
         return dict(
-            instance
-            .get("settings", {})
-            .get("userLabels", {})
+            instance.get("settings", {}).get(
+                "userLabels", {}
+            )
         )
 
-    def apply_labels(self, resource, labels):
+    def get(
+        self,
+        resource_name: str,
+    ) -> Resource:
+
+        info = self._parse(resource_name)
+
+        instance = (
+            self.client.instances()
+            .get(
+                project=info["project"],
+                instance=info["instance"],
+            )
+            .execute()
+        )
+
+        return Resource(
+
+            asset_type="sqladmin.googleapis.com/Instance",
+
+            name=resource_name,
+
+            project=info["project"],
+
+            location=instance.get(
+                "region",
+                "global",
+            ),
+
+            labels=dict(
+                instance.get(
+                    "settings",
+                    {},
+                ).get(
+                    "userLabels",
+                    {},
+                )
+            ),
+
+            tags={},
+        )
+
+    def apply_labels(
+        self,
+        resource,
+        labels,
+    ):
 
         info = self._parse(resource.name)
 
@@ -51,9 +96,13 @@ class CloudSqlClient(ResourceClient):
         )
 
         merged = dict(
-            instance
-            .get("settings", {})
-            .get("userLabels", {})
+            instance.get(
+                "settings",
+                {},
+            ).get(
+                "userLabels",
+                {},
+            )
         )
 
         merged.update(labels)
@@ -79,13 +128,22 @@ class CloudSqlClient(ResourceClient):
     def _parse(name: str):
 
         #
-        # //sqladmin.googleapis.com/projects/<project>/instances/<instance>
+        # Audit logs sometimes send:
+        # projects/<project>
+        #
+        # instead of
+        # projects/<project>/instances/<instance>
         #
 
         parts = name.split("/")
 
-        return {
-            "project": parts[4],
-            "instance": parts[6],
-        }
+        if "instances" in parts:
 
+            return {
+                "project": parts[1],
+                "instance": parts[3],
+            }
+
+        raise ValueError(
+            f"Unexpected Cloud SQL resource: {name}"
+        )
