@@ -54,6 +54,10 @@ def report_endpoint():
 def history_endpoint():
     return Dispatcher.dispatch("history")
 
+@app.get("/dashboard")
+def dashboard_endpoint():
+    return Dispatcher.dispatch("dashboard"    )
+
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
