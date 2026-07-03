@@ -19,7 +19,10 @@ def execute():
         return (
             jsonify(
                 {
-                    "error": "Missing required query parameter: run_id"
+                    "error": (
+                        "Missing required "
+                        "query parameter: run_id"
+                    )
                 }
             ),
             400,
@@ -27,8 +30,21 @@ def execute():
 
     executor = ExecutorService()
 
-    result = executor.execute_run(
-        run_id
-    )
+    try:
 
-    return jsonify(result)
+        result = executor.execute_run(
+            run_id
+        )
+
+        return jsonify(result)
+
+    except RuntimeError as error:
+
+        return (
+            jsonify(
+                {
+                    "error": str(error)
+                }
+            ),
+            409,
+        )
