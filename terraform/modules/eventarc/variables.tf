@@ -22,3 +22,18 @@ variable "service_account_email" {
   description = "Service account used by Eventarc"
   type        = string
 }
+
+variable "triggers" {
+
+  description = "Audit Log triggers"
+
+  type = list(object({
+
+    name = string
+
+    service = string
+
+    method = string
+
+  }))
+}
