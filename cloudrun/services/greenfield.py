@@ -77,8 +77,19 @@ class GreenfieldService:
                 f"{resource_event.asset_type}"
             )
 
+        #
+        # Resolve the live resource
+        #
         resource = client.get(
             resource_event.resource_name
+        )
+
+        #
+        # The Audit Log contains the authoritative
+        # project ID. Use it for every resource.
+        #
+        resource.project = (
+            resource_event.project_id
         )
 
         logger.info(
