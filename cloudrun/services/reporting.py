@@ -38,3 +38,9 @@ class ReportingService:
     def dashboard(self):
 
         return self.repository.dashboard()
+
+    def metrics(
+        self,
+    ):
+
+        return self.repository.metrics()
