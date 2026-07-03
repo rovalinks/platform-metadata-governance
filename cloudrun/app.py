@@ -24,7 +24,10 @@ def discover():
 def compliance_endpoint():
     return Dispatcher.dispatch("compliance")
 
-
+@app.get("/runs")
+def runs_endpoint():
+    return Dispatcher.dispatch("runs")
+    
 @app.get("/plan")
 def plan_endpoint():
     return Dispatcher.dispatch("plan")
