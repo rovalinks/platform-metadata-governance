@@ -15,8 +15,8 @@ def test_bigquery_supported():
     )
 
 
-def test_storage_not_supported():
+def test_storage_supported():
 
-    assert not CapabilityService.supports_labels(
+    assert CapabilityService.supports_labels(
         "storage.googleapis.com/Bucket"
     )

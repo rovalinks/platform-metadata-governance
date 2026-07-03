@@ -1,5 +1,5 @@
 from services.adapter import AdapterService
-
+from clients.storage import StorageClient
 
 def test_compute_adapter():
 
@@ -23,7 +23,7 @@ def test_bigquery_adapter():
     assert client is not None
 
 
-def test_storage_adapter_not_supported():
+def test_storage_adapter_supported():
 
     adapter = AdapterService()
 
@@ -31,4 +31,7 @@ def test_storage_adapter_not_supported():
         "storage.googleapis.com/Bucket"
     )
 
-    assert client is None
+    assert isinstance(
+        client,
+        StorageClient,
+    )
