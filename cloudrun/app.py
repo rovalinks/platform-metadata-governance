@@ -60,7 +60,7 @@ def dashboard_endpoint():
 
 @app.get("/metrics")
 def metrics_endpoint():
-    return Dispatcher.dispatch("metrics"
+    return Dispatcher.dispatch("metrics")
 
 if __name__ == "__main__":
     app.run(
