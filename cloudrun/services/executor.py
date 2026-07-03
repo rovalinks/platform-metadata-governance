@@ -1,9 +1,98 @@
 from datetime import datetime, timezone
-# Ensure existing imports are maintained below this line if they were already present
-# from your previous file (e.g., logger, etc.)
+from types import SimpleNamespace
 
-class Executor:
-    # ... (other methods of the class)
+from repositories.execution_repository import (
+    ExecutionRepository,
+)
+from repositories.remediation_repository import (
+    RemediationRepository,
+)
+from services.adapter import AdapterService
+from utils.exceptions import format_gcp_exception
+from utils.logger import logger
+
+
+class ExecutorService:
+    """Executes enforcement actions."""
+
+    def __init__(self):
+
+        self.adapters = AdapterService()
+
+        self.repository = (
+            RemediationRepository()
+        )
+
+        self.execution_repository = (
+            ExecutionRepository()
+        )
+
+    def execute(self, actions):
+
+        results = []
+
+        for action in actions:
+
+            client = self.adapters.client_for(
+                action["asset_type"]
+            )
+
+            if client is None:
+
+                results.append(
+                    {
+                        "resource": action["resource"],
+                        "status": "unsupported",
+                    }
+                )
+
+                continue
+
+            logger.info(
+                "Applying labels to %s using %s",
+                action["resource"],
+                client.__class__.__name__,
+            )
+
+            resource = SimpleNamespace(
+                name=action["resource"]
+            )
+
+            try:
+
+                client.apply_labels(
+                    resource,
+                    action["labels"],
+                )
+
+                logger.info(
+                    "Successfully updated %s",
+                    action["resource"],
+                )
+
+                results.append(
+                    {
+                        "resource": action["resource"],
+                        "status": "updated",
+                    }
+                )
+
+            except Exception as error:
+
+                logger.exception(
+                    "Failed updating %s",
+                    action["resource"],
+                )
+
+                results.append(
+                    {
+                        "resource": action["resource"],
+                        "status": "failed",
+                        "error": format_gcp_exception(error),
+                    }
+                )
+
+        return results
 
     def execute_run(
         self,
@@ -11,12 +100,8 @@ class Executor:
     ):
         """
         Execute a previously generated remediation plan.
-
-        Reads PLANNED remediation actions from BigQuery,
-        applies the required labels using the appropriate
-        resource adapter, updates execution status, and 
-        returns a summary of the run.
         """
+
         logger.info(
             "Executing remediation run %s",
             run_id,
@@ -25,6 +110,7 @@ class Executor:
         if self.execution_repository.already_executed(
             run_id
         ):
+
             raise RuntimeError(
                 (
                     "Remediation run "
@@ -38,6 +124,7 @@ class Executor:
         )
 
         if not plans:
+
             raise RuntimeError(
                 (
                     "Remediation run "
@@ -46,7 +133,9 @@ class Executor:
                 )
             )
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(
+            timezone.utc
+        )
 
         logger.info(
             "Loaded %d planned remediation actions",
@@ -56,6 +145,7 @@ class Executor:
         actions = []
 
         for plan in plans:
+
             actions.append(
                 {
                     "resource": plan.resource_name,
@@ -77,6 +167,7 @@ class Executor:
         failed = 0
 
         for result in results:
+
             plan = plans_by_resource[
                 result["resource"]
             ]
@@ -104,7 +195,9 @@ class Executor:
             )
 
         duration = (
-            datetime.now(timezone.utc)
+            datetime.now(
+                timezone.utc
+            )
             - start_time
         ).total_seconds()
 
