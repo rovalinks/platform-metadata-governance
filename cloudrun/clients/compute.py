@@ -1,9 +1,10 @@
 from google.cloud import compute_v1
+from google.api_core.exceptions import PreconditionFailed
+import time
 
 from clients.base import ResourceClient
 from models.resource import Resource
 from utils.compute import parse_instance_name, parse_disk_name
-
 
 class ComputeClient(ResourceClient):
     """Compute Engine resource adapter."""
@@ -139,23 +140,48 @@ class ComputeClient(ResourceClient):
             
         elif "/disks/" in resource.name:
             info = parse_disk_name(resource.name)
-            disk = self.disks.get(
-                project=info["project"], zone=info["zone"], disk=info["disk"]
-            )
-            
-            merged = dict(disk.labels or {})
-            merged.update(labels)
-            
-            request = compute_v1.ZoneSetLabelsRequest(
-                labels=merged,
-                label_fingerprint=disk.label_fingerprint,
-            )
-            operation = self.disks.set_labels(
-                project=info["project"],
-                zone=info["zone"],
-                resource=info["disk"],
-                zone_set_labels_request_resource=request,
-            )
+
+            merged = labels.copy()
+
+            for attempt in range(3):
+
+                disk = self.disks.get(
+                    project=info["project"],
+                    zone=info["zone"],
+                    disk=info["disk"],
+                )
+
+                merged = dict(disk.labels or {})
+                merged.update(labels)
+
+                request = compute_v1.ZoneSetLabelsRequest(
+                    labels=merged,
+                    label_fingerprint=disk.label_fingerprint,
+                )
+
+                try:
+
+                    operation = self.disks.set_labels(
+                        project=info["project"],
+                        zone=info["zone"],
+                        resource=info["disk"],
+                        zone_set_labels_request_resource=request,
+                    )
+
+                    self.zone_operations.wait(
+                        project=info["project"],
+                        zone=info["zone"],
+                        operation=operation.name,
+                    )
+
+                    return True
+
+                except PreconditionFailed:
+
+                    if attempt == 2:
+                        raise
+
+                    time.sleep(2)
         else:
             raise ValueError(f"Unsupported Compute resource: {resource.name}")
 
