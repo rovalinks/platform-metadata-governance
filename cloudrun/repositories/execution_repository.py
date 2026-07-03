@@ -1,74 +1,31 @@
-import uuid
-from datetime import datetime
-
-from google.cloud import bigquery
-
-import config
-from utils.logger import logger
-
-
-class ExecutionRepository:
-    """
-    Persists remediation execution results.
-
-    One row is written for every execution attempt.
-    """
-
-    def __init__(self):
-
-        self.client = bigquery.Client()
-
-        self.dataset = config.BIGQUERY_DATASET
-
-        self.table = "remediation_execution"
-
-    @property
-    def table_id(self):
-
-        return (
-            f"{self.dataset}.{self.table}"
-        )
-
-    def save(
+def already_executed(
         self,
         run_id: str,
-        project_id: str,
-        asset_type: str,
-        resource_name: str,
-        status: str,
-        error_message: str | None = None,
-    ):
+    ) -> bool:
+        """
+        Returns True if the remediation run
+        has already been executed.
+        """
 
-        row = {
-            "execution_id": str(
-                uuid.uuid4()
+        query = f"""
+        SELECT COUNT(*) AS total
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
             ),
-            "run_id": run_id,
-            "project_id": project_id,
-            "asset_type": asset_type,
-            "resource_name": resource_name,
-            "status": status,
-            "error_message": error_message,
-            "executed_at": datetime.utcnow().isoformat(),
-        }
-
-        errors = self.client.insert_rows_json(
-            self.table_id,
-            [row],
         )
 
-        if errors:
+        row = next(job.result())
 
-            logger.error(
-                "Failed writing execution record: %s",
-                errors,
-            )
-
-            raise RuntimeError(
-                "Failed to persist execution result."
-            )
-
-        logger.info(
-            "Stored execution result for %s",
-            resource_name,
-        )
+        return row.total > 0
