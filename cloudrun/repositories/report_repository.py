@@ -165,3 +165,23 @@ class ReportRepository:
         )
 
         return [dict(row.items()) for row in job.result()]
+
+    def metrics(self):
+        """
+        Returns remediation metrics over time.
+        """
+
+        query = f"""
+        SELECT
+            DATE(executed_at) AS day,
+            COUNT(*) AS total,
+            COUNTIF(status='SUCCESS') AS successful,
+            COUNTIF(status='FAILED') AS failed
+        FROM `{self.dataset}.remediation_execution`
+        GROUP BY day
+        ORDER BY day
+        """
+
+        job = self.client.query(query)
+
+        return [dict(row.items()) for row in job.result()]
