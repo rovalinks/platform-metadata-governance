@@ -1,20 +1,16 @@
+from classifiers.base import ResourceClassifier
 from models.audit_log_event import AuditLogEvent
 from models.resource_event import ResourceEvent
 
-from classifiers.base import ResourceClassifier
-
 
 class PubSubClassifier(ResourceClassifier):
-    """
-    Classifies Pub/Sub Audit Log events.
-    """
+    """Classifies Pub/Sub Topic creation events."""
 
     SERVICE = "pubsub.googleapis.com"
 
-    SUPPORTED_METHODS = {
-        "google.pubsub.v1.Publisher.CreateTopic":
-            "pubsub.googleapis.com/Topic",
-    }
+    METHOD = (
+        "google.pubsub.v1.Publisher.CreateTopic"
+    )
 
     def supports(
         self,
@@ -23,8 +19,7 @@ class PubSubClassifier(ResourceClassifier):
 
         return (
             event.service_name == self.SERVICE
-            and event.method_name
-            in self.SUPPORTED_METHODS
+            and event.method_name == self.METHOD
         )
 
     def classify(
@@ -44,6 +39,6 @@ class PubSubClassifier(ResourceClassifier):
 
             method_name=event.method_name,
 
-            location=event.location,
+            location="global",
 
         )

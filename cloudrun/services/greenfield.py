@@ -1,3 +1,5 @@
+from google.api_core.exceptions import NotFound
+
 from utils.logger import logger
 from utils.cloudevent_parser import CloudEventParser
 
@@ -77,17 +79,25 @@ class GreenfieldService:
                 f"{resource_event.asset_type}"
             )
 
-        #
-        # Resolve the live resource
-        #
-        resource = client.get(
-            resource_event.resource_name
-        )
+        try:
 
-        #
-        # The Audit Log contains the authoritative
-        # project ID. Use it for every resource.
-        #
+            resource = client.get(
+                resource_event.resource_name
+            )
+
+        except NotFound:
+
+            logger.warning(
+                "Resource %s no longer exists. "
+                "Skipping remediation.",
+                resource_event.resource_name,
+            )
+
+            return {
+                "status": "not_found",
+                "resource": resource_event.resource_name,
+            }
+
         resource.project = (
             resource_event.project_id
         )
