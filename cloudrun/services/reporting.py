@@ -6,9 +6,6 @@ from repositories.report_repository import (
 class ReportingService:
     """
     Provides governance reporting.
-
-    This service performs aggregation and
-    formatting for reporting endpoints.
     """
 
     def __init__(self):
@@ -31,6 +28,9 @@ class ReportingService:
         run_id: str,
     ):
 
-        return self.repository.execution_history(
-            run_id
-        )
+        return {
+            "run_id": run_id,
+            "resources": self.repository.execution_history(
+                run_id
+            ),
+        }
