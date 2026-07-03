@@ -1,25 +1,45 @@
 from utils.logger import logger
 from utils.cloudevent_parser import CloudEventParser
 
-from services.classification import ClassificationService
 from services.adapter import AdapterService
+from services.classification import ClassificationService
+from services.compliance import ComplianceService
+from services.discovery import DiscoveryService
+from services.executor import ExecutorService
+from services.governance import GovernanceService
 
 
 class GreenfieldService:
     """
-    Handles Eventarc requests.
+    Handles real-time governance for newly
+    created GCP resources.
     """
 
     def __init__(self):
 
         self.classification = ClassificationService()
+
         self.adapters = AdapterService()
+
+        self.discovery = DiscoveryService()
+
+        self.compliance = ComplianceService(
+            self.discovery
+        )
+
+        self.governance = GovernanceService()
+
+        self.executor = ExecutorService()
 
     def process(
         self,
         event: dict,
     ):
 
+        #
+        # Local testing using
+        # gcloud logging read
+        #
         if isinstance(
             event,
             list,
@@ -31,18 +51,18 @@ class GreenfieldService:
         )
 
         logger.info(
-            "Audit event: service=%s method=%s resource=%s",
-            audit_event.service_name,
-            audit_event.method_name,
+            "Audit event received for %s",
             audit_event.resource_name,
         )
 
-        resource_event = self.classification.classify(
-            audit_event
+        resource_event = (
+            self.classification.classify(
+                audit_event
+            )
         )
 
         logger.info(
-            "Classification succeeded: %s",
+            "Resource classified as %s",
             resource_event.asset_type,
         )
 
@@ -53,14 +73,9 @@ class GreenfieldService:
         if client is None:
 
             raise RuntimeError(
-                f"No adapter found for "
+                "No adapter registered for "
                 f"{resource_event.asset_type}"
             )
-
-        logger.info(
-            "Resolving resource using %s",
-            client.__class__.__name__,
-        )
 
         resource = client.get(
             resource_event.resource_name
@@ -71,7 +86,43 @@ class GreenfieldService:
             resource.name,
         )
 
+        compliance = (
+            self.compliance.evaluate_resource(
+                resource
+            )
+        )
+
+        if compliance.compliant:
+
+            logger.info(
+                "Resource already compliant."
+            )
+
+            return {
+                "status": "compliant",
+                "resource": resource.name,
+            }
+
+        labels = (
+            self.governance.expected_labels(
+                resource.project
+            )
+        )
+
+        logger.info(
+            "Applying %d governance labels.",
+            len(labels),
+        )
+
+        result = (
+            self.executor.execute_resource(
+                resource,
+                labels,
+            )
+        )
+
         return {
-            "status": "resolved",
+            "status": "remediated",
             "resource": resource.name,
+            "result": result,
         }

@@ -2,6 +2,7 @@ from google.cloud import pubsub_v1
 from google.protobuf.field_mask_pb2 import FieldMask
 
 from clients.base import ResourceClient
+from models.resource import Resource
 
 
 class PubSubClient(ResourceClient):
@@ -11,25 +12,81 @@ class PubSubClient(ResourceClient):
 
         self.client = pubsub_v1.PublisherClient()
 
-    def supports(self, asset_type: str):
+    def supports(
+        self,
+        asset_type: str,
+    ):
 
-        return asset_type == "pubsub.googleapis.com/Topic"
-
-    def labels(self, resource):
-
-        topic = self.client.get_topic(
-            topic=self._topic_name(resource.name)
+        return (
+            asset_type
+            == "pubsub.googleapis.com/Topic"
         )
 
-        return dict(topic.labels or {})
-
-    def apply_labels(self, resource, labels):
+    def labels(
+        self,
+        resource,
+    ):
 
         topic = self.client.get_topic(
-            topic=self._topic_name(resource.name)
+            topic=self._topic_name(
+                resource.name
+            )
         )
 
-        merged = dict(topic.labels or {})
+        return dict(
+            topic.labels or {}
+        )
+
+    def get(
+        self,
+        resource_name: str,
+    ) -> Resource:
+        """
+        Retrieves a Pub/Sub topic and returns
+        the platform Resource model.
+        """
+
+        topic = self.client.get_topic(
+            topic=self._topic_name(
+                resource_name
+            )
+        )
+
+        parts = resource_name.split("/")
+
+        return Resource(
+
+            asset_type="pubsub.googleapis.com/Topic",
+
+            name=resource_name,
+
+            project=parts[4],
+
+            location="global",
+
+            labels=dict(
+                topic.labels or {}
+            ),
+
+            tags={},
+
+        )
+
+    def apply_labels(
+        self,
+        resource,
+        labels,
+    ):
+
+        topic = self.client.get_topic(
+            topic=self._topic_name(
+                resource.name
+            )
+        )
+
+        merged = dict(
+            topic.labels or {}
+        )
 
         merged.update(labels)
 
@@ -47,7 +104,9 @@ class PubSubClient(ResourceClient):
         return True
 
     @staticmethod
-    def _topic_name(asset_name: str):
+    def _topic_name(
+        asset_name: str,
+    ):
 
         #
         # //pubsub.googleapis.com/projects/<project>/topics/<topic>
