@@ -7,6 +7,7 @@ from handlers.execute import execute
 from handlers.enforce import enforce
 from handlers.plan import plan
 from handlers.runs import runs
+from handlers.history import history
 
 class Dispatcher:
 
@@ -39,6 +40,9 @@ class Dispatcher:
             
         if route == "enforce":
             return enforce()
+
+        if route == "history":
+            return history()
 
         return {
             "error": "Endpoint not found"
