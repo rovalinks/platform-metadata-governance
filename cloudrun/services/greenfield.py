@@ -20,21 +20,32 @@ class GreenfieldService:
         event: dict,
     ):
 
-        audit_event = (
-            CloudEventParser.parse(
-                event
-            )
-        )
+        # Local testing using gcloud logging read
+        # returns a JSON array.
+        if isinstance(
+            event,
+            list,
+        ):
+            event = event[0]
 
-        resource = (
-            self.classification.classify(
-                audit_event
-            )
+        audit_event = CloudEventParser.parse(
+            event
         )
 
         logger.info(
-            "Greenfield resource classified: %s",
-            resource.resource_name,
+            "Audit event: service=%s method=%s resource=%s",
+            audit_event.service_name,
+            audit_event.method_name,
+            audit_event.resource_name,
+        )
+
+        resource = self.classification.classify(
+            audit_event
+        )
+
+        logger.info(
+            "Classification succeeded: %s",
+            resource.asset_type,
         )
 
         return {
