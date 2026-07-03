@@ -4,8 +4,10 @@ from utils.cloudevent_parser import (
     CloudEventParser,
 )
 
+from services.audit_log import AuditLogAdapter
+from services.classification import ClassificationService
 from services.governance import GovernanceService
-from services.adapter import AdapterService
+from services.execution import ExecutionService
 
 
 class GreenfieldService:
@@ -17,26 +19,40 @@ class GreenfieldService:
     """
 
     def __init__(self):
+        self.audit = AuditLogAdapter()
+        self.classification = ClassificationService()
         self.governance = GovernanceService()
-        self.adapters = AdapterService()
+        self.execution = ExecutionService()
 
-    def evaluate(
+    def process(
         self,
         event: dict,
     ):
         """
-        Parse a Cloud Audit Log event.
-
-        Returns a normalized governance
-        request for later execution.
+        Orchestrates the governance evaluation
+        and enforcement flow.
         """
-        resource = CloudEventParser.parse(
+        audit_event = self.audit.parse(
             event
         )
 
-        logger.info(
-            "Received Greenfield event for %s",
-            resource.resource_name,
+        resource = (
+            self.classification.classify(
+                audit_event
+            )
         )
 
-        return resource
+        expected = (
+            self.governance.expected_labels(
+                resource.project_id
+            )
+        )
+
+        # TODO
+        # Read current labels
+        #
+        # Compare labels
+        #
+        # Build ExecutionRequest
+        #
+        # Execute if required
