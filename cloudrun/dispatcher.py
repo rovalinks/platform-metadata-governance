@@ -9,6 +9,7 @@ from handlers.plan import plan
 from handlers.runs import runs
 from handlers.history import history
 from handlers.dashboard import dashboard
+from handlers.metrics import metrics
 
 class Dispatcher:
 
@@ -48,6 +49,8 @@ class Dispatcher:
         if route == "dashboard":
             return dashboard()
         
+        if route == "metrics":
+            return metrics()
 
         return {
             "error": "Endpoint not found"
