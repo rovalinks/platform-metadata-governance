@@ -6,7 +6,7 @@ from handlers.report import report
 from handlers.execute import execute
 from handlers.enforce import enforce
 from handlers.plan import plan
-
+from handlers.runs import runs
 
 class Dispatcher:
 
@@ -27,6 +27,9 @@ class Dispatcher:
 
         if route == "report":
             return report()
+
+        if route == "runs":
+            return runs()
 
         if route == "plan":
             return plan()
