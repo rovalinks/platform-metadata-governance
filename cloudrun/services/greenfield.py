@@ -48,15 +48,31 @@ class GreenfieldService:
             resource_event.resource_name
         )
 
-        expected = self.governance.expected_labels(
-            resource.project
+        result = self.compliance.evaluate_resource(
+            resource
+        )
+
+        if result.compliant:
+            logger.info(
+                "Resource %s is already compliant.",
+                resource.name,
+            )
+
+            return {
+                "status": "compliant",
+                "resource": resource.name,
+            }
+
+        logger.info(
+            "Resource %s requires remediation.",
+            resource.name,
         )
 
         # TODO
-        # Read current labels
-        #
-        # Compare labels
-        #
         # Build ExecutionRequest
-        #
-        # Execute if required
+        # Execute remediation
+
+        return {
+            "status": "non_compliant",
+            "resource": resource.name,
+        }
