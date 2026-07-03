@@ -1,4 +1,5 @@
 from utils.logger import logger
+from models.resource_event import ResourceEvent
 
 from services.governance import GovernanceService
 from services.adapter import AdapterService
@@ -13,9 +14,7 @@ class GreenfieldService:
     """
 
     def __init__(self):
-
         self.governance = GovernanceService()
-
         self.adapters = AdapterService()
 
     def evaluate(
@@ -51,12 +50,11 @@ class GreenfieldService:
             resource,
         )
 
-        return {
-
-            "resource": resource,
-
-            "service": service,
-
-            "method": method,
-
-        }
+        return ResourceEvent(
+            project_id="",
+            asset_type="",
+            resource_name=resource,
+            service_name=service,
+            method_name=method,
+            location=None,
+        )
