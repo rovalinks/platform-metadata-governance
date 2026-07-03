@@ -3,6 +3,7 @@ from handlers.discovery import discover
 from handlers.compliance import compliance
 from handlers.verify import verify
 from handlers.report import report
+from handlers.execute import execute
 from handlers.enforce import enforce
 from handlers.plan import plan
 
@@ -30,6 +31,9 @@ class Dispatcher:
         if route == "plan":
             return plan()
 
+        if route == "execute":
+            return execute()
+            
         if route == "enforce":
             return enforce()
 
