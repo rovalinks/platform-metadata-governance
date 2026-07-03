@@ -20,8 +20,7 @@ def execute():
             jsonify(
                 {
                     "error": (
-                        "Missing required "
-                        "query parameter: run_id"
+                        "Missing required query parameter: run_id"
                     )
                 }
             ),
@@ -32,19 +31,43 @@ def execute():
 
     try:
 
-        result = executor.execute_run(
-            run_id
+        return jsonify(
+            executor.execute_run(
+                run_id
+            )
         )
 
-        return jsonify(result)
-
     except RuntimeError as error:
+
+        message = str(error)
+
+        if "already been executed" in message:
+
+            return (
+                jsonify(
+                    {
+                        "error": message
+                    }
+                ),
+                409,
+            )
+
+        if "was not found" in message:
+
+            return (
+                jsonify(
+                    {
+                        "error": message
+                    }
+                ),
+                404,
+            )
 
         return (
             jsonify(
                 {
-                    "error": str(error)
+                    "error": message
                 }
             ),
-            409,
+            500,
         )
