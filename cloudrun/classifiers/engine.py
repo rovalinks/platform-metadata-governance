@@ -1,30 +1,97 @@
-from classifiers.compute import (
-    ComputeClassifier,
-)
+from collections.abc import Sequence
+from typing import Optional
 
+from classifiers.base import ResourceClassifier
+from classifiers.compute import ComputeClassifier
+from models.audit_log_event import AuditLogEvent
+from models.resource_event import ResourceEvent
+from utils.logger import logger
 
 class ClassificationEngine:
-
-    def __init__(self):
-
-        self.classifiers = [
-
-            ComputeClassifier(),
-
-        ]
+    def __init__(
+        self,
+        classifiers: Optional[Sequence[ResourceClassifier]] = None,
+    ):
+        """
+        Initializes the engine with an optional sequence of ResourceClassifiers.
+        Defaults to [ComputeClassifier()] if none are provided.
+        """
+        self.classifiers = (
+            classifiers 
+            if classifiers is not None 
+            else [ComputeClassifier()]
+        )
 
     def classify(
         self,
-        event,
-    ):
-
+        event: AuditLogEvent,
+    ) -> ResourceEvent:
+        """
+        Attempts to classify an audit log event.
+        
+        Raises:
+            ValueError: If no classifier supports the provided event.
+            (Future: UnsupportedResourceError)
+        """
         for classifier in self.classifiers:
-
-            if classifier.supports(
-                event
-            ):
-                return classifier.classify(
-                    event
+            if classifier.supports(event):
+                logger.info(
+                    "Matched %s using %s",
+                    event.resource_name,
+                    classifier.__class__.__name__,
                 )
+                return classifier.classify(event)
 
-        return None
+        raise ValueError(
+            "The governance platform does not currently support this resource: "
+            f"service={event.service_name}, "
+            f"method={event.method_name}"
+        )from collections.abc import Sequence
+from typing import Optional
+
+from classifiers.base import ResourceClassifier
+from classifiers.compute import ComputeClassifier
+from models.audit_log_event import AuditLogEvent
+from models.resource_event import ResourceEvent
+from utils.logger import logger
+
+class ClassificationEngine:
+    def __init__(
+        self,
+        classifiers: Optional[Sequence[ResourceClassifier]] = None,
+    ):
+        """
+        Initializes the engine with an optional sequence of ResourceClassifiers.
+        Defaults to [ComputeClassifier()] if none are provided.
+        """
+        self.classifiers = (
+            classifiers 
+            if classifiers is not None 
+            else [ComputeClassifier()]
+        )
+
+    def classify(
+        self,
+        event: AuditLogEvent,
+    ) -> ResourceEvent:
+        """
+        Attempts to classify an audit log event.
+        
+        Raises:
+            ValueError: If no classifier supports the provided event.
+            (Future: UnsupportedResourceError)
+        """
+        for classifier in self.classifiers:
+            if classifier.supports(event):
+                logger.info(
+                    "Matched %s using %s",
+                    event.resource_name,
+                    classifier.__class__.__name__,
+                )
+                return classifier.classify(event)
+
+        raise ValueError(
+            "The governance platform does not currently support this resource: "
+            f"service={event.service_name}, "
+            f"method={event.method_name}"
+        )
