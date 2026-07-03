@@ -50,6 +50,9 @@ def verify_endpoint():
 def report_endpoint():
     return Dispatcher.dispatch("report")
 
+@app.get("/history")
+def history_endpoint():
+    return Dispatcher.dispatch("history")
 
 if __name__ == "__main__":
     app.run(
