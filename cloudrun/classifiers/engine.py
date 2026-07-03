@@ -7,6 +7,7 @@ from classifiers.compute import ComputeClassifier
 from classifiers.pubsub import PubSubClassifier
 from classifiers.storage import StorageClassifier
 from classifiers.sql import CloudSqlClassifier
+from classifiers.artifactregistry import ArtifactRegistryClassifier
 from models.audit_log_event import AuditLogEvent
 from models.resource_event import ResourceEvent
 from utils.logger import logger
@@ -30,6 +31,7 @@ class ClassificationEngine:
                 PubSubClassifier(),
                 BigQueryClassifier(),
                 CloudSqlClassifier(),
+                ArtifactRegistryClassifier(),
             ]
         )
 

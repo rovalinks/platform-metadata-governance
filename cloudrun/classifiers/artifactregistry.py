@@ -3,13 +3,13 @@ from models.audit_log_event import AuditLogEvent
 from models.resource_event import ResourceEvent
 
 
-class CloudSqlClassifier(ResourceClassifier):
-    """Classifies Cloud SQL instance creation events."""
+class ArtifactRegistryClassifier(ResourceClassifier):
+    """Classifies Artifact Registry repository creation."""
 
-    SERVICE = "cloudsql.googleapis.com"
+    SERVICE = "artifactregistry.googleapis.com"
 
     METHOD = (
-        "cloudsql.instances.create"
+        "google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository"
     )
 
     def supports(
@@ -31,7 +31,7 @@ class CloudSqlClassifier(ResourceClassifier):
 
             project_id=event.project_id,
 
-            asset_type="sqladmin.googleapis.com/Instance",
+            asset_type="artifactregistry.googleapis.com/Repository",
 
             resource_name=event.resource_name,
 
