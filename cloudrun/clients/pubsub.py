@@ -42,7 +42,7 @@ class PubSubClient(ResourceClient):
         resource_name: str,
     ) -> Resource:
         """
-        Retrieves a Pub/Sub topic and returns
+        Retrieves a Pub/Sub Topic and returns
         the platform Resource model.
         """
 
@@ -52,15 +52,17 @@ class PubSubClient(ResourceClient):
             )
         )
 
-        parts = resource_name.split("/")
-
         return Resource(
 
             asset_type="pubsub.googleapis.com/Topic",
 
             name=resource_name,
 
-            project=parts[4],
+            #
+            # GreenfieldService injects the
+            # authoritative project ID.
+            #
+            project="",
 
             location="global",
 
@@ -109,10 +111,22 @@ class PubSubClient(ResourceClient):
     ):
 
         #
+        # Accept both:
+        #
         # //pubsub.googleapis.com/projects/<project>/topics/<topic>
         #
+        # and
+        #
+        # projects/<project>/topics/<topic>
+        #
 
-        return asset_name.replace(
-            "//pubsub.googleapis.com/",
-            "",
-        )
+        if asset_name.startswith(
+            "//pubsub.googleapis.com/"
+        ):
+
+            return asset_name.replace(
+                "//pubsub.googleapis.com/",
+                "",
+            )
+
+        return asset_name

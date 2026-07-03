@@ -17,10 +17,28 @@ class PubSubClassifier(ResourceClassifier):
         event: AuditLogEvent,
     ) -> bool:
 
-        return (
-            event.service_name == self.SERVICE
-            and event.method_name == self.METHOD
-        )
+        if (
+            event.service_name
+            != self.SERVICE
+        ):
+            return False
+
+        if (
+            event.method_name
+            != self.METHOD
+        ):
+            return False
+
+        #
+        # Ignore Eventarc transport topics.
+        #
+        if (
+            "/topics/eventarc-"
+            in event.resource_name
+        ):
+            return False
+
+        return True
 
     def classify(
         self,
