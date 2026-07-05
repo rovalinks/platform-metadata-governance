@@ -41,3 +41,4 @@ def report():
             report.to_dict()
             for report in reports
         ]
+    )
