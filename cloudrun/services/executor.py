@@ -94,7 +94,6 @@ class ExecutorService:
 
         return results
 
-
     def execute_resource(
         self,
         resource,
@@ -118,7 +117,7 @@ class ExecutorService:
         )
 
         return results[0]
-        
+
     def execute_run(
         self,
         run_id: str,
@@ -144,80 +143,94 @@ class ExecutorService:
                 )
             )
 
-        plans = self.repository.get_planned(
-            run_id
-        )
-
-        if not plans:
-
-            raise RuntimeError(
-                (
-                    "Remediation run "
-                    f"{run_id} "
-                    "was not found."
-                )
-            )
+        successful = 0
+        failed = 0
+        results = []
 
         start_time = datetime.now(
             timezone.utc
         )
 
-        logger.info(
-            "Loaded %d planned remediation actions",
-            len(plans),
-        )
+        while True:
 
-        actions = []
-
-        for plan in plans:
-
-            actions.append(
-                {
-                    "resource": plan.resource_name,
-                    "asset_type": plan.asset_type,
-                    "labels": plan.planned_labels,
-                }
+            plans = self.repository.get_planned_batch(
+                run_id
             )
 
-        results = self.execute(
-            actions
-        )
+            if not plans:
+                break
 
-        plans_by_resource = {
-            plan.resource_name: plan
-            for plan in plans
-        }
-
-        successful = 0
-        failed = 0
-
-        for result in results:
-
-            plan = plans_by_resource[
-                result["resource"]
-            ]
-
-            status = (
-                "SUCCESS"
-                if result["status"] == "updated"
-                else "FAILED"
+            logger.info(
+                "Processing batch of %d resources",
+                len(plans),
             )
 
-            if status == "SUCCESS":
-                successful += 1
-            else:
-                failed += 1
+            actions = []
 
-            self.execution_repository.save(
-                run_id=run_id,
-                project_id=plan.project_id,
-                asset_type=plan.asset_type,
-                resource_name=plan.resource_name,
-                status=status,
-                error_message=result.get(
-                    "error"
-                ),
+            for plan in plans:
+
+                self.repository.mark_in_progress(
+                    run_id,
+                    plan.resource_name,
+                )
+
+                actions.append(
+                    {
+                        "resource": plan.resource_name,
+                        "asset_type": plan.asset_type,
+                        "labels": plan.planned_labels,
+                    }
+                )
+
+            batch_results = self.execute(
+                actions
             )
+
+            plans_by_resource = {
+                plan.resource_name: plan
+                for plan in plans
+            }
+
+            for result in batch_results:
+
+                plan = plans_by_resource[
+                    result["resource"]
+                ]
+
+                if result["status"] == "updated":
+
+                    successful += 1
+
+                    self.repository.mark_success(
+                        run_id,
+                        plan.resource_name,
+                    )
+
+                    status = "SUCCESS"
+
+                else:
+
+                    failed += 1
+
+                    self.repository.mark_failed(
+                        run_id,
+                        plan.resource_name,
+                    )
+
+                    status = "FAILED"
+
+                self.execution_repository.save(
+                    run_id=run_id,
+                    project_id=plan.project_id,
+                    asset_type=plan.asset_type,
+                    resource_name=plan.resource_name,
+                    status=status,
+                    error_message=result.get(
+                        "error"
+                    ),
+                )
+
+                results.append(result)
 
         duration = (
             datetime.now(
