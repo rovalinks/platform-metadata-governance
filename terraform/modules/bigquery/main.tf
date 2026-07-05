@@ -36,3 +36,33 @@ resource "google_bigquery_table" "compliance_snapshot" {
 
   schema = file("${path.module}/schemas/compliance_results.json")
 }
+
+resource "google_bigquery_table" "remediation_plan" {
+
+  project = var.project_id
+
+  dataset_id = google_bigquery_dataset.metadata.dataset_id
+
+  table_id = "remediation_plan"
+
+  deletion_protection = false
+
+  schema = file(
+    "${path.module}/schemas/remediation_plan.json"
+  )
+}
+
+resource "google_bigquery_table" "remediation_execution" {
+
+  project = var.project_id
+
+  dataset_id = google_bigquery_dataset.metadata.dataset_id
+
+  table_id = "remediation_execution"
+
+  deletion_protection = false
+
+  schema = file(
+    "${path.module}/schemas/remediation_execution.json"
+  )
+}

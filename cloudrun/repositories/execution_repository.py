@@ -60,6 +60,41 @@ class ExecutionRepository:
             resource_name,
         )
 
+    def already_executed(
+        self,
+        run_id: str,
+    ) -> bool:
+        """
+        Returns True if this remediation run
+        has already produced execution records.
+
+        Prevents accidental re-execution of
+        the same run.
+        """
+
+        query = f"""
+        SELECT COUNT(*) AS total
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        )
+
+        row = next(job.result())
+
+        return row.total > 0
+
     def is_completed(
         self,
         run_id: str,
