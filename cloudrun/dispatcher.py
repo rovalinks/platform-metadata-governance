@@ -12,7 +12,6 @@ from handlers.history import history
 from handlers.dashboard import dashboard
 from handlers.metrics import metrics
 from handlers.greenfield import greenfield
-from handlers.worker import worker
 
 class Dispatcher:
 
@@ -64,9 +63,6 @@ class Dispatcher:
         if route == "greenfield":
             return greenfield(payload)
 
-        if route == "worker":
-            return worker()
-            
         return {
             "error": "Endpoint not found"
         }, 404

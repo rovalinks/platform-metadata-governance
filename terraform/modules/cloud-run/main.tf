@@ -57,6 +57,11 @@ resource "google_cloud_run_v2_service" "this" {
       }
 
       env {
+        name  = "CLOUD_RUN_URL"
+        value = var.cloud_run_url
+      }
+
+      env {
         name  = "SERVICE_ACCOUNT_EMAIL"
         value = var.service_account_email
       }

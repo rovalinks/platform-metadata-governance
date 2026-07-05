@@ -38,6 +38,7 @@ module "cloud_run" {
   log_level             = var.log_level
   bigquery              = var.bigquery
   task_queue            = module.cloud_tasks.queue_name
+  cloud_run_url         ="https://metadata-governance-375142238023.europe-west2.run.app"
 }
 
 module "eventarc" {

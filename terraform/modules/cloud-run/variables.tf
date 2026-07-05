@@ -50,3 +50,8 @@ variable "log_level" {
 variable "task_queue" {
   type = string
 }
+
+variable "cloud_run_url" {
+  type    = string
+  default = ""
+}
