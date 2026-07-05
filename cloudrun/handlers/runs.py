@@ -18,6 +18,12 @@ def runs():
         type=int,
     )
 
+    # Validate limit to prevent excessive resource usage
+    if limit < 1:
+        limit = 1
+    if limit > 1000:
+        limit = 1000
+
     service = ReportingService()
 
     return jsonify(

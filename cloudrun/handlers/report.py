@@ -1,44 +1,80 @@
-from flask import jsonify, request
+from handlers.health import health
+from handlers.discovery import discover
+from handlers.compliance import compliance
+from handlers.verify import verify
+from handlers.report import report
 
-from services.context import RequestContext
-from services.governance import GovernanceService
-from services.report import ReportService
+from handlers.execute import execute
+from handlers.enforce import enforce
+from handlers.plan import plan
+
+from handlers.runs import runs
+from handlers.run import run
+from handlers.history import history
+from handlers.dashboard import dashboard
+from handlers.metrics import metrics
+
+from handlers.greenfield import greenfield
 
 
-def report():
-    """
-    Generates compliance reports.
+class Dispatcher:
 
-    GET /report
-        Report every registered project.
+    @staticmethod
+    def dispatch(
+        route: str,
+        payload=None,
+    ):
 
-    GET /report?project=<project-id>
-        Report a single project.
-    """
+        if route == "health":
+            return health()
 
-    context = RequestContext()
-    governance = GovernanceService()
-    service = ReportService(context.discovery)
+        if route == "discover":
+            return discover()
 
-    project_id = request.args.get("project")
-    reports = []
+        if route == "compliance":
+            return compliance()
 
-    if project_id:
-        # Assuming service.report(project_id) returns a single report object
-        reports.append(service.report(project_id))
+        if route == "verify":
+            return verify()
 
-    else:
-        for project in governance.projects():
-            # Collecting individual report objects
-            reports.append(
-                service.report(
-                    project["projectId"]
-                )
-            )
+        if route == "report":
+            return report()
 
-    return jsonify(
-        [
-            report.to_dict()
-            for report in reports
-        ]
-    )
+        if route == "plan":
+            return plan()
+
+        if route == "execute":
+            return execute()
+
+        if route == "enforce":
+            return enforce()
+
+        #
+        # Reporting
+        #
+
+        if route == "dashboard":
+            return dashboard()
+
+        if route == "runs":
+            return runs()
+
+        if route == "run":
+            return run()
+
+        if route == "history":
+            return history()
+
+        if route == "metrics":
+            return metrics()
+
+        #
+        # Greenfield
+        #
+
+        if route == "greenfield":
+            return greenfield(payload)
+
+        return {
+            "error": "Endpoint not found"
+        }, 404

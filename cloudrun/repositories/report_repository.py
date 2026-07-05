@@ -41,7 +41,10 @@ class ReportRepository:
         ),
 
         plans AS (
-            SELECT COUNT(*) AS planned_remediations
+            SELECT 
+                COUNT(*) AS planned_remediations,
+                COUNTIF(status='PLANNED') AS remaining_remediations,
+                COUNTIF(status='IN_PROGRESS') AS in_progress_remediations
             FROM `{self.dataset}.remediation_plan`
         ),
 
@@ -87,6 +90,8 @@ class ReportRepository:
             "non_compliant_resources": row.non_compliant_resources,
             "compliance_percentage": percentage,
             "planned_remediations": row.planned_remediations,
+            "remaining_remediations": row.remaining_remediations,
+            "in_progress_remediations": row.in_progress_remediations,
             "executed_remediations": row.executed_remediations,
             "successful_remediations": row.successful_remediations,
             "failed_remediations": row.failed_remediations,
@@ -98,17 +103,21 @@ class ReportRepository:
         limit: int = 100,
     ):
         """
-        Returns recent remediation runs.
+        Returns recent remediation runs with summary metrics.
         """
 
         query = f"""
         SELECT
             run_id,
-            COUNT(*) AS planned_resources,
-            MIN(created_at) AS created_at
+            COUNT(*) AS planned,
+            COUNTIF(status='SUCCESS') AS completed,
+            COUNTIF(status='FAILED') AS failed,
+            COUNTIF(status='PLANNED') AS remaining,
+            COUNTIF(status='IN_PROGRESS') AS in_progress,
+            MIN(created_at) AS started
         FROM `{self.dataset}.remediation_plan`
         GROUP BY run_id
-        ORDER BY created_at DESC
+        ORDER BY started DESC
         LIMIT @limit
         """
 
@@ -125,7 +134,90 @@ class ReportRepository:
             ),
         )
 
-        return [dict(row.items()) for row in job.result()]
+        results = []
+        for row in job.result():
+            data = dict(row.items())
+            
+            # Calculate success rate for this specific run
+            total = data['planned']
+            data['success_rate'] = (
+                round((data['completed'] / total) * 100, 2)
+                if total > 0
+                else 100.0
+            )
+            results.append(data)
+
+        return results
+
+    def remediation_run_summary(
+        self,
+        run_id: str,
+    ):
+        """
+        Returns a complete summary for a remediation run.
+        """
+
+        query = f"""
+        WITH
+        planned AS (
+            SELECT
+                COUNT(*) AS planned,
+                COUNTIF(status='SUCCESS') AS completed,
+                COUNTIF(status='FAILED') AS failed,
+                COUNTIF(status='PLANNED') AS remaining,
+                COUNTIF(status='IN_PROGRESS') AS in_progress,
+                MIN(created_at) AS started
+            FROM `{self.dataset}.remediation_plan`
+            WHERE run_id=@run_id
+        ),
+        execution AS (
+            SELECT
+                MAX(executed_at) AS finished
+            FROM `{self.dataset}.remediation_execution`
+            WHERE run_id=@run_id
+        )
+        SELECT *
+        FROM planned
+        CROSS JOIN execution
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        )
+
+        row = next(job.result())
+
+        total = row.planned
+
+        success_rate = (
+            round(
+                row.completed * 100 / total,
+                2,
+            )
+            if total
+            else 100
+        )
+
+        return {
+            "run_id": run_id,
+            "planned": total,
+            "completed": row.completed,
+            "failed": row.failed,
+            "remaining": row.remaining,
+            "in_progress": row.in_progress,
+            "success_rate": success_rate,
+            "started": row.started,
+            "finished": row.finished,
+        }
 
     def execution_history(
         self,

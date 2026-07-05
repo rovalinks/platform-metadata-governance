@@ -36,11 +36,6 @@ def compliance_endpoint():
     return Dispatcher.dispatch("compliance")
 
 
-@app.get("/runs")
-def runs_endpoint():
-    return Dispatcher.dispatch("runs")
-    
-    
 @app.get("/plan")
 def plan_endpoint():
     return Dispatcher.dispatch("plan")
@@ -66,17 +61,31 @@ def report_endpoint():
     return Dispatcher.dispatch("report")
 
 
-@app.get("/history")
-def history_endpoint():
-    return Dispatcher.dispatch("history")
+#
+# Reporting APIs
+#
 
-
-@app.get("/dashboard")
+@app.get("/reports/dashboard")
 def dashboard_endpoint():
     return Dispatcher.dispatch("dashboard")
 
 
-@app.get("/metrics")
+@app.get("/reports/runs")
+def runs_endpoint():
+    return Dispatcher.dispatch("runs")
+
+
+@app.get("/reports/run")
+def run_endpoint():
+    return Dispatcher.dispatch("run")
+
+
+@app.get("/reports/history")
+def history_endpoint():
+    return Dispatcher.dispatch("history")
+
+
+@app.get("/reports/metrics")
 def metrics_endpoint():
     return Dispatcher.dispatch("metrics")
 

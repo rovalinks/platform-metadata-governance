@@ -6,10 +6,17 @@ from services.enforcement import EnforcementService
 
 class ReportService:
 
-    def __init__(self, discovery):
+    def __init__(self, repository, discovery):
+        self.repository = repository  # Added repository reference
         self.discovery = discovery
         self.compliance = ComplianceService(discovery)
         self.enforcement = EnforcementService(discovery)
+
+    def run(self, run_id: str):
+        """
+        Returns a complete summary for a remediation run.
+        """
+        return self.repository.remediation_run_summary(run_id)
 
     def report(self, project_id: str):
         logger.info("Generating governance report")
