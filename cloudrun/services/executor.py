@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-from math import ceil
 from types import SimpleNamespace
 
 from repositories.execution_repository import (
@@ -26,20 +24,24 @@ class ExecutorService:
         self.dispatcher = TaskDispatcher()
 
     def execute(self, actions):
+
         results = []
 
         for action in actions:
+
             client = self.adapters.client_for(
                 action["asset_type"]
             )
 
             if client is None:
+
                 results.append(
                     {
                         "resource": action["resource"],
                         "status": "unsupported",
                     }
                 )
+
                 continue
 
             logger.info(
@@ -53,6 +55,7 @@ class ExecutorService:
             )
 
             try:
+
                 client.apply_labels(
                     resource,
                     action["labels"],
@@ -71,6 +74,7 @@ class ExecutorService:
                 )
 
             except Exception as error:
+
                 logger.exception(
                     "Failed updating %s",
                     action["resource"],
@@ -80,7 +84,9 @@ class ExecutorService:
                     {
                         "resource": action["resource"],
                         "status": "failed",
-                        "error": format_gcp_exception(error),
+                        "error": format_gcp_exception(
+                            error
+                        ),
                     }
                 )
 
@@ -91,6 +97,7 @@ class ExecutorService:
         resource,
         labels: dict,
     ):
+
         results = self.execute(
             [
                 {
@@ -120,6 +127,7 @@ class ExecutorService:
         )
 
         if not plans:
+
             return {
                 "processed": 0,
                 "successful": 0,
@@ -129,11 +137,6 @@ class ExecutorService:
         actions = []
 
         for plan in plans:
-
-            self.repository.mark_in_progress(
-                run_id,
-                plan.resource_name,
-            )
 
             actions.append(
                 {
@@ -162,23 +165,11 @@ class ExecutorService:
             if result["status"] == "updated":
 
                 successful += 1
-
-                self.repository.mark_success(
-                    run_id,
-                    plan.resource_name,
-                )
-
                 status = "SUCCESS"
 
             else:
 
                 failed += 1
-
-                self.repository.mark_failed(
-                    run_id,
-                    plan.resource_name,
-                )
-
                 status = "FAILED"
 
             self.execution_repository.save(
@@ -192,6 +183,12 @@ class ExecutorService:
                 ),
             )
 
+        logger.info(
+            "Batch complete. Successful=%d Failed=%d",
+            successful,
+            failed,
+        )
+
         return {
             "processed": len(plans),
             "successful": successful,
@@ -203,7 +200,7 @@ class ExecutorService:
         run_id: str,
     ):
         """
-        Executes remediation work synchronously.
+        Executes remediation synchronously.
         """
 
         logger.info(
@@ -216,11 +213,7 @@ class ExecutorService:
         ):
 
             raise RuntimeError(
-                (
-                    "Remediation run "
-                    f"{run_id} "
-                    "has already been executed."
-                )
+                f"Remediation run {run_id} has already been executed."
             )
 
         plans = self.repository.get_planned(
@@ -230,14 +223,12 @@ class ExecutorService:
         if not plans:
 
             raise RuntimeError(
-                (
-                    "Remediation run "
-                    f"{run_id} "
-                    "was not found."
-                )
+                f"Remediation run {run_id} was not found."
             )
 
-        total_resources = len(plans)
+        total_resources = len(
+            plans
+        )
 
         logger.info(
             "Executing remediation synchronously."
@@ -247,6 +238,14 @@ class ExecutorService:
             run_id=run_id,
             offset=0,
             batch_size=total_resources,
+        )
+
+        logger.info(
+            "Run %s completed. Processed=%d Success=%d Failed=%d",
+            run_id,
+            result["processed"],
+            result["successful"],
+            result["failed"],
         )
 
         return {
