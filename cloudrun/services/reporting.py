@@ -14,6 +14,12 @@ class ReportingService:
             ReportRepository()
         )
 
+    def dashboard(
+        self,
+    ):
+
+        return self.repository.dashboard()
+
     def runs(
         self,
         limit: int = 100,
@@ -21,6 +27,18 @@ class ReportingService:
 
         return self.repository.remediation_runs(
             limit
+        )
+
+    def run(
+        self,
+        run_id: str,
+    ):
+        """
+        Returns summary for a remediation run.
+        """
+
+        return self.repository.remediation_run_summary(
+            run_id
         )
 
     def history(
@@ -34,10 +52,6 @@ class ReportingService:
                 run_id
             ),
         }
-
-    def dashboard(self):
-
-        return self.repository.dashboard()
 
     def metrics(
         self,
