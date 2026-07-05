@@ -45,7 +45,7 @@ class TaskDispatcher:
         task = {
             "http_request": {
                 "http_method": tasks_v2.HttpMethod.POST,
-                #"url": f"{config.CLOUD_RUN_URL}/worker",
+                "url": f"{config.CLOUD_RUN_URL}/worker",
                 "headers": {
                     "Content-Type": "application/json"
                 },
