@@ -203,9 +203,7 @@ class ExecutorService:
         run_id: str,
     ):
         """
-        Dispatches remediation work to Cloud Tasks.
-
-        Each Cloud Task executes one remediation batch.
+        Executes remediation work synchronously.
         """
 
         logger.info(
@@ -239,46 +237,23 @@ class ExecutorService:
                 )
             )
 
-        batch_size = 500
-
         total_resources = len(plans)
 
-        total_batches = ceil(
-            total_resources / batch_size
+        logger.info(
+            "Executing remediation synchronously."
         )
 
-        logger.info(
-            "Dispatching %d resources in %d batches",
-            total_resources,
-            total_batches,
-        )
-
-        for batch_number in range(
-            total_batches
-        ):
-
-            offset = (
-                batch_number
-                * batch_size
-            )
-
-            self.dispatcher.enqueue_batch(
-                run_id=run_id,
-                batch_number=batch_number + 1,
-                total_batches=total_batches,
-                offset=offset,
-                batch_size=batch_size,
-            )
-
-        logger.info(
-            "Queued %d Cloud Tasks",
-            total_batches,
+        result = self.execute_batch(
+            run_id=run_id,
+            offset=0,
+            batch_size=total_resources,
         )
 
         return {
             "run_id": run_id,
-            "status": "QUEUED",
+            "status": "COMPLETED",
             "resources": total_resources,
-            "batch_size": batch_size,
-            "batches": total_batches,
+            "processed": result["processed"],
+            "successful": result["successful"],
+            "failed": result["failed"],
         }
