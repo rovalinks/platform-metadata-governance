@@ -46,6 +46,11 @@ resource "google_cloud_run_v2_service" "this" {
         value = var.log_level
       }
 
+      env {
+        name  = "TASK_QUEUE"
+        value = var.task_queue
+      }
+
       ports {
         container_port = 8080
       }

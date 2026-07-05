@@ -11,7 +11,7 @@ output "eventarc_triggers" {
 
   value = (
     var.deploy_cloud_run
-      ? module.eventarc[0].trigger_names
-      : []
+    ? module.eventarc[0].trigger_names
+    : []
   )
 }
