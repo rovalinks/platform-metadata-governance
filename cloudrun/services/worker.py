@@ -1,4 +1,6 @@
-from services.executor import ExecutorService
+from services.executor import (
+    ExecutorService,
+)
 
 
 class WorkerService:

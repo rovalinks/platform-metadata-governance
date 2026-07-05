@@ -3,7 +3,7 @@ from flask import (
     request,
 )
 
-from services.worker_service import (
+from services.worker import (
     WorkerService,
 )
 
