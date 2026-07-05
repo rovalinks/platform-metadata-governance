@@ -1,4 +1,3 @@
-```python
 import json
 
 from google.cloud import bigquery
@@ -280,6 +279,41 @@ class RemediationRepository:
             "FAILED",
         )
 
+    def reset_in_progress(
+        self,
+        run_id: str,
+    ):
+        """
+        Recover from interrupted executions.
+
+        Any resource left IN_PROGRESS is returned
+        to PLANNED so execution can resume.
+        """
+
+        query = f"""
+        UPDATE `{self.table_id}`
+        SET status = 'PLANNED'
+        WHERE run_id = @run_id
+          AND status = 'IN_PROGRESS'
+        """
+
+        self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        ).result()
+
+        logger.info(
+            "Recovered interrupted remediation actions."
+        )
+
     def count_by_status(
         self,
         run_id: str,
@@ -316,5 +350,3 @@ class RemediationRepository:
             counts[row.status] = row.total
 
         return counts
-
-```
