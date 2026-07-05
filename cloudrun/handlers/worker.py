@@ -3,8 +3,8 @@ from flask import (
     request,
 )
 
-from services.executor import (
-    ExecutorService,
+from services.worker_service import (
+    WorkerService,
 )
 
 
@@ -18,7 +18,6 @@ def worker():
     payload = request.get_json()
 
     if not payload:
-
         return (
             jsonify(
                 {
@@ -43,7 +42,6 @@ def worker():
     ]
 
     if missing:
-
         return (
             jsonify(
                 {
@@ -56,9 +54,9 @@ def worker():
             400,
         )
 
-    service = ExecutorService()
+    service = WorkerService()
 
-    result = service.execute_batch(
+    result = service.execute(
         run_id=payload["run_id"],
         offset=payload["offset"],
         batch_size=payload["batch_size"],
