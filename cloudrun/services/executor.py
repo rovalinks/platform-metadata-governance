@@ -110,20 +110,31 @@ class ExecutorService:
         batch_size: int,
     ):
         """
-        Execute a specific batch of a remediation plan.
+        Execute one remediation batch.
         """
+
         plans = self.repository.get_planned_batch(
-            run_id, offset, batch_size
+            run_id=run_id,
+            offset=offset,
+            batch_size=batch_size,
         )
 
         if not plans:
-            return
+            return {
+                "processed": 0,
+                "successful": 0,
+                "failed": 0,
+            }
 
         actions = []
+
         for plan in plans:
+
             self.repository.mark_in_progress(
-                run_id, plan.resource_name
+                run_id,
+                plan.resource_name,
             )
+
             actions.append(
                 {
                     "resource": plan.resource_name,
@@ -132,23 +143,42 @@ class ExecutorService:
                 }
             )
 
-        batch_results = self.execute(actions)
+        results = self.execute(actions)
+
         plans_by_resource = {
-            plan.resource_name: plan for plan in plans
+            plan.resource_name: plan
+            for plan in plans
         }
 
-        for result in batch_results:
-            plan = plans_by_resource[result["resource"]]
+        successful = 0
+        failed = 0
+
+        for result in results:
+
+            plan = plans_by_resource[
+                result["resource"]
+            ]
 
             if result["status"] == "updated":
+
+                successful += 1
+
                 self.repository.mark_success(
-                    run_id, plan.resource_name
+                    run_id,
+                    plan.resource_name,
                 )
+
                 status = "SUCCESS"
+
             else:
+
+                failed += 1
+
                 self.repository.mark_failed(
-                    run_id, plan.resource_name
+                    run_id,
+                    plan.resource_name,
                 )
+
                 status = "FAILED"
 
             self.execution_repository.save(
@@ -157,8 +187,16 @@ class ExecutorService:
                 asset_type=plan.asset_type,
                 resource_name=plan.resource_name,
                 status=status,
-                error_message=result.get("error"),
+                error_message=result.get(
+                    "error"
+                ),
             )
+
+        return {
+            "processed": len(plans),
+            "successful": successful,
+            "failed": failed,
+        }
 
     def execute_run(
         self,

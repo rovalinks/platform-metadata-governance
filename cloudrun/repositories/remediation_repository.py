@@ -140,20 +140,21 @@ class RemediationRepository:
     def get_planned_batch(
         self,
         run_id: str,
-        batch_size: int = DEFAULT_BATCH_SIZE,
+        offset: int,
+        batch_size: int,
     ) -> list[RemediationPlan]:
         """
-        Returns the next batch of remediation actions
-        that are still in the PLANNED state.
+        Returns one batch of planned remediation actions.
         """
 
         query = f"""
         SELECT *
         FROM `{self.table_id}`
         WHERE run_id = @run_id
-          AND status = 'PLANNED'
+        AND status = 'PLANNED'
         ORDER BY created_at
         LIMIT @batch_size
+        OFFSET @offset
         """
 
         job = self.client.query(
@@ -170,6 +171,11 @@ class RemediationRepository:
                         "INT64",
                         batch_size,
                     ),
+                    bigquery.ScalarQueryParameter(
+                        "offset",
+                        "INT64",
+                        offset,
+                    ),
                 ]
             ),
         )
@@ -177,11 +183,8 @@ class RemediationRepository:
         plans = []
 
         for row in job.result():
-
             plans.append(
-
                 RemediationPlan(
-
                     run_id=row.run_id,
                     project_id=row.project_id,
                     asset_type=row.asset_type,
@@ -194,9 +197,7 @@ class RemediationRepository:
                     ),
                     status=row.status,
                     created_at=row.created_at,
-
                 )
-
             )
 
         return plans
@@ -317,72 +318,6 @@ class RemediationRepository:
             counts[row.status] = row.total
 
         return counts
-
-    def get_planned_batch(
-        self,
-        run_id: str,
-        offset: int,
-        batch_size: int,
-    ) -> list[RemediationPlan]:
-        """
-        Returns one batch of planned remediation actions.
-        """
-
-        query = f"""
-        SELECT *
-        FROM `{self.table_id}`
-        WHERE run_id = @run_id
-        AND status = 'PLANNED'
-        ORDER BY created_at
-        LIMIT @batch_size
-        OFFSET @offset
-        """
-
-        job = self.client.query(
-            query,
-            job_config=bigquery.QueryJobConfig(
-                query_parameters=[
-                    bigquery.ScalarQueryParameter(
-                        "run_id",
-                        "STRING",
-                        run_id,
-                    ),
-                    bigquery.ScalarQueryParameter(
-                        "batch_size",
-                        "INT64",
-                        batch_size,
-                    ),
-                    bigquery.ScalarQueryParameter(
-                        "offset",
-                        "INT64",
-                        offset,
-                    ),
-                ]
-            ),
-        )
-
-        plans = []
-
-        for row in job.result():
-
-            plans.append(
-                RemediationPlan(
-                    run_id=row.run_id,
-                    project_id=row.project_id,
-                    asset_type=row.asset_type,
-                    resource_name=row.resource_name,
-                    missing_labels=self._json_value(
-                        row.missing_labels
-                    ),
-                    planned_labels=self._json_value(
-                        row.planned_labels
-                    ),
-                    status=row.status,
-                    created_at=row.created_at,
-                )
-            )
-
-        return plans
 
     def mark_in_progress(
         self,
