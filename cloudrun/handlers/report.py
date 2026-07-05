@@ -2,7 +2,6 @@ from handlers.health import health
 from handlers.discovery import discover
 from handlers.compliance import compliance
 from handlers.verify import verify
-from handlers.report import report
 
 from handlers.execute import execute
 from handlers.enforce import enforce
