@@ -1,9 +1,10 @@
 import json
-
+import google.auth  # Added import
 from google.cloud import tasks_v2
 from google.api_core import retry
 
 import config
+from utils.logger import logger  # Added import
 
 
 class TaskDispatcher:
@@ -13,6 +14,24 @@ class TaskDispatcher:
     """
 
     def __init__(self):
+        # --- Added Diagnostic Logging ---
+        credentials, project = google.auth.default()
+
+        logger.info("ADC project: %s", project)
+        logger.info(
+            "ADC credentials: %s",
+            type(credentials).__name__,
+        )
+        logger.info(
+            "ADC service account: %s",
+            getattr(
+                credentials,
+                "service_account_email",
+                "UNKNOWN",
+            ),
+        )
+        # --------------------------------
+
         self.client = tasks_v2.CloudTasksClient()
         self.parent = self.client.queue_path(
             config.PROJECT_ID,
