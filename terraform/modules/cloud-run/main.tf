@@ -51,6 +51,16 @@ resource "google_cloud_run_v2_service" "this" {
         value = var.task_queue
       }
 
+      env {
+        name  = "REGION"
+        value = var.region
+      }
+
+      env {
+        name  = "SERVICE_ACCOUNT_EMAIL"
+        value = var.service_account_email
+      }
+
       ports {
         container_port = 8080
       }
