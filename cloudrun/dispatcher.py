@@ -7,6 +7,7 @@ from handlers.execute import execute
 from handlers.enforce import enforce
 from handlers.plan import plan
 from handlers.runs import runs
+from handlers.worker import worker
 from handlers.history import history
 from handlers.dashboard import dashboard
 from handlers.metrics import metrics
@@ -43,6 +44,9 @@ class Dispatcher:
 
         if route == "execute":
             return execute()
+
+        if route == "worker":
+            return worker()
             
         if route == "enforce":
             return enforce()
