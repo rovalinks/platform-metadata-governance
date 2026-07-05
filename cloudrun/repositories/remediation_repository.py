@@ -1,3 +1,4 @@
+```python
 import json
 
 from google.cloud import bigquery
@@ -14,6 +15,8 @@ class RemediationRepository:
     This repository is responsible only for
     storing and retrieving remediation plans.
     """
+
+    DEFAULT_BATCH_SIZE = 500
 
     def __init__(self):
         self.client = bigquery.Client()
@@ -135,6 +138,70 @@ class RemediationRepository:
             )
         return plans
 
+    def get_planned_batch(
+        self,
+        run_id: str,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+    ) -> list[RemediationPlan]:
+        """
+        Returns the next batch of remediation actions
+        that are still in the PLANNED state.
+        """
+
+        query = f"""
+        SELECT *
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+          AND status = 'PLANNED'
+        ORDER BY created_at
+        LIMIT @batch_size
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    ),
+                    bigquery.ScalarQueryParameter(
+                        "batch_size",
+                        "INT64",
+                        batch_size,
+                    ),
+                ]
+            ),
+        )
+
+        plans = []
+
+        for row in job.result():
+
+            plans.append(
+
+                RemediationPlan(
+
+                    run_id=row.run_id,
+                    project_id=row.project_id,
+                    asset_type=row.asset_type,
+                    resource_name=row.resource_name,
+                    missing_labels=self._json_value(
+                        row.missing_labels
+                    ),
+                    planned_labels=self._json_value(
+                        row.planned_labels
+                    ),
+                    status=row.status,
+                    created_at=row.created_at,
+
+                )
+
+            )
+
+        return plans
+
     def update_status(
         self,
         run_id: str,
@@ -179,3 +246,75 @@ class RemediationRepository:
             resource_name,
             status,
         )
+
+    def mark_in_progress(
+        self,
+        run_id: str,
+        resource_name: str,
+    ):
+        self.update_status(
+            run_id,
+            resource_name,
+            "IN_PROGRESS",
+        )
+
+    def mark_success(
+        self,
+        run_id: str,
+        resource_name: str,
+    ):
+        self.update_status(
+            run_id,
+            resource_name,
+            "SUCCESS",
+        )
+
+    def mark_failed(
+        self,
+        run_id: str,
+        resource_name: str,
+    ):
+        self.update_status(
+            run_id,
+            resource_name,
+            "FAILED",
+        )
+
+    def count_by_status(
+        self,
+        run_id: str,
+    ) -> dict:
+        """
+        Returns remediation counts grouped by status.
+        """
+
+        query = f"""
+        SELECT
+            status,
+            COUNT(*) AS total
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+        GROUP BY status
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        )
+
+        counts = {}
+
+        for row in job.result():
+            counts[row.status] = row.total
+
+        return counts
+
+```
