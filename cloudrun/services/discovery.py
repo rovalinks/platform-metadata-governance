@@ -33,6 +33,9 @@ class DiscoveryService:
 
             resource = self.adapter.enrich(resource)
 
+            if resource is None:
+                continue
+
             resources.append(resource)
 
         logger.info(

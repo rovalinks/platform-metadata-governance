@@ -43,7 +43,9 @@ class AdapterService:
 
         labels = client.labels(resource)
 
-        if labels is not None:
-            resource.labels = labels
+        if labels is None:
+            return None
+
+        resource.labels = labels
 
         return resource
