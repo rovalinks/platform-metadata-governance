@@ -37,6 +37,14 @@ REGION = os.getenv(
     "REGION"
 )
 
+CLOUD_RUN_URL = os.getenv(
+    "CLOUD_RUN_URL"
+)
+
+SERVICE_ACCOUNT_EMAIL = os.getenv(
+    "SERVICE_ACCOUNT_EMAIL"
+)
+
 #
 # Registry
 #
