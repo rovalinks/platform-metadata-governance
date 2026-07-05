@@ -16,36 +16,25 @@ class ExecutorService:
     """Executes enforcement actions."""
 
     def __init__(self):
-
         self.adapters = AdapterService()
-
-        self.repository = (
-            RemediationRepository()
-        )
-
-        self.execution_repository = (
-            ExecutionRepository()
-        )
+        self.repository = RemediationRepository()
+        self.execution_repository = ExecutionRepository()
 
     def execute(self, actions):
-
         results = []
 
         for action in actions:
-
             client = self.adapters.client_for(
                 action["asset_type"]
             )
 
             if client is None:
-
                 results.append(
                     {
                         "resource": action["resource"],
                         "status": "unsupported",
                     }
                 )
-
                 continue
 
             logger.info(
@@ -59,7 +48,6 @@ class ExecutorService:
             )
 
             try:
-
                 client.apply_labels(
                     resource,
                     action["labels"],
@@ -78,7 +66,6 @@ class ExecutorService:
                 )
 
             except Exception as error:
-
                 logger.exception(
                     "Failed updating %s",
                     action["resource"],
@@ -99,13 +86,6 @@ class ExecutorService:
         resource,
         labels: dict,
     ):
-        """
-        Execute remediation for a single
-        resource.
-
-        Used by Greenfield enforcement.
-        """
-
         results = self.execute(
             [
                 {
@@ -126,22 +106,30 @@ class ExecutorService:
         Execute a previously generated remediation plan.
         """
 
+        if self.execution_repository.is_completed(run_id):
+            logger.info(
+                "Run %s already completed.",
+                run_id,
+            )
+            return {
+                "run_id": run_id,
+                "total": 0,
+                "successful": 0,
+                "failed": 0,
+                "duration_seconds": 0,
+                "results": [],
+            }
+
         logger.info(
             "Executing remediation run %s",
             run_id,
         )
 
-        if self.execution_repository.already_executed(
+        # Reset any resources that were left in an 'in-progress' state 
+        # from a previous interrupted run.
+        self.repository.reset_in_progress(
             run_id
-        ):
-
-            raise RuntimeError(
-                (
-                    "Remediation run "
-                    f"{run_id} "
-                    "has already been executed."
-                )
-            )
+        )
 
         successful = 0
         failed = 0
@@ -152,7 +140,6 @@ class ExecutorService:
         )
 
         while True:
-
             plans = self.repository.get_planned_batch(
                 run_id
             )
@@ -168,7 +155,6 @@ class ExecutorService:
             actions = []
 
             for plan in plans:
-
                 self.repository.mark_in_progress(
                     run_id,
                     plan.resource_name,
@@ -192,31 +178,23 @@ class ExecutorService:
             }
 
             for result in batch_results:
-
                 plan = plans_by_resource[
                     result["resource"]
                 ]
 
                 if result["status"] == "updated":
-
                     successful += 1
-
                     self.repository.mark_success(
                         run_id,
                         plan.resource_name,
                     )
-
                     status = "SUCCESS"
-
                 else:
-
                     failed += 1
-
                     self.repository.mark_failed(
                         run_id,
                         plan.resource_name,
                     )
-
                     status = "FAILED"
 
                 self.execution_repository.save(

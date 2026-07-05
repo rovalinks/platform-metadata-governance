@@ -13,19 +13,13 @@ class ExecutionRepository:
     """
 
     def __init__(self):
-
         self.client = bigquery.Client()
-
         self.dataset = config.BIGQUERY_DATASET
-
         self.table = "remediation_execution"
 
     @property
     def table_id(self):
-
-        return (
-            f"{self.dataset}.{self.table}"
-        )
+        return f"{self.dataset}.{self.table}"
 
     def save(
         self,
@@ -36,11 +30,8 @@ class ExecutionRepository:
         status: str,
         error_message: str | None = None,
     ):
-
         row = {
-            "execution_id": str(
-                uuid.uuid4()
-            ),
+            "execution_id": str(uuid.uuid4()),
             "run_id": run_id,
             "project_id": project_id,
             "asset_type": asset_type,
@@ -56,12 +47,10 @@ class ExecutionRepository:
         )
 
         if errors:
-
             logger.error(
                 "Failed writing execution record: %s",
                 errors,
             )
-
             raise RuntimeError(
                 "Failed to persist execution result."
             )
@@ -71,19 +60,26 @@ class ExecutionRepository:
             resource_name,
         )
 
-    def already_executed(
+    def is_completed(
         self,
         run_id: str,
     ) -> bool:
         """
-        Returns True if the remediation run
-        has already been executed.
+        Returns True only when every remediation
+        action belonging to the run has completed.
+
+        A run is considered complete when there are
+        no PLANNED or IN_PROGRESS actions remaining.
         """
 
         query = f"""
         SELECT COUNT(*) AS total
-        FROM `{self.table_id}`
+        FROM `{config.BIGQUERY_DATASET}.remediation_plan`
         WHERE run_id = @run_id
+          AND status IN (
+            'PLANNED',
+            'IN_PROGRESS'
+          )
         """
 
         job = self.client.query(
@@ -99,8 +95,6 @@ class ExecutionRepository:
             ),
         )
 
-        row = next(
-            job.result()
-        )
+        row = next(job.result())
 
-        return row.total > 0
+        return row.total == 0
