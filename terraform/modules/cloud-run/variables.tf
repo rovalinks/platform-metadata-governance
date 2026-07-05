@@ -46,3 +46,7 @@ variable "log_level" {
   type    = string
   default = "INFO"
 }
+
+variable "task_queue" {
+  type = string
+}

@@ -79,6 +79,9 @@ def runs_endpoint():
 def run_endpoint():
     return Dispatcher.dispatch("run")
 
+@app.post("/worker")
+def worker_endpoint():
+    return Dispatcher.dispatch("worker")
 
 @app.get("/reports/history")
 def history_endpoint():

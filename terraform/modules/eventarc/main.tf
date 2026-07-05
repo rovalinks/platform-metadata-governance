@@ -8,9 +8,9 @@ resource "google_eventarc_trigger" "this" {
 
   }
 
-  name     = each.value.name
+  name = each.value.name
 
-  project  = var.project_id
+  project = var.project_id
 
   location = var.region
 

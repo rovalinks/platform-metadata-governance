@@ -16,9 +16,25 @@ PROJECT_ID = os.environ["PROJECT_ID"]
 
 REGISTRY_BUCKET = os.environ["REGISTRY_BUCKET"]
 
+SERVICE_ACCOUNT_EMAIL = os.getenv(
+    "SERVICE_ACCOUNT_EMAIL"
+)
+
 BIGQUERY_DATASET = os.getenv(
     "BIGQUERY_DATASET",
     "metadata_governance_dataset",
+)
+
+#
+# Tasks
+#
+
+TASK_QUEUE = os.getenv(
+    "TASK_QUEUE"
+)
+
+REGION = os.getenv(
+    "REGION"
 )
 
 #

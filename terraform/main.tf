@@ -1,11 +1,11 @@
 module "artifact_registry" {
 
   source = "./modules/artifact-registry"
-  
-  project_id = var.project_id
-  region = var.region
+
+  project_id    = var.project_id
+  region        = var.region
   repository_id = var.artifact_registry_repository
-  description = var.artifact_registry_description
+  description   = var.artifact_registry_description
 
 }
 
@@ -17,10 +17,10 @@ module "service_accounts" {
 }
 
 module "iam" {
-  source = "./modules/iam"
-  project_id = var.project_id
+  source                 = "./modules/iam"
+  project_id             = var.project_id
   service_account_emails = module.service_accounts.emails
-  service_account_roles = var.service_account_roles
+  service_account_roles  = var.service_account_roles
 }
 
 module "cloud_run" {
@@ -37,37 +37,74 @@ module "cloud_run" {
   dry_run               = var.dry_run
   log_level             = var.log_level
   bigquery              = var.bigquery
+  task_queue            = module.cloud_tasks.queue_name
 }
 
 module "eventarc" {
-  count = var.deploy_cloud_run ? 1 : 0
-  source = "./modules/eventarc"
-  project_id = var.project_id
-  region = var.region
-  cloud_run_service = module.cloud_run[0].service_name
+  count                 = var.deploy_cloud_run ? 1 : 0
+  source                = "./modules/eventarc"
+  project_id            = var.project_id
+  region                = var.region
+  cloud_run_service     = module.cloud_run[0].service_name
   service_account_email = module.service_accounts.emails["governance"]
-  triggers = var.eventarc.triggers
+  triggers              = var.eventarc.triggers
 }
 
 module "workload_identity" {
-  source = "./modules/workload-identity"
-  project_id = var.project_id
+  source                 = "./modules/workload-identity"
+  project_id             = var.project_id
   github_service_account = module.service_accounts.names["github"]
-  workload_identity = var.workload_identity
+  workload_identity      = var.workload_identity
 }
 
 module "registry_bucket" {
-  source = "./modules/registry-bucket"
-  project_id = var.project_id
-  region = var.region
-  bucket_name = var.registry_bucket_name
+  source                     = "./modules/registry-bucket"
+  project_id                 = var.project_id
+  region                     = var.region
+  bucket_name                = var.registry_bucket_name
   governance_service_account = module.service_accounts.emails["governance"]
-  github_service_account = module.service_accounts.emails["github"]
+  github_service_account     = module.service_accounts.emails["github"]
 }
 
 module "bigquery" {
-  source = "./modules/bigquery"
+  source     = "./modules/bigquery"
   project_id = var.project_id
-  region = var.region
+  region     = var.region
   dataset_id = var.bigquery.dataset_id
+}
+
+module "project_services" {
+
+  source = "./modules/project-services"
+
+  project_id = var.project_id
+
+  services = [
+    "artifactregistry.googleapis.com",
+    "bigquery.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "cloudtasks.googleapis.com",
+    "compute.googleapis.com",
+    "container.googleapis.com",
+    "eventarc.googleapis.com",
+    "iam.googleapis.com",
+    "logging.googleapis.com",
+    "pubsub.googleapis.com",
+    "run.googleapis.com",
+    "sqladmin.googleapis.com",
+    "storage.googleapis.com",
+  ]
+}
+
+module "cloud_tasks" {
+
+  source = "./modules/cloud-tasks"
+
+  project_id = var.project_id
+  region     = var.region
+  queue_name = "metadata-remediation"
+  depends_on = [
+    module.project_services
+  ]
 }
