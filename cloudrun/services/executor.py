@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from math import ceil
 from types import SimpleNamespace
 
 from repositories.execution_repository import (
@@ -8,6 +9,9 @@ from repositories.remediation_repository import (
     RemediationRepository,
 )
 from services.adapter import AdapterService
+from services.task_dispatcher import (
+    TaskDispatcher,
+)
 from utils.exceptions import format_gcp_exception
 from utils.logger import logger
 
@@ -19,6 +23,7 @@ class ExecutorService:
         self.adapters = AdapterService()
         self.repository = RemediationRepository()
         self.execution_repository = ExecutionRepository()
+        self.dispatcher = TaskDispatcher()
 
     def execute(self, actions):
         results = []
@@ -98,138 +103,144 @@ class ExecutorService:
 
         return results[0]
 
+    def execute_batch(
+        self,
+        run_id: str,
+        offset: int,
+        batch_size: int,
+    ):
+        """
+        Execute a specific batch of a remediation plan.
+        """
+        plans = self.repository.get_planned_batch(
+            run_id, offset, batch_size
+        )
+
+        if not plans:
+            return
+
+        actions = []
+        for plan in plans:
+            self.repository.mark_in_progress(
+                run_id, plan.resource_name
+            )
+            actions.append(
+                {
+                    "resource": plan.resource_name,
+                    "asset_type": plan.asset_type,
+                    "labels": plan.planned_labels,
+                }
+            )
+
+        batch_results = self.execute(actions)
+        plans_by_resource = {
+            plan.resource_name: plan for plan in plans
+        }
+
+        for result in batch_results:
+            plan = plans_by_resource[result["resource"]]
+
+            if result["status"] == "updated":
+                self.repository.mark_success(
+                    run_id, plan.resource_name
+                )
+                status = "SUCCESS"
+            else:
+                self.repository.mark_failed(
+                    run_id, plan.resource_name
+                )
+                status = "FAILED"
+
+            self.execution_repository.save(
+                run_id=run_id,
+                project_id=plan.project_id,
+                asset_type=plan.asset_type,
+                resource_name=plan.resource_name,
+                status=status,
+                error_message=result.get("error"),
+            )
+
     def execute_run(
         self,
         run_id: str,
     ):
         """
-        Execute a previously generated remediation plan.
+        Dispatches remediation work to Cloud Tasks.
+
+        Each Cloud Task executes one remediation batch.
         """
 
-        if self.execution_repository.is_completed(run_id):
-            logger.info(
-                "Run %s already completed.",
-                run_id,
-            )
-            return {
-                "run_id": run_id,
-                "total": 0,
-                "successful": 0,
-                "failed": 0,
-                "duration_seconds": 0,
-                "results": [],
-            }
-
         logger.info(
-            "Executing remediation run %s",
+            "Dispatching remediation run %s",
             run_id,
         )
 
-        # Reset any resources that were left in an 'in-progress' state 
-        # from a previous interrupted run.
-        self.repository.reset_in_progress(
+        if self.execution_repository.already_executed(
+            run_id
+        ):
+
+            raise RuntimeError(
+                (
+                    "Remediation run "
+                    f"{run_id} "
+                    "has already been executed."
+                )
+            )
+
+        plans = self.repository.get_planned(
             run_id
         )
 
-        successful = 0
-        failed = 0
-        results = []
+        if not plans:
 
-        start_time = datetime.now(
-            timezone.utc
+            raise RuntimeError(
+                (
+                    "Remediation run "
+                    f"{run_id} "
+                    "was not found."
+                )
+            )
+
+        batch_size = 500
+
+        total_resources = len(plans)
+
+        total_batches = ceil(
+            total_resources / batch_size
         )
 
-        while True:
-            plans = self.repository.get_planned_batch(
-                run_id
+        logger.info(
+            "Dispatching %d resources in %d batches",
+            total_resources,
+            total_batches,
+        )
+
+        for batch_number in range(
+            total_batches
+        ):
+
+            offset = (
+                batch_number
+                * batch_size
             )
 
-            if not plans:
-                break
-
-            logger.info(
-                "Processing batch of %d resources",
-                len(plans),
+            self.dispatcher.enqueue_batch(
+                run_id=run_id,
+                batch_number=batch_number + 1,
+                total_batches=total_batches,
+                offset=offset,
+                batch_size=batch_size,
             )
-
-            actions = []
-
-            for plan in plans:
-                self.repository.mark_in_progress(
-                    run_id,
-                    plan.resource_name,
-                )
-
-                actions.append(
-                    {
-                        "resource": plan.resource_name,
-                        "asset_type": plan.asset_type,
-                        "labels": plan.planned_labels,
-                    }
-                )
-
-            batch_results = self.execute(
-                actions
-            )
-
-            plans_by_resource = {
-                plan.resource_name: plan
-                for plan in plans
-            }
-
-            for result in batch_results:
-                plan = plans_by_resource[
-                    result["resource"]
-                ]
-
-                if result["status"] == "updated":
-                    successful += 1
-                    self.repository.mark_success(
-                        run_id,
-                        plan.resource_name,
-                    )
-                    status = "SUCCESS"
-                else:
-                    failed += 1
-                    self.repository.mark_failed(
-                        run_id,
-                        plan.resource_name,
-                    )
-                    status = "FAILED"
-
-                self.execution_repository.save(
-                    run_id=run_id,
-                    project_id=plan.project_id,
-                    asset_type=plan.asset_type,
-                    resource_name=plan.resource_name,
-                    status=status,
-                    error_message=result.get(
-                        "error"
-                    ),
-                )
-
-                results.append(result)
-
-        duration = (
-            datetime.now(
-                timezone.utc
-            )
-            - start_time
-        ).total_seconds()
 
         logger.info(
-            "Completed remediation run %s",
-            run_id,
+            "Queued %d Cloud Tasks",
+            total_batches,
         )
 
         return {
             "run_id": run_id,
-            "total": len(results),
-            "successful": successful,
-            "failed": failed,
-            "duration_seconds": round(
-                duration,
-                2,
-            ),
-            "results": results,
+            "status": "QUEUED",
+            "resources": total_resources,
+            "batch_size": batch_size,
+            "batches": total_batches,
         }
