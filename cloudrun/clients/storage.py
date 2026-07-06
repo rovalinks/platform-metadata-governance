@@ -2,6 +2,8 @@ import logging
 
 from google.cloud import storage
 
+import config
+
 from clients.base import ResourceClient
 from config import EXCLUDED_BUCKETS
 from models.resource import Resource
@@ -102,14 +104,45 @@ class StorageClient(ResourceClient):
             bucket_name
         )
 
-        merged = dict(
+        existing = dict(
             bucket.labels or {}
         )
 
-        merged.update(labels)
+        if config.PRESERVE_EXISTING_LABELS:
+
+            merged = existing.copy()
+
+            for key, value in labels.items():
+
+                if key not in merged:
+
+                    merged[key] = value
+
+        else:
+
+            merged = existing.copy()
+
+            merged.update(labels)
+
+        #
+        # Nothing to update
+        #
+        if merged == existing:
+
+            logger.info(
+                "Bucket %s already compliant.",
+                bucket_name,
+            )
+
+            return True
 
         bucket.labels = merged
 
         bucket.patch()
+
+        logger.info(
+            "Updated labels on bucket %s",
+            bucket_name,
+        )
 
         return True
