@@ -6,6 +6,7 @@ from clients.artifact_registry import ArtifactRegistryClient
 from clients.pubsub import PubSubClient
 from clients.gke import GkeClient
 from clients.bigquery_reservation import BigQueryReservationClient
+from clients.secret_manager import SecretManagerClient
 
 class AdapterService:
 
@@ -19,7 +20,8 @@ class AdapterService:
             CloudSqlClient(),
             ArtifactRegistryClient(),
             PubSubClient(),
-            GkeClient(),            
+            GkeClient(),
+            SecretManagerClient(),            
         ]
 
     def client_for(self, asset_type: str):

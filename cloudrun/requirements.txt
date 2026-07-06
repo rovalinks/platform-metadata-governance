@@ -18,5 +18,6 @@ google-cloud-bigquery
 google-cloud-artifact-registry
 google-cloud-pubsub
 google-cloud-container
+google-cloud-secret-manager
 
 google-cloud-tasks>=2.18.0
