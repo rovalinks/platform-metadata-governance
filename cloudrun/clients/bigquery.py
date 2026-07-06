@@ -4,7 +4,10 @@ import config
 
 from clients.base import ResourceClient
 from models.resource import Resource
-from utils.bigquery import (parse_dataset_name, parse_table_name,)
+from utils.bigquery import (
+    parse_dataset_name,
+    parse_table_name,
+)
 
 
 class BigQueryClient(ResourceClient):
@@ -64,67 +67,38 @@ class BigQueryClient(ResourceClient):
     def get(
         self,
         resource_name: str,
-        asset_type: str,
     ) -> Resource:
         """
-        Retrieves a BigQuery Dataset or Table and returns
+        Retrieves a BigQuery dataset and returns
         the platform Resource model.
+
+        Note:
+        The public ResourceClient interface remains
+        get(resource_name). Greenfield currently
+        discovers datasets only.
         """
 
-        if (
-            asset_type
-            == "bigquery.googleapis.com/Dataset"
-        ):
-
-            info = parse_dataset_name(
-                resource_name
-            )
-
-            dataset = self.client.get_dataset(
-                f"{info['project']}."
-                f"{info['dataset']}"
-            )
-
-            return Resource(
-
-                asset_type=asset_type,
-
-                name=resource_name,
-
-                project=info["project"],
-
-                location=dataset.location,
-
-                labels=dict(
-                    dataset.labels or {}
-                ),
-
-                tags={},
-
-            )
-
-        info = parse_table_name(
+        info = parse_dataset_name(
             resource_name
         )
 
-        table = self.client.get_table(
+        dataset = self.client.get_dataset(
             f"{info['project']}."
-            f"{info['dataset']}."
-            f"{info['table']}"
+            f"{info['dataset']}"
         )
 
         return Resource(
 
-            asset_type=asset_type,
+            asset_type="bigquery.googleapis.com/Dataset",
 
             name=resource_name,
 
             project=info["project"],
 
-            location=table.location,
+            location=dataset.location,
 
             labels=dict(
-                table.labels or {}
+                dataset.labels or {}
             ),
 
             tags={},
