@@ -4,11 +4,11 @@ import config
 
 from clients.base import ResourceClient
 from models.resource import Resource
-from utils.bigquery import parse_dataset_name
+from utils.bigquery import (parse_dataset_name, parse_table_name,)
 
 
 class BigQueryClient(ResourceClient):
-    """BigQuery Dataset resource adapter."""
+    """BigQuery Dataset and Table resource adapter."""
 
     def __init__(self):
 
@@ -19,9 +19,9 @@ class BigQueryClient(ResourceClient):
         asset_type: str,
     ):
 
-        return (
-            asset_type
-            == "bigquery.googleapis.com/Dataset"
+        return asset_type in (
+            "bigquery.googleapis.com/Dataset",
+            "bigquery.googleapis.com/Table",
         )
 
     def labels(
@@ -29,49 +29,102 @@ class BigQueryClient(ResourceClient):
         resource,
     ):
 
-        dataset_info = parse_dataset_name(
+        if (
+            resource.asset_type
+            == "bigquery.googleapis.com/Dataset"
+        ):
+
+            info = parse_dataset_name(
+                resource.name
+            )
+
+            dataset = self.client.get_dataset(
+                f"{info['project']}."
+                f"{info['dataset']}"
+            )
+
+            return dict(
+                dataset.labels or {}
+            )
+
+        info = parse_table_name(
             resource.name
         )
 
-        dataset = self.client.get_dataset(
-            f"{dataset_info['project']}."
-            f"{dataset_info['dataset']}"
+        table = self.client.get_table(
+            f"{info['project']}."
+            f"{info['dataset']}."
+            f"{info['table']}"
         )
 
         return dict(
-            dataset.labels or {}
+            table.labels or {}
         )
 
     def get(
         self,
         resource_name: str,
+        asset_type: str,
     ) -> Resource:
         """
-        Retrieves a BigQuery dataset and returns
+        Retrieves a BigQuery Dataset or Table and returns
         the platform Resource model.
         """
 
-        dataset_info = parse_dataset_name(
+        if (
+            asset_type
+            == "bigquery.googleapis.com/Dataset"
+        ):
+
+            info = parse_dataset_name(
+                resource_name
+            )
+
+            dataset = self.client.get_dataset(
+                f"{info['project']}."
+                f"{info['dataset']}"
+            )
+
+            return Resource(
+
+                asset_type=asset_type,
+
+                name=resource_name,
+
+                project=info["project"],
+
+                location=dataset.location,
+
+                labels=dict(
+                    dataset.labels or {}
+                ),
+
+                tags={},
+
+            )
+
+        info = parse_table_name(
             resource_name
         )
 
-        dataset = self.client.get_dataset(
-            f"{dataset_info['project']}."
-            f"{dataset_info['dataset']}"
+        table = self.client.get_table(
+            f"{info['project']}."
+            f"{info['dataset']}."
+            f"{info['table']}"
         )
 
         return Resource(
 
-            asset_type="bigquery.googleapis.com/Dataset",
+            asset_type=asset_type,
 
             name=resource_name,
 
-            project="",
+            project=info["project"],
 
-            location=dataset.location,
+            location=table.location,
 
             labels=dict(
-                dataset.labels or {}
+                table.labels or {}
             ),
 
             tags={},
@@ -84,17 +137,65 @@ class BigQueryClient(ResourceClient):
         labels: dict,
     ):
 
-        dataset_info = parse_dataset_name(
+        if (
+            resource.asset_type
+            == "bigquery.googleapis.com/Dataset"
+        ):
+
+            info = parse_dataset_name(
+                resource.name
+            )
+
+            dataset = self.client.get_dataset(
+                f"{info['project']}."
+                f"{info['dataset']}"
+            )
+
+            existing = dict(
+                dataset.labels or {}
+            )
+
+            if config.PRESERVE_EXISTING_LABELS:
+
+                merged = existing.copy()
+
+                for key, value in labels.items():
+
+                    if key not in merged:
+
+                        merged[key] = value
+
+            else:
+
+                merged = existing.copy()
+
+                merged.update(labels)
+
+            if merged == existing:
+
+                return True
+
+            dataset.labels = merged
+
+            self.client.update_dataset(
+                dataset,
+                ["labels"],
+            )
+
+            return True
+
+        info = parse_table_name(
             resource.name
         )
 
-        dataset = self.client.get_dataset(
-            f"{dataset_info['project']}."
-            f"{dataset_info['dataset']}"
+        table = self.client.get_table(
+            f"{info['project']}."
+            f"{info['dataset']}."
+            f"{info['table']}"
         )
 
         existing = dict(
-            dataset.labels or {}
+            table.labels or {}
         )
 
         if config.PRESERVE_EXISTING_LABELS:
@@ -117,10 +218,10 @@ class BigQueryClient(ResourceClient):
 
             return True
 
-        dataset.labels = merged
+        table.labels = merged
 
-        self.client.update_dataset(
-            dataset,
+        self.client.update_table(
+            table,
             ["labels"],
         )
 
