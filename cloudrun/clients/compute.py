@@ -3,7 +3,13 @@ from google.api_core.exceptions import PreconditionFailed
 import time
 from clients.base import ResourceClient
 from models.resource import Resource
-from utils.compute import ( parse_instance_name, parse_disk_name, parse_address_name, parse_forwarding_rule_name, parse_subnetwork_name, parse_health_check_name, parse_backend_service_name, parse_network_endpoint_group_name,
+from utils.compute import (
+    parse_instance_name, parse_disk_name, parse_address_name,
+    parse_forwarding_rule_name, parse_subnetwork_name,
+    parse_health_check_name, parse_backend_service_name,
+    parse_network_endpoint_group_name, parse_firewall_name,
+    parse_network_name, parse_snapshot_name,
+    parse_image_name, parse_machine_image_name,
 )
 
 class ComputeClient(ResourceClient):
@@ -20,6 +26,11 @@ class ComputeClient(ResourceClient):
         self.health_checks = compute_v1.HealthChecksClient()
         self.backend_services = compute_v1.BackendServicesClient()
         self.network_endpoint_groups = compute_v1.NetworkEndpointGroupsClient()
+        self.firewalls = compute_v1.FirewallsClient()
+        self.networks = compute_v1.NetworksClient()
+        self.snapshots = compute_v1.SnapshotsClient()
+        self.images = compute_v1.ImagesClient()
+        self.machine_images = compute_v1.MachineImagesClient()
 
     def supports(self, asset_type: str):
         return asset_type in [
@@ -31,6 +42,11 @@ class ComputeClient(ResourceClient):
             "compute.googleapis.com/HealthCheck",
             "compute.googleapis.com/BackendService",
             "compute.googleapis.com/NetworkEndpointGroup",
+            "compute.googleapis.com/Firewall",
+            "compute.googleapis.com/Network",
+            "compute.googleapis.com/Snapshot",
+            "compute.googleapis.com/Image",
+            "compute.googleapis.com/MachineImage",
         ]
     def labels(self, resource):
         if "/subnetworks/" in resource.name:
@@ -83,6 +99,26 @@ class ComputeClient(ResourceClient):
             return dict(
                 backend.labels or {}
             )
+        elif "/firewalls/" in resource.name:
+            info = parse_firewall_name(resource.name)
+            firewall = self.firewalls.get(project=info["project"], firewall=info["firewall"])
+            return dict(firewall.labels or {})
+        elif "/networks/" in resource.name:
+            info = parse_network_name(resource.name)
+            network = self.networks.get(project=info["project"], network=info["network"])
+            return dict(network.labels or {})
+        elif "/snapshots/" in resource.name:
+            info = parse_snapshot_name(resource.name)
+            snapshot = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
+            return dict(snapshot.labels or {})
+        elif "/images/" in resource.name:
+            info = parse_image_name(resource.name)
+            image = self.images.get(project=info["project"], image=info["image"])
+            return dict(image.labels or {})
+        elif "/machineImages/" in resource.name:
+            info = parse_machine_image_name(resource.name)
+            machine_image = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
+            return dict(machine_image.labels or {})
         elif "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -193,6 +229,31 @@ class ComputeClient(ResourceClient):
                 ),
                 tags={},
             )
+        # Firewall
+        if "/firewalls/" in resource_name:
+            info = parse_firewall_name(resource_name)
+            firewall = self.firewalls.get(project=info["project"], firewall=info["firewall"])
+            return Resource(asset_type="compute.googleapis.com/Firewall", name=resource_name, project=info["project"], location="global", labels=dict(firewall.labels or {}), tags={})
+        # Network
+        if "/networks/" in resource_name:
+            info = parse_network_name(resource_name)
+            network = self.networks.get(project=info["project"], network=info["network"])
+            return Resource(asset_type="compute.googleapis.com/Network", name=resource_name, project=info["project"], location="global", labels=dict(network.labels or {}), tags={})
+        # Snapshot
+        if "/snapshots/" in resource_name:
+            info = parse_snapshot_name(resource_name)
+            snapshot = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
+            return Resource(asset_type="compute.googleapis.com/Snapshot", name=resource_name, project=info["project"], location="global", labels=dict(snapshot.labels or {}), tags={})
+        # Image
+        if "/images/" in resource_name:
+            info = parse_image_name(resource_name)
+            image = self.images.get(project=info["project"], image=info["image"])
+            return Resource(asset_type="compute.googleapis.com/Image", name=resource_name, project=info["project"], location="global", labels=dict(image.labels or {}), tags={})
+        # Machine Image
+        if "/machineImages/" in resource_name:
+            info = parse_machine_image_name(resource_name)
+            machine_image = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
+            return Resource(asset_type="compute.googleapis.com/MachineImage", name=resource_name, project=info["project"], location="global", labels=dict(machine_image.labels or {}), tags={})
         if "/instances/" in resource_name:
             info = parse_instance_name(resource_name)
             instance = self.instances.get(
@@ -385,6 +446,84 @@ class ComputeClient(ResourceClient):
                 resource=info["network_endpoint_group"],
                 zone_set_labels_request_resource=request,
             )
+        # Firewall
+        elif "/firewalls/" in resource.name:
+            info = parse_firewall_name(resource.name)
+            firewall = self.firewalls.get(project=info["project"], firewall=info["firewall"])
+            existing = dict(firewall.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged = existing.copy()
+                for key, value in labels.items():
+                    if key not in merged:
+                        merged[key] = value
+            else:
+                merged = existing.copy()
+                merged.update(labels)
+            if merged == existing:
+                return True
+            request = compute_v1.GlobalSetLabelsRequest(labels=merged, label_fingerprint=firewall.label_fingerprint)
+            operation = self.firewalls.set_labels(project=info["project"], resource=info["firewall"], global_set_labels_request_resource=request)
+        # Network
+        elif "/networks/" in resource.name:
+            info = parse_network_name(resource.name)
+            network = self.networks.get(project=info["project"], network=info["network"])
+            existing = dict(network.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged = existing.copy()
+                for key, value in labels.items():
+                    if key not in merged:
+                        merged[key] = value
+            else:
+                merged = existing.copy()
+                merged.update(labels)
+            if merged == existing:
+                return True
+            request = compute_v1.GlobalSetLabelsRequest(labels=merged, label_fingerprint=network.label_fingerprint)
+            operation = self.networks.set_labels(project=info["project"], resource=info["network"], global_set_labels_request_resource=request)
+        # Snapshot
+        elif "/snapshots/" in resource.name:
+            info = parse_snapshot_name(resource.name)
+            snapshot = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
+            existing = dict(snapshot.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged = existing.copy()
+                for key, value in labels.items():
+                    if key not in merged:
+                        merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=snapshot.label_fingerprint)
+            operation=self.snapshots.set_labels(project=info["project"],resource=info["snapshot"],global_set_labels_request_resource=request)
+        # Image
+        elif "/images/" in resource.name:
+            info=parse_image_name(resource.name)
+            image=self.images.get(project=info["project"],image=info["image"])
+            existing=dict(image.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=image.label_fingerprint)
+            operation=self.images.set_labels(project=info["project"],resource=info["image"],global_set_labels_request_resource=request)
+        # Machine Image
+        elif "/machineImages/" in resource.name:
+            info=parse_machine_image_name(resource.name)
+            machine_image=self.machine_images.get(project=info["project"],machine_image=info["machine_image"])
+            existing=dict(machine_image.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=machine_image.label_fingerprint)
+            operation=self.machine_images.set_labels(project=info["project"],resource=info["machine_image"],global_set_labels_request_resource=request)
+
         if "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -524,6 +663,11 @@ class ComputeClient(ResourceClient):
         elif (
             "/healthChecks/" in resource.name
             or "/backendServices/" in resource.name
+            or "/firewalls/" in resource.name
+            or "/networks/" in resource.name
+            or "/snapshots/" in resource.name
+            or "/images/" in resource.name
+            or "/machineImages/" in resource.name
         ):
             self.global_operations.wait(
                 project=info["project"],
