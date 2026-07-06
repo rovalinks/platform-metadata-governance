@@ -69,15 +69,46 @@ class BigQueryClient(ResourceClient):
         resource_name: str,
     ) -> Resource:
         """
-        Retrieves a BigQuery dataset and returns
+        Retrieves a BigQuery Dataset or Table and returns
         the platform Resource model.
-
-        Note:
-        The public ResourceClient interface remains
-        get(resource_name). Greenfield currently
-        discovers datasets only.
         """
 
+        #
+        # Table
+        #
+        if "/tables/" in resource_name:
+
+            info = parse_table_name(
+                resource_name
+            )
+
+            table = self.client.get_table(
+                f"{info['project']}."
+                f"{info['dataset']}."
+                f"{info['table']}"
+            )
+
+            return Resource(
+
+                asset_type="bigquery.googleapis.com/Table",
+
+                name=resource_name,
+
+                project=info["project"],
+
+                location=table.location,
+
+                labels=dict(
+                    table.labels or {}
+                ),
+
+                tags={},
+
+            )
+
+        #
+        # Dataset
+        #
         info = parse_dataset_name(
             resource_name
         )
