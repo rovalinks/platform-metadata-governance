@@ -5,6 +5,7 @@ from clients.sql import CloudSqlClient
 from clients.artifact_registry import ArtifactRegistryClient
 from clients.pubsub import PubSubClient
 from clients.gke import GkeClient
+from clients.bigquery_reservation import BigQueryReservationClient
 
 class AdapterService:
 
@@ -13,6 +14,7 @@ class AdapterService:
         self.clients = [
             ComputeClient(),
             BigQueryClient(),
+            BigQueryReservationClient(),
             StorageClient(),
             CloudSqlClient(),
             ArtifactRegistryClient(),
