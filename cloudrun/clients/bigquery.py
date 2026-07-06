@@ -1,5 +1,7 @@
 from google.cloud import bigquery
 
+import config
+
 from clients.base import ResourceClient
 from models.resource import Resource
 from utils.bigquery import parse_dataset_name
@@ -91,11 +93,29 @@ class BigQueryClient(ResourceClient):
             f"{dataset_info['dataset']}"
         )
 
-        merged = dict(
+        existing = dict(
             dataset.labels or {}
         )
 
-        merged.update(labels)
+        if config.PRESERVE_EXISTING_LABELS:
+
+            merged = existing.copy()
+
+            for key, value in labels.items():
+
+                if key not in merged:
+
+                    merged[key] = value
+
+        else:
+
+            merged = existing.copy()
+
+            merged.update(labels)
+
+        if merged == existing:
+
+            return True
 
         dataset.labels = merged
 
