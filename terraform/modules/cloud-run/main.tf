@@ -41,6 +41,12 @@ resource "google_cloud_run_v2_service" "this" {
         name  = "DRY_RUN"
         value = tostring(var.dry_run)
       }
+
+      env {
+        name  = "PRESERVE_EXISTING_LABELS"
+        value = "true"
+      }
+
       env {
         name  = "LOG_LEVEL"
         value = var.log_level

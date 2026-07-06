@@ -116,3 +116,15 @@ EXCLUDED_BUCKETS = [
     ).split(",")
     if bucket.strip()
 ]
+
+#
+# Brownfield
+#
+
+PRESERVE_EXISTING_LABELS = (
+    os.getenv(
+        "PRESERVE_EXISTING_LABELS",
+        "true",
+    ).lower()
+    == "true"
+)
