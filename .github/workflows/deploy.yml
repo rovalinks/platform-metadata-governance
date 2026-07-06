@@ -65,4 +65,4 @@ jobs:
             --region=$REGION \
             --image=europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
             --service-account=governance-engine-sa@$PROJECT_ID.iam.gserviceaccount.com \
-            --allow-unauthenticated
+            --no-allow-unauthenticated
