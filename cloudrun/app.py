@@ -15,11 +15,9 @@ def greenfield_endpoint():
         request.get_json(),
     )
 
-@app.post("/brownfield")
+@app.get("/brownfield")
 def brownfield_endpoint():
-    return Dispatcher.dispatch(
-        "brownfield"
-    )
+    return Dispatcher.dispatch("brownfield")
 
 @app.get("/")
 def root():
