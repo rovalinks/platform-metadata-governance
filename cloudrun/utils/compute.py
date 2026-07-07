@@ -206,3 +206,52 @@ def parse_external_vpn_gateway_name(resource_name: str):
         "project": parts[1],
         "external_vpn_gateway": parts[4],
     }
+
+def parse_http_health_check_name(
+    resource_name: str,
+):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "http_health_check": parts[4],
+    }
+
+
+def parse_vpn_tunnel_name(
+    resource_name: str,
+):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "vpn_tunnel": parts[5],
+    }
+
+
+def parse_target_vpn_gateway_name(
+    resource_name: str,
+):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "target_vpn_gateway": parts[5],
+    }
+
+
+def parse_security_policy_name(
+    resource_name: str,
+):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "security_policy": parts[4],
+    }
