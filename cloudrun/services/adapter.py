@@ -11,6 +11,7 @@ from clients.secret_manager import SecretManagerClient
 from clients.project import ProjectClient
 from clients.kms import KmsClient
 from clients.apikeys import ApiKeysClient
+from clients.appengine import AppEngineClient
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,8 @@ class AdapterService:
             SecretManagerClient(),
             ProjectClient(), 
             KmsClient(),
-            ApiKeysClient(),           
+            ApiKeysClient(),
+            AppEngineClient(),           
         ]
 
     def client_for(self, asset_type: str):

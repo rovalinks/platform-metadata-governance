@@ -4,7 +4,7 @@ import config
 
 from clients.base import ResourceClient
 from models.resource import Resource
-
+from utils.apikeys import parse_key_name
 
 class ApiKeysClient(ResourceClient):
     """
@@ -31,7 +31,7 @@ class ApiKeysClient(ResourceClient):
     ):
 
         key = self.client.get_key(
-            name=resource.name.lstrip("/")
+            name=parse_key_name(resource.name)
         )
 
         return dict(
@@ -44,7 +44,7 @@ class ApiKeysClient(ResourceClient):
     ) -> Resource:
 
         key = self.client.get_key(
-            name=resource_name.lstrip("/")
+            name=parse_key_name(resource_name)
         )
 
         project = (
@@ -76,7 +76,7 @@ class ApiKeysClient(ResourceClient):
     ):
 
         key = self.client.get_key(
-            name=resource.name.lstrip("/")
+            name=parse_key_name(resource.name)
         )
 
         existing = dict(

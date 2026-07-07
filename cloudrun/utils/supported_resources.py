@@ -32,4 +32,7 @@ SUPPORTED_LABEL_RESOURCES = {
     "cloudresourcemanager.googleapis.com/Project",
     "cloudkms.googleapis.com/CryptoKey",
     "apikeys.googleapis.com/Key",
+    "appengine.googleapis.com/Application",
+    "appengine.googleapis.com/Service",
+    "appengine.googleapis.com/Version",
 }

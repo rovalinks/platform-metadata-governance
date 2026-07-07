@@ -24,5 +24,6 @@ google-cloud-resource-manager>=1.14.0
 google-cloud-secret-manager>=2.23.0
 google-cloud-kms
 google-cloud-api-keys
+google-cloud-appengine-admin
 
 google-cloud-tasks>=2.18.0
