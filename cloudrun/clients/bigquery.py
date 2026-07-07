@@ -32,11 +32,7 @@ class BigQueryClient(ResourceClient):
         resource,
     ):
 
-        if (
-            resource.asset_type
-            == "bigquery.googleapis.com/Dataset"
-        ):
-
+        if "/datasets/" in resource.name and "/tables/" not in resource.name:
             info = parse_dataset_name(
                 resource.name
             )
@@ -142,10 +138,7 @@ class BigQueryClient(ResourceClient):
         labels: dict,
     ):
 
-        if (
-            resource.asset_type
-            == "bigquery.googleapis.com/Dataset"
-        ):
+        if "/datasets/" in resource.name and "/tables/" not in resource.name:
 
             info = parse_dataset_name(
                 resource.name
