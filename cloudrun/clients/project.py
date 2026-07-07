@@ -1,4 +1,4 @@
-from google.cloud import resourcemanager_v3
+from google.cloud.resourcemanager_v3 import ProjectsClient 
 from google.protobuf.field_mask_pb2 import FieldMask
 
 import config
@@ -13,7 +13,7 @@ class ProjectClient(ResourceClient):
     def __init__(self):
 
         self.client = (
-            resourcemanager_v3.ProjectsClient()
+            ProjectsClient()
         )
 
     def supports(

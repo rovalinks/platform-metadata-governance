@@ -54,7 +54,6 @@ class ComputeClient(ResourceClient):
         self.target_pools = compute_v1.TargetPoolsClient()
         self.resource_policies = compute_v1.ResourcePoliciesClient()
         self.target_vpn_gateways = compute_v1.TargetVpnGatewaysClient()
-        self.http_health_checks = compute_v1.HttpHealthChecksClient()
         self.vpn_tunnels = compute_v1.VpnTunnelsClient()
         self.security_policies = compute_v1.SecurityPoliciesClient()
         self.vpn_gateways = compute_v1.VpnGatewaysClient()
@@ -229,10 +228,6 @@ class ComputeClient(ResourceClient):
             info=parse_external_vpn_gateway_name(resource.name)
             gateway=self.external_vpn_gateways.get(project=info["project"],external_vpn_gateway=info["external_vpn_gateway"])
             return dict(gateway.labels or {})
-        elif "/httpHealthChecks/" in resource.name:
-            info=parse_http_health_check_name(resource.name)
-            health_check=self.http_health_checks.get(project=info["project"],http_health_check=info["http_health_check"])
-            return dict(health_check.labels or {})
         elif "/vpnTunnels/" in resource.name:
             info=parse_vpn_tunnel_name(resource.name)
             tunnel=self.vpn_tunnels.get(project=info["project"],region=info["region"],vpn_tunnel=info["vpn_tunnel"])
@@ -423,10 +418,6 @@ class ComputeClient(ResourceClient):
             info=parse_resource_policy_name(resource_name)
             policy=self.resource_policies.get(project=info["project"],region=info["region"],resource_policy=info["resource_policy"])
             return Resource(asset_type="compute.googleapis.com/ResourcePolicy",name=resource_name,project=info["project"],location=info["region"],labels=dict(policy.labels or {}),tags={})
-        if "/httpHealthChecks/" in resource_name:
-            info=parse_http_health_check_name(resource_name)
-            health_check=self.http_health_checks.get(project=info["project"],http_health_check=info["http_health_check"])
-            return Resource(asset_type="compute.googleapis.com/HttpHealthCheck",name=resource_name,project=info["project"],location="global",labels=dict(health_check.labels or {}),tags={})
         if "/vpnTunnels/" in resource_name:
             info=parse_vpn_tunnel_name(resource_name)
             tunnel=self.vpn_tunnels.get(project=info["project"],region=info["region"],vpn_tunnel=info["vpn_tunnel"])
