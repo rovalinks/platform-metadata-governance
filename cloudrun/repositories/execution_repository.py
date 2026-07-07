@@ -37,7 +37,11 @@ class ExecutionRepository:
             "asset_type": asset_type,
             "resource_name": resource_name,
             "status": status,
-            "error_message": error_message,
+            "error_message": (
+                    str(error_message)
+                    if error_message is not None
+                    else None
+                ),
             "executed_at": datetime.utcnow().isoformat(),
         }
 
