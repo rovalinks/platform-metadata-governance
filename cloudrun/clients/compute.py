@@ -10,6 +10,9 @@ from utils.compute import (
     parse_network_endpoint_group_name, parse_firewall_name,
     parse_network_name, parse_snapshot_name,
     parse_image_name, parse_machine_image_name,
+    parse_ssl_certificate_name, parse_ssl_policy_name,
+    parse_target_http_proxy_name, parse_target_https_proxy_name,
+    parse_url_map_name, parse_router_name,
 )
 
 class ComputeClient(ResourceClient):
@@ -31,6 +34,12 @@ class ComputeClient(ResourceClient):
         self.snapshots = compute_v1.SnapshotsClient()
         self.images = compute_v1.ImagesClient()
         self.machine_images = compute_v1.MachineImagesClient()
+        self.ssl_certificates = compute_v1.SslCertificatesClient()
+        self.ssl_policies = compute_v1.SslPoliciesClient()
+        self.target_http_proxies = compute_v1.TargetHttpProxiesClient()
+        self.target_https_proxies = compute_v1.TargetHttpsProxiesClient()
+        self.url_maps = compute_v1.UrlMapsClient()
+        self.routers = compute_v1.RoutersClient()
 
     def supports(self, asset_type: str):
         return asset_type in [
@@ -47,6 +56,12 @@ class ComputeClient(ResourceClient):
             "compute.googleapis.com/Snapshot",
             "compute.googleapis.com/Image",
             "compute.googleapis.com/MachineImage",
+            "compute.googleapis.com/SslCertificate",
+            "compute.googleapis.com/SslPolicy",
+            "compute.googleapis.com/TargetHttpProxy",
+            "compute.googleapis.com/TargetHttpsProxy",
+            "compute.googleapis.com/UrlMap",
+            "compute.googleapis.com/Router",
         ]
     def labels(self, resource):
         if "/subnetworks/" in resource.name:
@@ -119,6 +134,30 @@ class ComputeClient(ResourceClient):
             info = parse_machine_image_name(resource.name)
             machine_image = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
             return dict(machine_image.labels or {})
+        elif "/sslCertificates/" in resource.name:
+            info=parse_ssl_certificate_name(resource.name)
+            certificate=self.ssl_certificates.get(project=info["project"], ssl_certificate=info["ssl_certificate"])
+            return dict(certificate.labels or {})
+        elif "/sslPolicies/" in resource.name:
+            info=parse_ssl_policy_name(resource.name)
+            policy=self.ssl_policies.get(project=info["project"], ssl_policy=info["ssl_policy"])
+            return dict(policy.labels or {})
+        elif "/targetHttpProxies/" in resource.name:
+            info=parse_target_http_proxy_name(resource.name)
+            proxy=self.target_http_proxies.get(project=info["project"], target_http_proxy=info["target_http_proxy"])
+            return dict(proxy.labels or {})
+        elif "/targetHttpsProxies/" in resource.name:
+            info=parse_target_https_proxy_name(resource.name)
+            proxy=self.target_https_proxies.get(project=info["project"], target_https_proxy=info["target_https_proxy"])
+            return dict(proxy.labels or {})
+        elif "/urlMaps/" in resource.name:
+            info=parse_url_map_name(resource.name)
+            url_map=self.url_maps.get(project=info["project"], url_map=info["url_map"])
+            return dict(url_map.labels or {})
+        elif "/routers/" in resource.name:
+            info=parse_router_name(resource.name)
+            router=self.routers.get(project=info["project"], region=info["region"], router=info["router"])
+            return dict(router.labels or {})
         elif "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -254,6 +293,36 @@ class ComputeClient(ResourceClient):
             info = parse_machine_image_name(resource_name)
             machine_image = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
             return Resource(asset_type="compute.googleapis.com/MachineImage", name=resource_name, project=info["project"], location="global", labels=dict(machine_image.labels or {}), tags={})
+        # SSL Certificate
+        if "/sslCertificates/" in resource_name:
+            info=parse_ssl_certificate_name(resource_name)
+            certificate=self.ssl_certificates.get(project=info["project"], ssl_certificate=info["ssl_certificate"])
+            return Resource(asset_type="compute.googleapis.com/SslCertificate", name=resource_name, project=info["project"], location="global", labels=dict(certificate.labels or {}), tags={})
+        # SSL Policy
+        if "/sslPolicies/" in resource_name:
+            info=parse_ssl_policy_name(resource_name)
+            policy=self.ssl_policies.get(project=info["project"], ssl_policy=info["ssl_policy"])
+            return Resource(asset_type="compute.googleapis.com/SslPolicy", name=resource_name, project=info["project"], location="global", labels=dict(policy.labels or {}), tags={})
+        # Target HTTP Proxy
+        if "/targetHttpProxies/" in resource_name:
+            info=parse_target_http_proxy_name(resource_name)
+            proxy=self.target_http_proxies.get(project=info["project"], target_http_proxy=info["target_http_proxy"])
+            return Resource(asset_type="compute.googleapis.com/TargetHttpProxy", name=resource_name, project=info["project"], location="global", labels=dict(proxy.labels or {}), tags={})
+        # Target HTTPS Proxy
+        if "/targetHttpsProxies/" in resource_name:
+            info=parse_target_https_proxy_name(resource_name)
+            proxy=self.target_https_proxies.get(project=info["project"], target_https_proxy=info["target_https_proxy"])
+            return Resource(asset_type="compute.googleapis.com/TargetHttpsProxy", name=resource_name, project=info["project"], location="global", labels=dict(proxy.labels or {}), tags={})
+        # URL Map
+        if "/urlMaps/" in resource_name:
+            info=parse_url_map_name(resource_name)
+            url_map=self.url_maps.get(project=info["project"], url_map=info["url_map"])
+            return Resource(asset_type="compute.googleapis.com/UrlMap", name=resource_name, project=info["project"], location="global", labels=dict(url_map.labels or {}), tags={})
+        # Router
+        if "/routers/" in resource_name:
+            info=parse_router_name(resource_name)
+            router=self.routers.get(project=info["project"], region=info["region"], router=info["router"])
+            return Resource(asset_type="compute.googleapis.com/Router", name=resource_name, project=info["project"], location=info["region"], labels=dict(router.labels or {}), tags={})
         if "/instances/" in resource_name:
             info = parse_instance_name(resource_name)
             instance = self.instances.get(
@@ -524,6 +593,91 @@ class ComputeClient(ResourceClient):
             request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=machine_image.label_fingerprint)
             operation=self.machine_images.set_labels(project=info["project"],resource=info["machine_image"],global_set_labels_request_resource=request)
 
+        # SSL Certificate
+        elif "/sslCertificates/" in resource.name:
+            info=parse_ssl_certificate_name(resource.name)
+            certificate=self.ssl_certificates.get(project=info["project"], ssl_certificate=info["ssl_certificate"])
+            existing=dict(certificate.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=certificate.label_fingerprint)
+            operation=self.ssl_certificates.set_labels(project=info["project"],resource=info["ssl_certificate"],global_set_labels_request_resource=request)
+        # SSL Policy
+        elif "/sslPolicies/" in resource.name:
+            info=parse_ssl_policy_name(resource.name)
+            policy=self.ssl_policies.get(project=info["project"], ssl_policy=info["ssl_policy"])
+            existing=dict(policy.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=policy.label_fingerprint)
+            operation=self.ssl_policies.set_labels(project=info["project"],resource=info["ssl_policy"],global_set_labels_request_resource=request)
+        # Target HTTP Proxy
+        elif "/targetHttpProxies/" in resource.name:
+            info=parse_target_http_proxy_name(resource.name)
+            proxy=self.target_http_proxies.get(project=info["project"], target_http_proxy=info["target_http_proxy"])
+            existing=dict(proxy.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=proxy.label_fingerprint)
+            operation=self.target_http_proxies.set_labels(project=info["project"],resource=info["target_http_proxy"],global_set_labels_request_resource=request)
+        # Target HTTPS Proxy
+        elif "/targetHttpsProxies/" in resource.name:
+            info=parse_target_https_proxy_name(resource.name)
+            proxy=self.target_https_proxies.get(project=info["project"], target_https_proxy=info["target_https_proxy"])
+            existing=dict(proxy.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=proxy.label_fingerprint)
+            operation=self.target_https_proxies.set_labels(project=info["project"],resource=info["target_https_proxy"],global_set_labels_request_resource=request)
+        # URL Map
+        elif "/urlMaps/" in resource.name:
+            info=parse_url_map_name(resource.name)
+            url_map=self.url_maps.get(project=info["project"], url_map=info["url_map"])
+            existing=dict(url_map.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.GlobalSetLabelsRequest(labels=merged,label_fingerprint=url_map.label_fingerprint)
+            operation=self.url_maps.set_labels(project=info["project"],resource=info["url_map"],global_set_labels_request_resource=request)
+        # Router
+        elif "/routers/" in resource.name:
+            info=parse_router_name(resource.name)
+            router=self.routers.get(project=info["project"], region=info["region"], router=info["router"])
+            existing=dict(router.labels or {})
+            if config.PRESERVE_EXISTING_LABELS:
+                merged=existing.copy()
+                for key,value in labels.items():
+                    if key not in merged: merged[key]=value
+            else:
+                merged=existing.copy(); merged.update(labels)
+            if merged==existing: return True
+            request=compute_v1.RegionSetLabelsRequest(labels=merged,label_fingerprint=router.label_fingerprint)
+            operation=self.routers.set_labels(project=info["project"],region=info["region"],resource=info["router"],region_set_labels_request_resource=request)
+
         if "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -668,6 +822,11 @@ class ComputeClient(ResourceClient):
             or "/snapshots/" in resource.name
             or "/images/" in resource.name
             or "/machineImages/" in resource.name
+            or "/sslCertificates/" in resource.name
+            or "/sslPolicies/" in resource.name
+            or "/targetHttpProxies/" in resource.name
+            or "/targetHttpsProxies/" in resource.name
+            or "/urlMaps/" in resource.name
         ):
             self.global_operations.wait(
                 project=info["project"],
