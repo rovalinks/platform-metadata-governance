@@ -19,6 +19,8 @@ from utils.compute import (
     parse_network_attachment_name, parse_service_attachment_name,
     parse_vpn_gateway_name, parse_packet_mirroring_name,
     parse_external_vpn_gateway_name,
+    parse_http_health_check_name, parse_vpn_tunnel_name,
+    parse_target_vpn_gateway_name, parse_security_policy_name,
 )
 
 class ComputeClient(ResourceClient):
@@ -52,6 +54,9 @@ class ComputeClient(ResourceClient):
         self.target_pools = compute_v1.TargetPoolsClient()
         self.resource_policies = compute_v1.ResourcePoliciesClient()
         self.target_vpn_gateways = compute_v1.TargetVpnGatewaysClient()
+        self.http_health_checks = compute_v1.HttpHealthChecksClient()
+        self.vpn_tunnels = compute_v1.VpnTunnelsClient()
+        self.security_policies = compute_v1.SecurityPoliciesClient()
         self.vpn_gateways = compute_v1.VpnGatewaysClient()
         self.network_attachments = compute_v1.NetworkAttachmentsClient()
         self.service_attachments = compute_v1.ServiceAttachmentsClient()
@@ -89,6 +94,9 @@ class ComputeClient(ResourceClient):
             "compute.googleapis.com/VpnGateway",
             "compute.googleapis.com/PacketMirroring",
             "compute.googleapis.com/ExternalVpnGateway",
+            "compute.googleapis.com/SecurityPolicy",
+            "compute.googleapis.com/HttpHealthCheck",
+            "compute.googleapis.com/VpnTunnel",
         ]
     def labels(self, resource):
         if "/subnetworks/" in resource.name:
@@ -221,6 +229,22 @@ class ComputeClient(ResourceClient):
             info=parse_external_vpn_gateway_name(resource.name)
             gateway=self.external_vpn_gateways.get(project=info["project"],external_vpn_gateway=info["external_vpn_gateway"])
             return dict(gateway.labels or {})
+        elif "/httpHealthChecks/" in resource.name:
+            info=parse_http_health_check_name(resource.name)
+            health_check=self.http_health_checks.get(project=info["project"],http_health_check=info["http_health_check"])
+            return dict(health_check.labels or {})
+        elif "/vpnTunnels/" in resource.name:
+            info=parse_vpn_tunnel_name(resource.name)
+            tunnel=self.vpn_tunnels.get(project=info["project"],region=info["region"],vpn_tunnel=info["vpn_tunnel"])
+            return dict(tunnel.labels or {})
+        elif "/targetVpnGateways/" in resource.name:
+            info=parse_target_vpn_gateway_name(resource.name)
+            gateway=self.target_vpn_gateways.get(project=info["project"],region=info["region"],target_vpn_gateway=info["target_vpn_gateway"])
+            return dict(gateway.labels or {})
+        elif "/securityPolicies/" in resource.name:
+            info=parse_security_policy_name(resource.name)
+            policy=self.security_policies.get(project=info["project"],security_policy=info["security_policy"])
+            return dict(policy.labels or {})
         elif "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -399,6 +423,22 @@ class ComputeClient(ResourceClient):
             info=parse_resource_policy_name(resource_name)
             policy=self.resource_policies.get(project=info["project"],region=info["region"],resource_policy=info["resource_policy"])
             return Resource(asset_type="compute.googleapis.com/ResourcePolicy",name=resource_name,project=info["project"],location=info["region"],labels=dict(policy.labels or {}),tags={})
+        if "/httpHealthChecks/" in resource_name:
+            info=parse_http_health_check_name(resource_name)
+            health_check=self.http_health_checks.get(project=info["project"],http_health_check=info["http_health_check"])
+            return Resource(asset_type="compute.googleapis.com/HttpHealthCheck",name=resource_name,project=info["project"],location="global",labels=dict(health_check.labels or {}),tags={})
+        if "/vpnTunnels/" in resource_name:
+            info=parse_vpn_tunnel_name(resource_name)
+            tunnel=self.vpn_tunnels.get(project=info["project"],region=info["region"],vpn_tunnel=info["vpn_tunnel"])
+            return Resource(asset_type="compute.googleapis.com/VpnTunnel",name=resource_name,project=info["project"],location=info["region"],labels=dict(tunnel.labels or {}),tags={})
+        if "/targetVpnGateways/" in resource_name:
+            info=parse_target_vpn_gateway_name(resource_name)
+            gateway=self.target_vpn_gateways.get(project=info["project"],region=info["region"],target_vpn_gateway=info["target_vpn_gateway"])
+            return Resource(asset_type="compute.googleapis.com/TargetVpnGateway",name=resource_name,project=info["project"],location=info["region"],labels=dict(gateway.labels or {}),tags={})
+        if "/securityPolicies/" in resource_name:
+            info=parse_security_policy_name(resource_name)
+            policy=self.security_policies.get(project=info["project"],security_policy=info["security_policy"])
+            return Resource(asset_type="compute.googleapis.com/SecurityPolicy",name=resource_name,project=info["project"],location="global",labels=dict(policy.labels or {}),tags={})
         if "/instances/" in resource_name:
             info = parse_instance_name(resource_name)
             instance = self.instances.get(
