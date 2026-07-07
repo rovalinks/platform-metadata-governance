@@ -12,6 +12,7 @@ from clients.project import ProjectClient
 from clients.kms import KmsClient
 from clients.apikeys import ApiKeysClient
 from clients.appengine import AppEngineClient
+from clients.functions import CloudFunctionsClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class AdapterService:
 
     def __init__(self):
         self.clients = [
-            # ComputeClient(),
+            ComputeClient(),
             BigQueryClient(),
             BigQueryReservationClient(),
             StorageClient(),
@@ -31,7 +32,8 @@ class AdapterService:
             ProjectClient(), 
             KmsClient(),
             ApiKeysClient(),
-            AppEngineClient(),           
+            AppEngineClient(),
+            CloudFunctionsClient(),           
         ]
 
     def client_for(self, asset_type: str):
