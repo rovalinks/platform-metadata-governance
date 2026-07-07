@@ -18,7 +18,7 @@ google-cloud-bigquery
 google-cloud-artifact-registry
 google-cloud-pubsub
 google-cloud-container
-google-cloud-secret-manager
-google-cloud-resource-manager
+google-cloud-resource-manager>=1.14.0
+google-cloud-secret-manager>=2.23.0
 
 google-cloud-tasks>=2.18.0
