@@ -44,9 +44,9 @@ def parse_network_endpoint_group_name(resource_name: str):
     parts = resource_name.split("/")
     return {"project": parts[1], "zone": parts[3], "network_endpoint_group": parts[5]}
 
-def parse_firewall_name(resource_name: str):
+def parse_firewall_name(resource_name: str,):
     parts = resource_name.split("/")
-    return {"project": parts[1], "firewall": parts[4]}
+    return {"project": parts[4],"firewall": parts[7],}
 
 def parse_network_name(resource_name: str):
     parts = resource_name.split("/")
