@@ -14,7 +14,7 @@ class AdapterService:
     def __init__(self):
 
         self.clients = [
-            ComputeClient(),
+            #ComputeClient(),
             BigQueryClient(),
             BigQueryReservationClient(),
             StorageClient(),
