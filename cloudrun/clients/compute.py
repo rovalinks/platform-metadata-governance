@@ -13,6 +13,12 @@ from utils.compute import (
     parse_ssl_certificate_name, parse_ssl_policy_name,
     parse_target_http_proxy_name, parse_target_https_proxy_name,
     parse_url_map_name, parse_router_name,
+    parse_instance_group_name, parse_instance_group_manager_name,
+    parse_instance_template_name, parse_target_pool_name,
+    parse_resource_policy_name, parse_target_vpn_gateway_name,
+    parse_network_attachment_name, parse_service_attachment_name,
+    parse_vpn_gateway_name, parse_packet_mirroring_name,
+    parse_external_vpn_gateway_name,
 )
 
 class ComputeClient(ResourceClient):
@@ -40,6 +46,17 @@ class ComputeClient(ResourceClient):
         self.target_https_proxies = compute_v1.TargetHttpsProxiesClient()
         self.url_maps = compute_v1.UrlMapsClient()
         self.routers = compute_v1.RoutersClient()
+        self.instance_groups = compute_v1.InstanceGroupsClient()
+        self.instance_group_managers = compute_v1.InstanceGroupManagersClient()
+        self.instance_templates = compute_v1.InstanceTemplatesClient()
+        self.target_pools = compute_v1.TargetPoolsClient()
+        self.resource_policies = compute_v1.ResourcePoliciesClient()
+        self.target_vpn_gateways = compute_v1.TargetVpnGatewaysClient()
+        self.vpn_gateways = compute_v1.VpnGatewaysClient()
+        self.network_attachments = compute_v1.NetworkAttachmentsClient()
+        self.service_attachments = compute_v1.ServiceAttachmentsClient()
+        self.packet_mirroring = compute_v1.PacketMirroringsClient()
+        self.external_vpn_gateways = compute_v1.ExternalVpnGatewaysClient()
 
     def supports(self, asset_type: str):
         return asset_type in [
@@ -62,6 +79,16 @@ class ComputeClient(ResourceClient):
             "compute.googleapis.com/TargetHttpsProxy",
             "compute.googleapis.com/UrlMap",
             "compute.googleapis.com/Router",
+            "compute.googleapis.com/InstanceGroup",
+            "compute.googleapis.com/InstanceTemplate",
+            "compute.googleapis.com/TargetPool",
+            "compute.googleapis.com/ResourcePolicy",
+            "compute.googleapis.com/TargetVpnGateway",
+            "compute.googleapis.com/NetworkAttachment",
+            "compute.googleapis.com/ServiceAttachment",
+            "compute.googleapis.com/VpnGateway",
+            "compute.googleapis.com/PacketMirroring",
+            "compute.googleapis.com/ExternalVpnGateway",
         ]
     def labels(self, resource):
         if "/subnetworks/" in resource.name:
@@ -158,6 +185,42 @@ class ComputeClient(ResourceClient):
             info=parse_router_name(resource.name)
             router=self.routers.get(project=info["project"], region=info["region"], router=info["router"])
             return dict(router.labels or {})
+        elif "/instanceGroups/" in resource.name:
+            info=parse_instance_group_name(resource.name)
+            group=self.instance_groups.get(project=info["project"],zone=info["zone"],instance_group=info["instance_group"])
+            return dict(group.labels or {})
+        elif "/targetPools/" in resource.name:
+            info=parse_target_pool_name(resource.name)
+            pool=self.target_pools.get(project=info["project"],region=info["region"],target_pool=info["target_pool"])
+            return dict(pool.labels or {})
+        elif "/resourcePolicies/" in resource.name:
+            info=parse_resource_policy_name(resource.name)
+            policy=self.resource_policies.get(project=info["project"],region=info["region"],resource_policy=info["resource_policy"])
+            return dict(policy.labels or {})
+        elif "/targetVpnGateways/" in resource.name:
+            info=parse_target_vpn_gateway_name(resource.name)
+            gateway=self.target_vpn_gateways.get(project=info["project"],region=info["region"],target_vpn_gateway=info["target_vpn_gateway"])
+            return dict(gateway.labels or {})
+        elif "/networkAttachments/" in resource.name:
+            info=parse_network_attachment_name(resource.name)
+            attachment=self.network_attachments.get(project=info["project"],region=info["region"],network_attachment=info["network_attachment"])
+            return dict(attachment.labels or {})
+        elif "/serviceAttachments/" in resource.name:
+            info=parse_service_attachment_name(resource.name)
+            attachment=self.service_attachments.get(project=info["project"],region=info["region"],service_attachment=info["service_attachment"])
+            return dict(attachment.labels or {})
+        elif "/vpnGateways/" in resource.name:
+            info=parse_vpn_gateway_name(resource.name)
+            gateway=self.vpn_gateways.get(project=info["project"],region=info["region"],vpn_gateway=info["vpn_gateway"])
+            return dict(gateway.labels or {})
+        elif "/packetMirrorings/" in resource.name:
+            info=parse_packet_mirroring_name(resource.name)
+            mirroring=self.packet_mirroring.get(project=info["project"],region=info["region"],packet_mirroring=info["packet_mirroring"])
+            return dict(mirroring.labels or {})
+        elif "/externalVpnGateways/" in resource.name:
+            info=parse_external_vpn_gateway_name(resource.name)
+            gateway=self.external_vpn_gateways.get(project=info["project"],external_vpn_gateway=info["external_vpn_gateway"])
+            return dict(gateway.labels or {})
         elif "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -323,6 +386,19 @@ class ComputeClient(ResourceClient):
             info=parse_router_name(resource_name)
             router=self.routers.get(project=info["project"], region=info["region"], router=info["router"])
             return Resource(asset_type="compute.googleapis.com/Router", name=resource_name, project=info["project"], location=info["region"], labels=dict(router.labels or {}), tags={})
+
+        if "/instanceGroups/" in resource_name:
+            info=parse_instance_group_name(resource_name)
+            group=self.instance_groups.get(project=info["project"],zone=info["zone"],instance_group=info["instance_group"])
+            return Resource(asset_type="compute.googleapis.com/InstanceGroup",name=resource_name,project=info["project"],location=info["zone"],labels=dict(group.labels or {}),tags={})
+        if "/targetPools/" in resource_name:
+            info=parse_target_pool_name(resource_name)
+            pool=self.target_pools.get(project=info["project"],region=info["region"],target_pool=info["target_pool"])
+            return Resource(asset_type="compute.googleapis.com/TargetPool",name=resource_name,project=info["project"],location=info["region"],labels=dict(pool.labels or {}),tags={})
+        if "/resourcePolicies/" in resource_name:
+            info=parse_resource_policy_name(resource_name)
+            policy=self.resource_policies.get(project=info["project"],region=info["region"],resource_policy=info["resource_policy"])
+            return Resource(asset_type="compute.googleapis.com/ResourcePolicy",name=resource_name,project=info["project"],location=info["region"],labels=dict(policy.labels or {}),tags={})
         if "/instances/" in resource_name:
             info = parse_instance_name(resource_name)
             instance = self.instances.get(
@@ -678,6 +754,43 @@ class ComputeClient(ResourceClient):
             request=compute_v1.RegionSetLabelsRequest(labels=merged,label_fingerprint=router.label_fingerprint)
             operation=self.routers.set_labels(project=info["project"],region=info["region"],resource=info["router"],region_set_labels_request_resource=request)
 
+
+        elif "/instanceGroups/" in resource.name:
+            info=parse_instance_group_name(resource.name)
+            group=self.instance_groups.get(project=info["project"],zone=info["zone"],instance_group=info["instance_group"])
+            existing=dict(group.labels or {})
+            merged=existing.copy()
+            if config.PRESERVE_EXISTING_LABELS:
+                for k,v in labels.items():
+                    if k not in merged: merged[k]=v
+            else: merged.update(labels)
+            if merged==existing:return True
+            request=compute_v1.ZoneSetLabelsRequest(labels=merged,label_fingerprint=group.label_fingerprint)
+            operation=self.instance_groups.set_labels(project=info["project"],zone=info["zone"],resource=info["instance_group"],zone_set_labels_request_resource=request)
+        elif "/targetPools/" in resource.name:
+            info=parse_target_pool_name(resource.name)
+            pool=self.target_pools.get(project=info["project"],region=info["region"],target_pool=info["target_pool"])
+            existing=dict(pool.labels or {})
+            merged=existing.copy()
+            if config.PRESERVE_EXISTING_LABELS:
+                for k,v in labels.items():
+                    if k not in merged: merged[k]=v
+            else: merged.update(labels)
+            if merged==existing:return True
+            request=compute_v1.RegionSetLabelsRequest(labels=merged,label_fingerprint=pool.label_fingerprint)
+            operation=self.target_pools.set_labels(project=info["project"],region=info["region"],resource=info["target_pool"],region_set_labels_request_resource=request)
+        elif "/resourcePolicies/" in resource.name:
+            info=parse_resource_policy_name(resource.name)
+            policy=self.resource_policies.get(project=info["project"],region=info["region"],resource_policy=info["resource_policy"])
+            existing=dict(policy.labels or {})
+            merged=existing.copy()
+            if config.PRESERVE_EXISTING_LABELS:
+                for k,v in labels.items():
+                    if k not in merged: merged[k]=v
+            else: merged.update(labels)
+            if merged==existing:return True
+            request=compute_v1.RegionSetLabelsRequest(labels=merged,label_fingerprint=policy.label_fingerprint)
+            operation=self.resource_policies.set_labels(project=info["project"],region=info["region"],resource=info["resource_policy"],region_set_labels_request_resource=request)
         if "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(
@@ -807,6 +920,7 @@ class ComputeClient(ResourceClient):
             "/instances/" in resource.name
             or "/disks/" in resource.name
             or "/networkEndpointGroups/" in resource.name
+            or "/instanceGroups/" in resource.name
         ):
             self.zone_operations.wait(
                 project=info["project"],

@@ -88,3 +88,121 @@ def parse_url_map_name(resource_name: str):
 def parse_router_name(resource_name: str):
     parts = resource_name.split("/")
     return {"project": parts[1], "region": parts[3], "router": parts[5]}
+
+def parse_instance_group_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "zone": parts[3],
+        "instance_group": parts[5],
+    }
+
+
+def parse_instance_group_manager_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "zone": parts[3],
+        "instance_group_manager": parts[5],
+    }
+
+
+def parse_instance_template_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "instance_template": parts[4],
+    }
+
+
+def parse_target_pool_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "target_pool": parts[5],
+    }
+
+
+def parse_resource_policy_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "resource_policy": parts[5],
+    }
+
+
+def parse_target_vpn_gateway_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "target_vpn_gateway": parts[5],
+    }
+
+
+def parse_network_attachment_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "network_attachment": parts[5],
+    }
+
+
+def parse_service_attachment_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "service_attachment": parts[5],
+    }
+
+
+def parse_vpn_gateway_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "vpn_gateway": parts[5],
+    }
+
+
+def parse_packet_mirroring_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "region": parts[3],
+        "packet_mirroring": parts[5],
+    }
+
+
+def parse_external_vpn_gateway_name(resource_name: str):
+
+    parts = resource_name.split("/")
+
+    return {
+        "project": parts[1],
+        "external_vpn_gateway": parts[4],
+    }
