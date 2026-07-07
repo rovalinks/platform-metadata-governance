@@ -9,6 +9,8 @@ from clients.gke import GkeClient
 from clients.bigquery_reservation import BigQueryReservationClient
 from clients.secret_manager import SecretManagerClient
 from clients.project import ProjectClient
+from clients.kms import KmsClient
+from clients.apikeys import ApiKeysClient
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,9 @@ class AdapterService:
             PubSubClient(),
             GkeClient(),
             SecretManagerClient(),
-            ProjectClient(),            
+            ProjectClient(), 
+            KmsClient(),
+            ApiKeysClient(),           
         ]
 
     def client_for(self, asset_type: str):

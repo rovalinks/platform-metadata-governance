@@ -27,4 +27,9 @@ SUPPORTED_LABEL_RESOURCES = {
     "container.googleapis.com/Cluster",
 
     # "container.googleapis.com/NodePool",
+    
+    "secretmanager.googleapis.com/Secret",
+    "cloudresourcemanager.googleapis.com/Project",
+    "cloudkms.googleapis.com/CryptoKey",
+    "apikeys.googleapis.com/Key",
 }
