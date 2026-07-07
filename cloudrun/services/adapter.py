@@ -12,7 +12,7 @@ from clients.project import ProjectClient
 from clients.kms import KmsClient
 from clients.apikeys import ApiKeysClient
 from clients.appengine import AppEngineClient
-from clients.functions import CloudFunctionsClient
+from clients.functions import FunctionsClient
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class AdapterService:
             KmsClient(),
             ApiKeysClient(),
             AppEngineClient(),
-            CloudFunctionsClient(),           
+            FunctionsClient(),           
         ]
 
     def client_for(self, asset_type: str):
