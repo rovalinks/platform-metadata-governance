@@ -101,10 +101,19 @@ class ComputeClient(ResourceClient):
             "compute.googleapis.com/VpnTunnel",
         ]
     def labels(self, resource):
+        logger.info("=" * 80)
+        logger.info("Entering ComputeClient.labels()")
+        logger.info("Resource = %s", resource.name)
         if "/subnetworks/" in resource.name:
-            info = parse_subnetwork_name(
-                resource.name
-            )
+            logger.info("=" * 80)
+            logger.info("COMPUTE LABELS")
+            logger.info("Asset Type    : %s", resource.asset_type)
+            logger.info("Resource Name : %s", resource.name)
+            info = parse_subnetwork_name(resource.name)
+            logger.info("Parsed Values")
+            logger.info("Project    : %r", info.get("project"))
+            logger.info("Region     : %r", info.get("region"))
+            logger.info("Subnetwork : %r", info.get("subnetwork"))
             subnetwork = self.subnetworks.get(
                 project=info["project"],
                 region=info["region"],
