@@ -1,8 +1,11 @@
 from google.cloud import compute_v1
 from google.api_core.exceptions import PreconditionFailed
 import time
+import logging
 from clients.base import ResourceClient
 from models.resource import Resource
+logger = logging.getLogger(__name__)
+
 from utils.compute import (
     parse_instance_name, parse_disk_name, parse_address_name,
     parse_forwarding_rule_name, parse_subnetwork_name,
@@ -260,11 +263,19 @@ class ComputeClient(ResourceClient):
             return dict(
                 disk.labels or {}
             )
-        # Note: Add logic here if you need label support for
-        # Address/ForwardingRule in the generic .labels() call
-        raise ValueError(
-            f"Unsupported Compute resource: {resource.name}"
+        elif "/addresses/" in resource.name:
+            info=parse_address_name(resource.name)
+            address=self.addresses.get(project=info["project"],region=info["region"],address=info["address"])
+            return dict(address.labels or {})
+        elif "/forwardingRules/" in resource.name:
+            info=parse_forwarding_rule_name(resource.name)
+            rule=self.forwarding_rules.get(project=info["project"],region=info["region"],forwarding_rule=info["forwarding_rule"])
+            return dict(rule.labels or {})
+        logger.warning(
+            "Unsupported Compute resource for labels(): %s",
+            resource.name,
         )
+        return None
     def get(self, resource_name: str) -> Resource:
         """
         Retrieves a Compute Engine resource and
