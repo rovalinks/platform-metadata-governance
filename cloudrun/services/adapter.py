@@ -1,4 +1,5 @@
 import logging
+
 from clients.compute import ComputeClient
 from clients.bigquery import BigQueryClient
 from clients.storage import StorageClient
@@ -16,6 +17,7 @@ from clients.functions import FunctionsClient
 
 logger = logging.getLogger(__name__)
 
+
 class AdapterService:
 
     def __init__(self):
@@ -29,30 +31,53 @@ class AdapterService:
             PubSubClient(),
             GkeClient(),
             SecretManagerClient(),
-            ProjectClient(), 
+            ProjectClient(),
             KmsClient(),
             ApiKeysClient(),
             AppEngineClient(),
-            FunctionsClient(),           
+            FunctionsClient(),
         ]
 
-    def client_for(self, asset_type: str):
+    def client_for(
+        self,
+        asset_type: str,
+    ):
         for client in self.clients:
             if client.supports(asset_type):
                 return client
+
         return None
 
-    def enrich(self, resource):
+    def enrich(
+        self,
+        resource,
+    ):
         """
         Populate a discovered resource with live metadata.
         """
-        client = self.client_for(resource.asset_type)
+        client = self.client_for(
+            resource.asset_type
+        )
 
         if client is None:
             return resource
 
         try:
-            labels = client.labels(resource)
+            logger.info("=" * 80)
+            logger.info("Enriching resource")
+            logger.info(
+                "Asset Type : %s",
+                resource.asset_type,
+            )
+            logger.info(
+                "Name       : %s",
+                resource.name,
+            )
+
+            labels = client.labels(
+                resource
+            )
+
         except Exception:
             logger.exception(
                 "Failed to enrich %s",
@@ -61,6 +86,10 @@ class AdapterService:
             return None
 
         if labels is None:
+            logger.warning(
+                "Skipping resource because labels() returned None: %s",
+                resource.name,
+            )
             return None
 
         resource.labels = labels
