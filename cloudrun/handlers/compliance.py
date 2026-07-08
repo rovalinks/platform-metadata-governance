@@ -24,7 +24,8 @@ def compliance():
 
     project_id = request.args.get("project")
     
-    # Retrieve resources based on project_id using the discovery service
+    # Discovery call now handles the optional run_id internally.
+    # No changes required here as discover() now defaults run_id to None.
     resources = context.discovery.discover(project_id)
 
     # Evaluate and summarize based on the discovered resources

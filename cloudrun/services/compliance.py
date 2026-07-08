@@ -21,13 +21,18 @@ class ComplianceService:
         )
 
         results = []
+        expected_cache = {}  # Cache for governance labels
+
         for resource in resources:
             # Check if resource type is supported for label evaluation
             if not self.capability.supports_labels(resource.asset_type):
                 continue
 
-            # Fetch expected labels for the specific project
-            expected_labels = self.governance.expected_labels(resource.project)
+            # Fetch expected labels for the specific project, using cache
+            project = resource.project
+            if project not in expected_cache:
+                expected_cache[project] = self.governance.expected_labels(project)
+            expected_labels = expected_cache[project]
 
             # Evaluate resource
             results.append(
