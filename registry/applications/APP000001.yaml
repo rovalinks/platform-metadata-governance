@@ -13,6 +13,6 @@ bindings:
   - cloud: gcp
     projectId: platform-metadata-demo
     region: europe-west2
-    environment: sandbox
+    environment: dev
     businessCriticality: low
 
