@@ -5,10 +5,9 @@ from services.capability import CapabilityService
 
 
 class ComplianceService:
-    """Evaluates governance compliance for one or more GCP projects."""
+    """Evaluates governance compliance for one or more GCP resources."""
 
-    def __init__(self, discovery):
-        self.discovery = discovery
+    def __init__(self):
         self.governance = GovernanceService()
         self.capability = CapabilityService()
 
@@ -16,22 +15,25 @@ class ComplianceService:
         """
         Evaluate compliance for a provided list of resources.
         """
-
-        # Group resources by project to maintain the expected evaluation logic
-        projects = {res.project for res in resources}
-
         logger.info(
-            "Evaluating compliance for %d project(s)",
-            len(projects),
+            "Evaluating compliance for %d resource(s)",
+            len(resources),
         )
 
         results = []
-        for project_id in projects:
-            project_resources = [res for res in resources if res.project == project_id]
-            results.extend(
-                self._evaluate_project(
-                    project_id,
-                    project_resources,
+        for resource in resources:
+            # Check if resource type is supported for label evaluation
+            if not self.capability.supports_labels(resource.asset_type):
+                continue
+
+            # Fetch expected labels for the specific project
+            expected_labels = self.governance.expected_labels(resource.project)
+
+            # Evaluate resource
+            results.append(
+                self._evaluate_resource(
+                    resource,
+                    expected_labels,
                 )
             )
 
@@ -50,35 +52,6 @@ class ComplianceService:
 
         return results
 
-    def _evaluate_project(self, project_id: str, resources):
-
-        logger.info(
-            "Evaluating project %s",
-            project_id,
-        )
-
-        expected_labels = self.governance.expected_labels(
-            project_id
-        )
-
-        project_results = []
-
-        for resource in resources:
-
-            if not self.capability.supports_labels(
-                resource.asset_type
-            ):
-                continue
-
-            project_results.append(
-                self._evaluate_resource(
-                    resource,
-                    expected_labels,
-                )
-            )
-
-        return project_results
-
     def _evaluate_resource(
         self,
         resource,
@@ -89,12 +62,10 @@ class ComplianceService:
         incorrect = []
 
         for key, expected in expected_labels.items():
-
             actual = resource.labels.get(key)
 
             if actual is None:
                 missing.append(key)
-
             elif str(actual) != str(expected):
                 incorrect.append(key)
 
@@ -110,51 +81,27 @@ class ComplianceService:
             incorrect_labels=incorrect,
         )
 
-    def evaluate_resource(
-        self,
-        resource,
-    ):
+    def evaluate_resource(self, resource):
         """
-        Evaluate compliance for a single
-        discovered resource.
+        Evaluate compliance for a single discovered resource.
         """
-        expected = self.governance.expected_labels(
-            resource.project
-        )
-
-        return self._evaluate_resource(
-            resource,
-            expected,
-        )
+        expected = self.governance.expected_labels(resource.project)
+        return self._evaluate_resource(resource, expected)
 
     def summary(self, resources):
         """
         Generate a summary for a provided list of resources.
         """
         results = self.evaluate(resources)
-
         total = len(results)
-
-        compliant = sum(
-            1
-            for result in results
-            if result.compliant
-        )
-
+        
+        compliant = sum(1 for result in results if result.compliant)
         non_compliant = total - compliant
-
-        percentage = (
-            (compliant / total) * 100
-            if total
-            else 100
-        )
+        percentage = ((compliant / total) * 100) if total else 100
 
         return ComplianceSummary(
             total_resources=total,
             compliant_resources=compliant,
             non_compliant_resources=non_compliant,
-            compliance_percentage=round(
-                percentage,
-                2,
-            ),
+            compliance_percentage=round(percentage, 2),
         )
