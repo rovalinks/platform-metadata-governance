@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import math
 
 import config
 from repositories.execution_repository import ExecutionRepository
@@ -212,7 +213,7 @@ class ExecutorService:
         planned_actions_count: int,
     ):
         """
-        Queue remediation for asynchronous execution.
+        Queue remediation batches for asynchronous execution.
         """
 
         logger.info(
@@ -240,21 +241,34 @@ class ExecutorService:
                 "resources": 0,
             }
 
-        self.cloud_tasks.enqueue_remediation_batch(
-            run_id=run_id,
-            batch_number=1,
-            total_batches=1,
-            offset=0,
-            batch_size=planned_actions_count,
+        total_batches = math.ceil(
+            planned_actions_count / config.REMEDIATION_BATCH_SIZE
         )
 
+        for batch_number in range(total_batches):
+
+            offset = (
+                batch_number
+                * config.REMEDIATION_BATCH_SIZE
+            )
+
+            self.cloud_tasks.enqueue_remediation_batch(
+                run_id=run_id,
+                batch_number=batch_number + 1,
+                total_batches=total_batches,
+                offset=offset,
+                batch_size=config.REMEDIATION_BATCH_SIZE,
+            )
+
         logger.info(
-            "Queued %d remediation action(s).",
+            "Queued %d remediation action(s) in %d batches.",
             planned_actions_count,
+            total_batches,
         )
 
         return {
             "run_id": run_id,
             "status": "QUEUED",
             "resources": planned_actions_count,
+            "batches": total_batches,
         }

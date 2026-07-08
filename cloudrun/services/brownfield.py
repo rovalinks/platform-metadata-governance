@@ -134,6 +134,7 @@ class BrownfieldService:
             "evaluated": evaluated,
             "planned": plan["planned_actions"],
             "queued": plan["planned_actions"],
+            "batches": execution["batches"],
             "run_id": execution["run_id"],
             "status": execution["status"],
         }
