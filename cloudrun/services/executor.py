@@ -9,6 +9,7 @@ from services.cloud_task_service import CloudTaskService
 from utils.exceptions import format_gcp_exception
 from utils.logger import logger
 
+
 class ExecutorService:
     """Executes enforcement actions."""
 
@@ -20,28 +21,42 @@ class ExecutorService:
 
     def execute(self, actions):
         """Executes enforcement actions in parallel."""
+
         results = []
 
         with ThreadPoolExecutor(
             max_workers=config.MAX_PARALLEL_WORKERS,
         ) as executor:
-            # Map each action to a future
+
             future_to_action = {
-                executor.submit(self._execute_single_action, action): action
+                executor.submit(
+                    self._execute_single_action,
+                    action,
+                ): action
                 for action in actions
             }
 
-            # Collect results as they complete
-            for future in as_completed(future_to_action):
-                results.append(future.result())
+            for future in as_completed(
+                future_to_action
+            ):
+                results.append(
+                    future.result()
+                )
 
         return results
 
-    def _execute_single_action(self, action):
-        """Helper to execute a single action."""
-        client = self.adapters.client_for(action["asset_type"])
+    def _execute_single_action(
+        self,
+        action,
+    ):
+        """Execute a single remediation action."""
+
+        client = self.adapters.client_for(
+            action["asset_type"]
+        )
 
         if client is None:
+
             return {
                 "resource": action["resource"],
                 "status": "unsupported",
@@ -53,9 +68,12 @@ class ExecutorService:
             client.__class__.__name__,
         )
 
-        resource = SimpleNamespace(name=action["resource"])
+        resource = SimpleNamespace(
+            name=action["resource"]
+        )
 
         try:
+
             client.apply_labels(
                 resource,
                 action["labels"],
@@ -72,6 +90,7 @@ class ExecutorService:
             }
 
         except Exception as error:
+
             logger.exception(
                 "Failed updating %s",
                 action["resource"],
@@ -80,7 +99,9 @@ class ExecutorService:
             return {
                 "resource": action["resource"],
                 "status": "failed",
-                "error": format_gcp_exception(error),
+                "error": format_gcp_exception(
+                    error
+                ),
             }
 
     def execute_resource(
@@ -88,6 +109,7 @@ class ExecutorService:
         resource,
         labels: dict,
     ):
+
         results = self.execute(
             [
                 {
@@ -109,6 +131,7 @@ class ExecutorService:
         """
         Execute one remediation batch.
         """
+
         plans = self.repository.get_planned_batch(
             run_id=run_id,
             offset=offset,
@@ -116,6 +139,7 @@ class ExecutorService:
         )
 
         if not plans:
+
             return {
                 "processed": 0,
                 "successful": 0,
@@ -131,7 +155,9 @@ class ExecutorService:
             for plan in plans
         ]
 
-        results = self.execute(actions)
+        results = self.execute(
+            actions
+        )
 
         plans_by_resource = {
             plan.resource_name: plan
@@ -142,12 +168,18 @@ class ExecutorService:
         failed = 0
 
         for result in results:
-            plan = plans_by_resource[result["resource"]]
+
+            plan = plans_by_resource[
+                result["resource"]
+            ]
 
             if result["status"] == "updated":
+
                 successful += 1
                 status = "SUCCESS"
+
             else:
+
                 failed += 1
                 status = "FAILED"
 
@@ -157,7 +189,9 @@ class ExecutorService:
                 asset_type=plan.asset_type,
                 resource_name=plan.resource_name,
                 status=status,
-                error_message=result.get("error"),
+                error_message=result.get(
+                    "error"
+                ),
             )
 
         logger.info(
@@ -175,31 +209,52 @@ class ExecutorService:
     def execute_run(
         self,
         run_id: str,
+        planned_actions_count: int,
     ):
         """
-        Enqueues the remediation run for asynchronous execution.
+        Queue remediation for asynchronous execution.
         """
-        # Fetch planned actions count to calculate batch size
-        plans = self.repository.get_planned(run_id)
-        if not plans:
-            raise RuntimeError(f"No planned remediation actions found for run {run_id}.")
-        
-        total_actions = len(plans)
 
-        logger.info("Dispatching remediation run %s to Cloud Tasks", run_id)
+        logger.info(
+            "Dispatching remediation run %s to Cloud Tasks",
+            run_id,
+        )
+
+        if self.execution_repository.already_executed(
+            run_id
+        ):
+
+            raise RuntimeError(
+                f"Remediation run {run_id} has already been executed."
+            )
+
+        if planned_actions_count == 0:
+
+            logger.info(
+                "No remediation actions to queue."
+            )
+
+            return {
+                "run_id": run_id,
+                "status": "COMPLETED",
+                "resources": 0,
+            }
 
         self.cloud_tasks.enqueue_remediation_batch(
             run_id=run_id,
             batch_number=1,
             total_batches=1,
             offset=0,
-            batch_size=total_actions,
+            batch_size=planned_actions_count,
+        )
+
+        logger.info(
+            "Queued %d remediation action(s).",
+            planned_actions_count,
         )
 
         return {
             "run_id": run_id,
             "status": "QUEUED",
-            "processed": 0,
-            "successful": 0,
-            "failed": 0,
+            "resources": planned_actions_count,
         }
