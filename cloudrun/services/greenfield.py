@@ -25,9 +25,7 @@ class GreenfieldService:
 
         self.discovery = DiscoveryService()
 
-        self.compliance = ComplianceService(
-            self.discovery
-        )
+        self.compliance = ComplianceService()
 
         self.governance = GovernanceService()
 
