@@ -63,7 +63,8 @@ class BrownfieldService:
         )
 
         resources = self.discovery.discover(
-            project_id
+            project_id,
+            run_id,
         )
 
         discovered = len(resources)
@@ -82,7 +83,8 @@ class BrownfieldService:
         )
 
         compliance = self.compliance.evaluate(
-            project_id
+            project_id,
+            run_id,
         )
 
         evaluated = len(compliance)
@@ -101,7 +103,8 @@ class BrownfieldService:
         )
 
         plan = self.planner.create(
-            project_id
+            project_id,
+            run_id,
         )
 
         logger.info(

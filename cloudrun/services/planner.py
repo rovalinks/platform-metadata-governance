@@ -1,5 +1,3 @@
-import uuid
-
 from models.remediation import RemediationPlan
 from repositories.remediation_repository import (
     RemediationRepository,
@@ -32,18 +30,16 @@ class PlannerService:
     def create(
         self,
         project_id: str | None = None,
+        run_id: str | None = None,
     ):
 
         logger.info(
             "Generating remediation plan"
         )
 
-        run_id = str(
-            uuid.uuid4()
-        )
-
         results = self.compliance.evaluate(
-            project_id
+            project_id,
+            run_id,
         )
 
         plans = []

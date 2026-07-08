@@ -1,5 +1,4 @@
 import json
-import uuid
 from datetime import datetime
 
 from google.cloud import bigquery
@@ -16,10 +15,8 @@ class SnapshotRepository:
         self.resource_table = "resource_snapshot"
         self.compliance_table = "compliance_snapshot"
 
-    def save_inventory(self, resources):
+    def save_inventory(self, resources, run_id: str):
         """Persist discovered resources to BigQuery."""
-
-        run_id = str(uuid.uuid4())
 
         rows_to_insert = []
 
@@ -51,9 +48,7 @@ class SnapshotRepository:
                 errors,
             )
 
-        return run_id
-
-    def save_compliance(self, results):
+    def save_compliance(self, results, run_id: str):
         """Persist compliance results to BigQuery."""
 
         rows_to_insert = []
@@ -61,7 +56,7 @@ class SnapshotRepository:
         for res in results:
             rows_to_insert.append(
                 {
-                    "run_id": getattr(res, "run_id", None),
+                    "run_id": run_id,
                     "evaluated_time": datetime.utcnow().isoformat(),
                     "project_id": getattr(
                         res,

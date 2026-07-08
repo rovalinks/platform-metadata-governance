@@ -12,7 +12,7 @@ class ComplianceService:
         self.governance = GovernanceService()
         self.capability = CapabilityService()
 
-    def evaluate(self, project_id: str | None = None):
+    def evaluate(self, project_id: str | None = None, run_id: str | None = None):
         """
         Evaluate compliance.
 
@@ -46,7 +46,8 @@ class ComplianceService:
 
             results.extend(
                 self._evaluate_project(
-                    project["projectId"]
+                    project["projectId"],
+                    run_id,
                 )
             )
 
@@ -55,16 +56,27 @@ class ComplianceService:
             len(results),
         )
 
+        if run_id:
+            from repositories.snapshot_repository import SnapshotRepository
+
+            SnapshotRepository().save_compliance(
+                results,
+                run_id,
+            )
+
         return results
 
-    def _evaluate_project(self, project_id: str):
+    def _evaluate_project(self, project_id: str, run_id: str | None = None):
 
         logger.info(
             "Evaluating project %s",
             project_id,
         )
 
-        resources = self.discovery.discover(project_id)
+        resources = self.discovery.discover(
+            project_id,
+            run_id,
+        )
 
         expected_labels = self.governance.expected_labels(
             project_id

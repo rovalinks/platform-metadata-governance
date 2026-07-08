@@ -13,7 +13,8 @@ class DiscoveryService:
         self.adapter = AdapterService()
         self.snapshot = SnapshotRepository()
 
-    def discover(self, project_id: str):
+    def discover(self, project_id: str, run_id: str):
+        """Discovers Google Cloud resources and enriches them with live metadata."""
 
         logger.info(
             "Starting resource discovery for project %s",
@@ -57,8 +58,9 @@ class DiscoveryService:
             len(resources),
         )
 
-        run_id = self.snapshot.save_inventory(
-            resources
+        self.snapshot.save_inventory(
+            resources,
+            run_id,
         )
 
         logger.info(
