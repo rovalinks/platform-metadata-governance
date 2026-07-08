@@ -65,5 +65,5 @@ jobs:
             --region=$REGION \
             --image=europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
             --service-account=governance-engine-sa@$PROJECT_ID.iam.gserviceaccount.com \
-            --set-env-vars=EXCLUDED_BUCKETS=platform-metadata-demo-registry,platform-metadata-demo_cloudbuild,platform-metadata-demo-tfstate \
+            --set-env-vars=^:^EXCLUDED_BUCKETS=platform-metadata-demo-registry,platform-metadata-demo_cloudbuild,platform-metadata-demo-tfstate \
             --no-allow-unauthenticated
