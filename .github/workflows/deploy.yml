@@ -30,7 +30,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4.2.0
         with:
-            fetch-depth: 1
+          fetch-depth: 1
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -65,5 +65,9 @@ jobs:
             --region=$REGION \
             --image=europe-west2-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:latest \
             --service-account=governance-engine-sa@$PROJECT_ID.iam.gserviceaccount.com \
-            --set-env-vars=^:^EXCLUDED_BUCKETS=platform-metadata-demo-registry,platform-metadata-demo_cloudbuild,platform-metadata-demo-tfstate \
+            --env-vars-file=cloudrun/env.yaml \
+            --memory=1Gi \
+            --cpu=2 \
+            --timeout=900 \
+            --concurrency=80 \
             --no-allow-unauthenticated
