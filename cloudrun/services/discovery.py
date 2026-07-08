@@ -3,7 +3,7 @@ from clients.cloud_asset import CloudAssetClient
 from models.resource import Resource
 from services.adapter import AdapterService
 from repositories.snapshot_repository import SnapshotRepository
-
+import config
 
 class DiscoveryService:
     """Discovers Google Cloud resources and enriches them with live metadata."""
@@ -30,6 +30,20 @@ class DiscoveryService:
                 project=project_id,
                 location=asset.location,
             )
+
+            # Check if the bucket should be excluded
+            if (
+                resource.asset_type == "storage.googleapis.com/Bucket"
+                and any(
+                    bucket.lower() in resource.name.lower()
+                    for bucket in config.EXCLUDED_BUCKETS
+                )
+            ):
+                logger.info(
+                    "Skipping excluded bucket %s",
+                    resource.name,
+                )
+                continue
 
             resource = self.adapter.enrich(resource)
 
