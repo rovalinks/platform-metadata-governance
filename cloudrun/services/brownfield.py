@@ -96,7 +96,7 @@ class BrownfieldService:
         self.executor.run_status.create(
             run_id=run_id,
             project_id=project_id,
-            planned=plan["planned_actions"],
+            planned_actions=plan["planned_actions"],
         )
 
         logger.info(

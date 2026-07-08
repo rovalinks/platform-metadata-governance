@@ -66,3 +66,18 @@ resource "google_bigquery_table" "remediation_execution" {
     "${path.module}/schemas/remediation_execution.json"
   )
 }
+
+resource "google_bigquery_table" "run_status" {
+
+  project = var.project_id
+
+  dataset_id = google_bigquery_dataset.metadata.dataset_id
+
+  table_id = "run_status"
+
+  deletion_protection = false
+
+  schema = file(
+    "${path.module}/schemas/run_status.json"
+  )
+}

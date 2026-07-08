@@ -197,42 +197,6 @@ class ExecutorService:
                 ),
             )
 
-            if status == "SUCCESS":
-                self.repository.mark_success(
-                    run_id,
-                    plan.resource_name,
-                )
-            else:
-                self.repository.mark_failed(
-                    run_id,
-                    plan.resource_name,
-                )
-
-        if self.execution_repository.is_completed(
-            run_id
-        ):
-
-            counts = self.repository.count_by_status(
-                run_id
-            )
-
-            self.run_status.complete(
-                run_id=run_id,
-                successful=counts.get(
-                    "SUCCESS",
-                    0,
-                ),
-                failed=counts.get(
-                    "FAILED",
-                    0,
-                ),
-            )
-
-            logger.info(
-                "Run %s completed.",
-                run_id,
-            )
-
         logger.info(
             "Batch complete. Successful=%d Failed=%d",
             successful,

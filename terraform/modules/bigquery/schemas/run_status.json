@@ -1,0 +1,42 @@
+[
+  {
+    "name": "run_id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "project_id",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "status",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "planned",
+    "type": "INT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "successful",
+    "type": "INT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "failed",
+    "type": "INT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "started_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "completed_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  }
+]
