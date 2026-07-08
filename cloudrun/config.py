@@ -128,3 +128,10 @@ PRESERVE_EXISTING_LABELS = (
     ).lower()
     == "false"
 )
+
+MAX_PARALLEL_WORKERS = int(
+    os.getenv(
+        "MAX_PARALLEL_WORKERS",
+        "10",
+    )
+)
