@@ -18,37 +18,22 @@ class GreenfieldService:
     """
 
     def __init__(self):
-
         self.classification = ClassificationService()
-
         self.adapters = AdapterService()
-
         self.discovery = DiscoveryService()
-
+        # Updated: Service no longer accepts discovery in constructor
         self.compliance = ComplianceService()
-
         self.governance = GovernanceService()
-
         self.executor = ExecutorService()
 
     def process(
         self,
         event: dict,
     ):
-
-        #
-        # Local testing using
-        # gcloud logging read
-        #
-        if isinstance(
-            event,
-            list,
-        ):
+        if isinstance(event, list):
             event = event[0]
 
-        audit_event = CloudEventParser.parse(
-            event
-        )
+        audit_event = CloudEventParser.parse(event)
 
         logger.info(
             "Audit event received for %s",
@@ -66,78 +51,56 @@ class GreenfieldService:
             resource_event.asset_type,
         )
 
-        client = self.adapters.client_for(
-            resource_event.asset_type
-        )
+        client = self.adapters.client_for(resource_event.asset_type)
 
         if client is None:
-
             raise RuntimeError(
                 "No adapter registered for "
                 f"{resource_event.asset_type}"
             )
 
         try:
-
-            resource = client.get(
-                resource_event.resource_name
-            )
-
+            resource = client.get(resource_event.resource_name)
         except NotFound:
-
             logger.warning(
                 "Resource %s no longer exists. "
                 "Skipping remediation.",
                 resource_event.resource_name,
             )
-
             return {
                 "status": "not_found",
                 "resource": resource_event.resource_name,
             }
 
-        resource.project = (
-            resource_event.project_id
-        )
+        resource.project = resource_event.project_id
 
         logger.info(
             "Resolved resource %s",
             resource.name,
         )
 
-        compliance = (
-            self.compliance.evaluate_resource(
-                resource
-            )
-        )
+        # Updated: Greenfield pattern to handle single resource evaluation
+        resources = [resource]
+        compliance_results = self.compliance.evaluate(resources)
+        compliance = compliance_results[0]
 
         if compliance.compliant:
-
-            logger.info(
-                "Resource already compliant."
-            )
-
+            logger.info("Resource already compliant.")
             return {
                 "status": "compliant",
                 "resource": resource.name,
             }
 
-        labels = (
-            self.governance.expected_labels(
-                resource.project
-            )
-        )
+        labels = self.governance.expected_labels(resource.project)
 
         logger.info(
             "Applying %d governance labels.",
             len(labels),
         )
 
-        result = (
-            self.executor.execute_resource(
-                resource,
-                labels,
-            )
+        result = self.executor.execute_resource(
+            resource,
+            labels,
         )
 
         return {

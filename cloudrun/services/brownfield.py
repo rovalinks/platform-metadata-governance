@@ -20,22 +20,16 @@ class BrownfieldService:
     """
 
     def __init__(self):
-
         self.discovery = DiscoveryService()
-
-        self.compliance = ComplianceService(
-            self.discovery
-        )
-
+        # Updated: No longer passing discovery to ComplianceService
+        self.compliance = ComplianceService()
         self.planner = PlannerService()
-
         self.executor = ExecutorService()
 
     def execute(
         self,
         project_id: str,
     ):
-
         logger.info(
             "========== BROWNFIELD START =========="
         )
@@ -60,7 +54,7 @@ class BrownfieldService:
             "Step 1/4 - Discovering resources"
         )
 
-        resources = self.discovery.discover(project_id,run_id)
+        resources = self.discovery.discover(project_id, run_id)
 
         discovered = len(resources)
 
@@ -77,7 +71,8 @@ class BrownfieldService:
             "Step 2/4 - Evaluating compliance"
         )
 
-        compliance = self.compliance.evaluate(resources,run_id)
+        # Updated: resources are passed into the compliance service
+        compliance = self.compliance.evaluate(resources, run_id=run_id)
 
         evaluated = len(compliance)
 
@@ -140,20 +135,12 @@ class BrownfieldService:
         )
 
         return {
-
             "project": project_id,
-
             "discovered": discovered,
-
             "evaluated": evaluated,
-
             "planned": plan["planned_actions"],
-
             "successful": execution["successful"],
-
             "failed": execution["failed"],
-
             "run_id": execution["run_id"],
-
             "status": execution["status"],
         }

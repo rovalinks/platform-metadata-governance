@@ -7,7 +7,7 @@ from services.enforcement import EnforcementService
 class ReportService:
 
     def __init__(self, repository, discovery):
-        self.repository = repository  # Added repository reference
+        self.repository = repository 
         self.discovery = discovery
         self.compliance = ComplianceService()
         self.enforcement = EnforcementService(discovery)
@@ -21,8 +21,14 @@ class ReportService:
     def report(self, project_id: str):
         logger.info("Generating governance report")
 
+        # Step 1: Discover resources first
         resources = self.discovery.discover(project_id)
-        compliance = self.compliance.evaluate(project_id)
+        
+        # Step 2: Pass resources to compliance and enforcement
+        compliance = self.compliance.evaluate(resources)
+        
+        # Note: Depending on your EnforcementService implementation, 
+        # you may need to pass resources here if it still internally uses project_id
         actions = self.enforcement.plan(project_id)
 
         compliant = sum(

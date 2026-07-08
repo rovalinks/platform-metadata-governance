@@ -13,8 +13,12 @@ class EnforcementService:
 
     def plan(self, project_id: str):
         actions = []
-
-        for result in self.compliance.evaluate(project_id):
+        
+        # Updated: Retrieve resources first
+        resources = self.discovery.discover(project_id)
+        
+        # Updated: Pass resources to evaluate
+        for result in self.compliance.evaluate(resources):
             if result.compliant:
                 continue
 
@@ -26,6 +30,8 @@ class EnforcementService:
                 {
                     "resource": result.name,
                     "asset_type": result.asset_type,
+                    # Note: Ensure this method signature still works with project_id 
+                    # or update it to use the resources/project metadata if needed
                     "labels": self.compliance.governance.expected_labels(project_id),
                     "action": "apply_labels",
                 }
