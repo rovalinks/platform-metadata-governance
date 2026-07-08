@@ -13,6 +13,7 @@ from handlers.dashboard import dashboard
 from handlers.metrics import metrics
 from handlers.greenfield import greenfield
 from handlers.brownfield import brownfield
+from handlers.run_status import run_status
 
 class Dispatcher:
 
@@ -20,6 +21,7 @@ class Dispatcher:
     def dispatch(
         route: str,
         payload=None,
+        **kwargs,
     ):
 
         if route == "health":
@@ -66,6 +68,11 @@ class Dispatcher:
 
         if route == "brownfield":
             return brownfield()
+
+        if route == "run_status":
+            return run_status(
+                kwargs["run_id"]
+            )
 
         return {
             "error": "Endpoint not found"

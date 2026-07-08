@@ -5,6 +5,7 @@ import math
 import config
 from repositories.execution_repository import ExecutionRepository
 from repositories.remediation_repository import RemediationRepository
+from repositories.run_status_repository import RunStatusRepository
 from services.adapter import AdapterService
 from services.cloud_task_service import CloudTaskService
 from utils.exceptions import format_gcp_exception
@@ -18,6 +19,7 @@ class ExecutorService:
         self.adapters = AdapterService()
         self.repository = RemediationRepository()
         self.execution_repository = ExecutionRepository()
+        self.run_status = RunStatusRepository()
         self.cloud_tasks = CloudTaskService()
 
     def execute(self, actions):
@@ -193,6 +195,42 @@ class ExecutorService:
                 error_message=result.get(
                     "error"
                 ),
+            )
+
+            if status == "SUCCESS":
+                self.repository.mark_success(
+                    run_id,
+                    plan.resource_name,
+                )
+            else:
+                self.repository.mark_failed(
+                    run_id,
+                    plan.resource_name,
+                )
+
+        if self.execution_repository.is_completed(
+            run_id
+        ):
+
+            counts = self.repository.count_by_status(
+                run_id
+            )
+
+            self.run_status.complete(
+                run_id=run_id,
+                successful=counts.get(
+                    "SUCCESS",
+                    0,
+                ),
+                failed=counts.get(
+                    "FAILED",
+                    0,
+                ),
+            )
+
+            logger.info(
+                "Run %s completed.",
+                run_id,
             )
 
         logger.info(

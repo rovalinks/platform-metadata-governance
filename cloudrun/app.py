@@ -48,6 +48,16 @@ def plan_endpoint():
 def execute_endpoint():
     return Dispatcher.dispatch("execute")
 
+@app.route(
+    "/runs/<run_id>",
+    methods=["GET"],
+)
+def run_status_endpoint(run_id):
+
+    return Dispatcher.dispatch(
+        "run_status",
+        run_id=run_id,
+    )
 
 @app.get("/enforce")
 def enforce_endpoint():

@@ -38,10 +38,10 @@ class ExecutionRepository:
             "resource_name": resource_name,
             "status": status,
             "error_message": (
-                    str(error_message)
-                    if error_message is not None
-                    else None
-                ),
+                str(error_message)
+                if error_message is not None
+                else None
+            ),
             "executed_at": datetime.utcnow().isoformat(),
         }
 
@@ -137,3 +137,46 @@ class ExecutionRepository:
         row = next(job.result())
 
         return row.total == 0
+
+    def count_by_status(
+        self,
+        run_id: str,
+    ) -> dict:
+        """
+        Returns execution counts grouped by status.
+
+        Example:
+        {
+            "SUCCESS": 120,
+            "FAILED": 3,
+        }
+        """
+
+        query = f"""
+        SELECT
+            status,
+            COUNT(*) AS total
+        FROM `{self.table_id}`
+        WHERE run_id = @run_id
+        GROUP BY status
+        """
+
+        job = self.client.query(
+            query,
+            job_config=bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
+                ]
+            ),
+        )
+
+        counts = {}
+
+        for row in job.result():
+            counts[row.status] = row.total
+
+        return counts
