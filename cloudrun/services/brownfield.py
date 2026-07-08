@@ -3,6 +3,7 @@ from services.compliance import ComplianceService
 from services.planner import PlannerService
 from services.executor import ExecutorService
 from utils.logger import logger
+import uuid
 
 
 class BrownfieldService:
@@ -44,6 +45,13 @@ class BrownfieldService:
         logger.info(
             "Project: %s",
             project_id,
+        )
+
+        run_id = str(uuid.uuid4())
+
+        logger.info(
+            "Governance Run ID: %s",
+            run_id,
         )
 
         #
