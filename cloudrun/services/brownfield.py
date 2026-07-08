@@ -16,12 +16,11 @@ class BrownfieldService:
         ↓
     Plan
         ↓
-    Execute
+    Execute (Asynchronous via Cloud Tasks)
     """
 
     def __init__(self):
         self.discovery = DiscoveryService()
-        # Updated: No longer passing discovery to ComplianceService
         self.compliance = ComplianceService()
         self.planner = PlannerService()
         self.executor = ExecutorService()
@@ -71,7 +70,6 @@ class BrownfieldService:
             "Step 2/4 - Evaluating compliance"
         )
 
-        # Updated: resources are passed into the compliance service
         compliance = self.compliance.evaluate(resources, run_id=run_id)
 
         evaluated = len(compliance)
@@ -113,21 +111,17 @@ class BrownfieldService:
         )
 
         execution = self.executor.execute_run(
-            plan["run_id"]
+            run_id=plan["run_id"],
+            planned_actions_count=plan["planned_actions"],
         )
 
         logger.info(
-            "Execution complete."
+            "Remediation run queued."
         )
 
         logger.info(
-            "Successful: %d",
-            execution["successful"],
-        )
-
-        logger.info(
-            "Failed: %d",
-            execution["failed"],
+            "Run ID: %s",
+            execution["run_id"],
         )
 
         logger.info(
@@ -139,8 +133,7 @@ class BrownfieldService:
             "discovered": discovered,
             "evaluated": evaluated,
             "planned": plan["planned_actions"],
-            "successful": execution["successful"],
-            "failed": execution["failed"],
+            "queued": plan["planned_actions"],
             "run_id": execution["run_id"],
             "status": execution["status"],
         }

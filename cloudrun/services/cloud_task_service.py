@@ -1,36 +1,26 @@
 import json
-import google.auth  # Added import
+import google.auth
 from google.cloud import tasks_v2
 from google.api_core import retry
 
 import config
-from utils.logger import logger  # Added import
+from utils.logger import logger
 
-
-class TaskDispatcher:
+class CloudTaskService:
     """
-    Creates Cloud Tasks for
-    brownfield remediation.
+    Creates Cloud Tasks for asynchronous operations.
     """
 
     def __init__(self):
-        # --- Added Diagnostic Logging ---
+        # --- Diagnostic Logging ---
         credentials, project = google.auth.default()
-
         logger.info("ADC project: %s", project)
-        logger.info(
-            "ADC credentials: %s",
-            type(credentials).__name__,
-        )
+        logger.info("ADC credentials: %s", type(credentials).__name__)
         logger.info(
             "ADC service account: %s",
-            getattr(
-                credentials,
-                "service_account_email",
-                "UNKNOWN",
-            ),
+            getattr(credentials, "service_account_email", "UNKNOWN"),
         )
-        # --------------------------------
+        # --------------------------
 
         self.client = tasks_v2.CloudTasksClient()
         self.parent = self.client.queue_path(
@@ -40,7 +30,7 @@ class TaskDispatcher:
         )
 
     @retry.Retry()
-    def enqueue_batch(
+    def enqueue_remediation_batch(
         self,
         run_id: str,
         batch_number: int,
@@ -49,7 +39,7 @@ class TaskDispatcher:
         batch_size: int,
     ):
         """
-        Creates a task for a specific batch in a remediation run.
+        Creates a task for a specific remediation batch.
         """
         payload = json.dumps(
             {
@@ -65,9 +55,7 @@ class TaskDispatcher:
             "http_request": {
                 "http_method": tasks_v2.HttpMethod.POST,
                 "url": f"{config.CLOUD_RUN_URL}/worker",
-                "headers": {
-                    "Content-Type": "application/json"
-                },
+                "headers": {"Content-Type": "application/json"},
                 "oidc_token": {
                     "service_account_email": config.SERVICE_ACCOUNT_EMAIL
                 },

@@ -5,7 +5,7 @@ import config
 from repositories.execution_repository import ExecutionRepository
 from repositories.remediation_repository import RemediationRepository
 from services.adapter import AdapterService
-from services.task_dispatcher import TaskDispatcher
+from services.cloud_task_service import CloudTaskService
 from utils.exceptions import format_gcp_exception
 from utils.logger import logger
 
@@ -16,7 +16,7 @@ class ExecutorService:
         self.adapters = AdapterService()
         self.repository = RemediationRepository()
         self.execution_repository = ExecutionRepository()
-        self.dispatcher = TaskDispatcher()
+        self.cloud_tasks = CloudTaskService()
 
     def execute(self, actions):
         """Executes enforcement actions in parallel."""
@@ -177,50 +177,29 @@ class ExecutorService:
         run_id: str,
     ):
         """
-        Executes remediation synchronously.
+        Enqueues the remediation run for asynchronous execution.
         """
-        logger.info(
-            "Dispatching remediation run %s",
-            run_id,
-        )
-
-        if self.execution_repository.already_executed(run_id):
-            raise RuntimeError(
-                f"Remediation run {run_id} has already been executed."
-            )
-
+        # Fetch planned actions count to calculate batch size
         plans = self.repository.get_planned(run_id)
-
         if not plans:
-            raise RuntimeError(
-                f"No planned remediation actions found for run {run_id}."
-            )
+            raise RuntimeError(f"No planned remediation actions found for run {run_id}.")
+        
+        total_actions = len(plans)
 
-        total_resources = len(plans)
+        logger.info("Dispatching remediation run %s to Cloud Tasks", run_id)
 
-        logger.info(
-            "Executing remediation synchronously."
-        )
-
-        result = self.execute_batch(
+        self.cloud_tasks.enqueue_remediation_batch(
             run_id=run_id,
+            batch_number=1,
+            total_batches=1,
             offset=0,
-            batch_size=total_resources,
-        )
-
-        logger.info(
-            "Run %s completed. Processed=%d Success=%d Failed=%d",
-            run_id,
-            result["processed"],
-            result["successful"],
-            result["failed"],
+            batch_size=total_actions,
         )
 
         return {
             "run_id": run_id,
-            "status": "COMPLETED",
-            "resources": total_resources,
-            "processed": result["processed"],
-            "successful": result["successful"],
-            "failed": result["failed"],
+            "status": "QUEUED",
+            "processed": 0,
+            "successful": 0,
+            "failed": 0,
         }
