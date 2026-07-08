@@ -11,7 +11,7 @@ from clients.bigquery_reservation import BigQueryReservationClient
 from clients.secret_manager import SecretManagerClient
 from clients.project import ProjectClient
 from clients.kms import KmsClient
-from clients.apikeys import ApiKeysClient
+#from clients.apikeys import ApiKeysClient
 from clients.appengine import AppEngineClient
 from clients.functions import FunctionsClient
 
@@ -33,7 +33,7 @@ class AdapterService:
             SecretManagerClient(),
             ProjectClient(),
             KmsClient(),
-            ApiKeysClient(),
+            #ApiKeysClient(),
             AppEngineClient(),
             FunctionsClient(),
         ]

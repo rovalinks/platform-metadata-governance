@@ -18,7 +18,7 @@ class PlannerService:
     """
 
     def __init__(self, discovery):
-        self.discovery = discovery
+
         self.compliance = ComplianceService(
             discovery
         )
@@ -33,6 +33,7 @@ class PlannerService:
         self,
         project_id: str | None = None,
     ):
+
         logger.info(
             "Generating remediation plan"
         )
@@ -46,19 +47,12 @@ class PlannerService:
         )
 
         plans = []
+
         expected_labels_cache = {}
 
         for result in results:
+
             if result.compliant:
-                continue
-            
-            # Check if the resource client supports label modification
-            client = self.discovery.get_client(result.asset_type)
-            if not getattr(client, "supports_labels", lambda: True)():
-                logger.info(
-                    "Skipping remediation for unsupported resource: %s", 
-                    result.name
-                )
                 continue
 
             project = result.project
@@ -67,6 +61,7 @@ class PlannerService:
                 project
                 not in expected_labels_cache
             ):
+
                 expected_labels_cache[
                     project
                 ] = (
@@ -97,14 +92,23 @@ class PlannerService:
                 continue
 
             plans.append(
+
                 RemediationPlan(
+
                     run_id=run_id,
+
                     project_id=project,
+
                     asset_type=result.asset_type,
+
                     resource_name=result.name,
+
                     missing_labels=result.missing_labels,
+
                     planned_labels=planned_labels,
+
                 )
+
             )
 
         stored = self.repository.save(
