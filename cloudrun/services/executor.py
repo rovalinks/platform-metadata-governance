@@ -223,7 +223,7 @@ class ExecutorService:
         if not plans:
 
             raise RuntimeError(
-                f"Remediation run {run_id} was not found."
+                f"No planned remediation actions found for run {run_id}."
             )
 
         total_resources = len(

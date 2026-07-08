@@ -12,28 +12,13 @@ class ComplianceService:
         self.governance = GovernanceService()
         self.capability = CapabilityService()
 
-    def evaluate(self, project_id: str | None = None, run_id: str | None = None):
+    def evaluate(self, resources, run_id: str | None = None):
         """
-        Evaluate compliance.
-
-        If project_id is supplied:
-            - evaluate only that project
-
-        Otherwise:
-            - evaluate every GCP project registered in the registry
+        Evaluate compliance for a provided list of resources.
         """
 
-        if project_id:
-
-            projects = [
-                {
-                    "projectId": project_id,
-                }
-            ]
-
-        else:
-
-            projects = self.governance.projects()
+        # Group resources by project to maintain the expected evaluation logic
+        projects = {res.project for res in resources}
 
         logger.info(
             "Evaluating compliance for %d project(s)",
@@ -41,13 +26,12 @@ class ComplianceService:
         )
 
         results = []
-
-        for project in projects:
-
+        for project_id in projects:
+            project_resources = [res for res in resources if res.project == project_id]
             results.extend(
                 self._evaluate_project(
-                    project["projectId"],
-                    run_id,
+                    project_id,
+                    project_resources,
                 )
             )
 
@@ -66,16 +50,11 @@ class ComplianceService:
 
         return results
 
-    def _evaluate_project(self, project_id: str, run_id: str | None = None):
+    def _evaluate_project(self, project_id: str, resources):
 
         logger.info(
             "Evaluating project %s",
             project_id,
-        )
-
-        resources = self.discovery.discover(
-            project_id,
-            run_id,
         )
 
         expected_labels = self.governance.expected_labels(
@@ -148,9 +127,11 @@ class ComplianceService:
             expected,
         )
 
-    def summary(self, project_id: str | None = None):
-
-        results = self.evaluate(project_id)
+    def summary(self, resources):
+        """
+        Generate a summary for a provided list of resources.
+        """
+        results = self.evaluate(resources)
 
         total = len(results)
 

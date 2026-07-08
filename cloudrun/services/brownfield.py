@@ -27,9 +27,7 @@ class BrownfieldService:
             self.discovery
         )
 
-        self.planner = PlannerService(
-            self.discovery
-        )
+        self.planner = PlannerService()
 
         self.executor = ExecutorService()
 
@@ -83,7 +81,7 @@ class BrownfieldService:
         )
 
         compliance = self.compliance.evaluate(
-            project_id,
+            resources,
             run_id,
         )
 
@@ -103,7 +101,7 @@ class BrownfieldService:
         )
 
         plan = self.planner.create(
-            project_id,
+            compliance,
             run_id,
         )
 

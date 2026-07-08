@@ -2,7 +2,6 @@ from models.remediation import RemediationPlan
 from repositories.remediation_repository import (
     RemediationRepository,
 )
-from services.compliance import ComplianceService
 from services.governance import GovernanceService
 from utils.logger import logger
 
@@ -15,11 +14,7 @@ class PlannerService:
     It only creates and persists remediation plans.
     """
 
-    def __init__(self, discovery):
-
-        self.compliance = ComplianceService(
-            discovery
-        )
+    def __init__(self):
 
         self.governance = GovernanceService()
 
@@ -29,24 +24,19 @@ class PlannerService:
 
     def create(
         self,
-        project_id: str | None = None,
-        run_id: str | None = None,
+        compliance_results,
+        run_id: str,
     ):
 
         logger.info(
             "Generating remediation plan"
         )
 
-        results = self.compliance.evaluate(
-            project_id,
-            run_id,
-        )
-
         plans = []
 
         expected_labels_cache = {}
 
-        for result in results:
+        for result in compliance_results:
 
             if result.compliant:
                 continue
@@ -110,6 +100,12 @@ class PlannerService:
         stored = self.repository.save(
             plans
         )
+
+        if stored == 0:
+            logger.warning(
+                "No remediation actions generated for run %s",
+                run_id,
+            )
 
         logger.info(
             "Created remediation run %s with %d planned actions",
