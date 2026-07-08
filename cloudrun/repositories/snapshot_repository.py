@@ -58,19 +58,15 @@ class SnapshotRepository:
                 {
                     "run_id": run_id,
                     "evaluated_time": datetime.utcnow().isoformat(),
-                    "project_id": getattr(
-                        res,
-                        "project_id",
-                        getattr(res, "project", None),
-                    ),
+                    "project_id": res.project,
                     "asset_type": res.asset_type,
-                    "resource_name": res.resource_name,
+                    "resource_name": res.name,
                     "compliant": res.compliant,
                     "missing_labels": json.dumps(
                         res.missing_labels or []
                     ),
                     "incorrect_labels": json.dumps(
-                        res.incorrect_labels or {}
+                        res.incorrect_labels or []
                     ),
                 }
             )
