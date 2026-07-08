@@ -9,7 +9,7 @@ class ReportService:
     def __init__(self, repository, discovery):
         self.repository = repository  # Added repository reference
         self.discovery = discovery
-        self.compliance = ComplianceService(discovery)
+        self.compliance = ComplianceService()
         self.enforcement = EnforcementService(discovery)
 
     def run(self, run_id: str):

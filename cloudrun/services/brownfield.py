@@ -60,10 +60,7 @@ class BrownfieldService:
             "Step 1/4 - Discovering resources"
         )
 
-        resources = self.discovery.discover(
-            project_id,
-            run_id,
-        )
+        resources = self.discovery.discover(project_id,run_id)
 
         discovered = len(resources)
 
@@ -80,10 +77,7 @@ class BrownfieldService:
             "Step 2/4 - Evaluating compliance"
         )
 
-        compliance = self.compliance.evaluate(
-            resources,
-            run_id,
-        )
+        compliance = self.compliance.evaluate(resources,run_id)
 
         evaluated = len(compliance)
 

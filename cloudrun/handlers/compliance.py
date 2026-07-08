@@ -6,9 +6,8 @@ from services.compliance import ComplianceService
 
 context = RequestContext()
 
-service = ComplianceService(
-    context.discovery,
-)
+# Updated initialization: service no longer accepts discovery in constructor
+service = ComplianceService()
 
 
 def compliance():
@@ -24,10 +23,13 @@ def compliance():
     """
 
     project_id = request.args.get("project")
+    
+    # Retrieve resources based on project_id using the discovery service
+    resources = context.discovery.discover(project_id)
 
-    results = service.evaluate(project_id)
-
-    summary = service.summary(project_id)
+    # Evaluate and summarize based on the discovered resources
+    results = service.evaluate(resources)
+    summary = service.summary(resources)
 
     return jsonify(
         {
