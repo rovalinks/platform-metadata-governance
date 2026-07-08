@@ -54,7 +54,7 @@ REGISTRY_PREFIX = "applications"
 REGISTRY_CACHE_TTL = int(
     os.getenv(
         "REGISTRY_CACHE_TTL",
-        "300",
+        "0",
     )
 )
 
@@ -124,7 +124,7 @@ EXCLUDED_BUCKETS = [
 PRESERVE_EXISTING_LABELS = (
     os.getenv(
         "PRESERVE_EXISTING_LABELS",
-        "true",
+        "false",
     ).lower()
-    == "true"
+    == "false"
 )
