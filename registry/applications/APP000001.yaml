@@ -2,7 +2,7 @@ schemaVersion: v1
 
 product: cpe-tagging-validation
 team: cloud-platform-engineering
-owner: kumar
+owner: rks
 budgetOwner: rohit
 organization: rba
 department: cloud-platform-engineering
