@@ -23,9 +23,12 @@ variable "triggers" {
   description = "Audit Log triggers"
 
   type = list(object({
-    name     = string
-    service  = string
-    method   = string
-    location = string
+
+    name = string
+
+    service = string
+
+    method = string
+
   }))
 }
