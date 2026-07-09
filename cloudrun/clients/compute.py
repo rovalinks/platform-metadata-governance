@@ -20,6 +20,25 @@ logger = logging.getLogger(__name__)
 class ComputeClient(ResourceClient):
     """Compute Engine resource adapter with centralized label management."""
 
+    SUPPORTED_LABEL_TYPES = {
+        "compute.googleapis.com/Instance",
+        "compute.googleapis.com/Disk",
+        "compute.googleapis.com/Address",
+        "compute.googleapis.com/ForwardingRule",
+        "compute.googleapis.com/NetworkEndpointGroup",
+        "compute.googleapis.com/Snapshot",
+        "compute.googleapis.com/Image",
+        "compute.googleapis.com/MachineImage",
+        "compute.googleapis.com/InstanceGroup",
+        "compute.googleapis.com/TargetPool",
+        "compute.googleapis.com/ResourcePolicy",
+        "compute.googleapis.com/NetworkAttachment",
+        "compute.googleapis.com/ServiceAttachment",
+        "compute.googleapis.com/VpnGateway",
+        "compute.googleapis.com/PacketMirroring",
+        "compute.googleapis.com/ExternalVpnGateway",
+    }
+
     def __init__(self):
         self.instances = compute_v1.InstancesClient()
         self.disks = compute_v1.DisksClient()
@@ -44,6 +63,70 @@ class ComputeClient(ResourceClient):
     def supports(self, asset_type: str):
         """Checks if the asset type is supported by this client."""
         return asset_type.startswith("compute.googleapis.com/")
+
+    def supports_labels(self, asset_type: str):
+        """Checks if the asset type supports label enrichment."""
+        return asset_type in self.SUPPORTED_LABEL_TYPES
+
+    def labels(self, resource: Resource):
+        """Fetches the current labels for a given compute resource."""
+        try:
+            if "/instances/" in resource.name:
+                info = parse_instance_name(resource.name)
+                res = self.instances.get(project=info["project"], zone=info["zone"], instance=info["instance"])
+            elif "/disks/" in resource.name:
+                info = parse_disk_name(resource.name)
+                res = self.disks.get(project=info["project"], zone=info["zone"], disk=info["disk"])
+            elif "/addresses/" in resource.name:
+                info = parse_address_name(resource.name)
+                res = self.addresses.get(project=info["project"], region=info["region"], address=info["address"])
+            elif "/forwardingRules/" in resource.name:
+                info = parse_forwarding_rule_name(resource.name)
+                res = self.forwarding_rules.get(project=info["project"], region=info["region"], forwarding_rule=info["forwarding_rule"])
+            elif "/networkEndpointGroups/" in resource.name:
+                info = parse_network_endpoint_group_name(resource.name)
+                res = self.network_endpoint_groups.get(project=info["project"], zone=info["zone"], network_endpoint_group=info["network_endpoint_group"])
+            elif "/snapshots/" in resource.name:
+                info = parse_snapshot_name(resource.name)
+                res = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
+            elif "/images/" in resource.name:
+                info = parse_image_name(resource.name)
+                res = self.images.get(project=info["project"], image=info["image"])
+            elif "/machineImages/" in resource.name:
+                info = parse_machine_image_name(resource.name)
+                res = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
+            elif "/instanceGroups/" in resource.name:
+                info = parse_instance_group_name(resource.name)
+                res = self.instance_groups.get(project=info["project"], zone=info["zone"], instance_group=info["instance_group"])
+            elif "/targetPools/" in resource.name:
+                info = parse_target_pool_name(resource.name)
+                res = self.target_pools.get(project=info["project"], region=info["region"], target_pool=info["target_pool"])
+            elif "/resourcePolicies/" in resource.name:
+                info = parse_resource_policy_name(resource.name)
+                res = self.resource_policies.get(project=info["project"], region=info["region"], resource_policy=info["resource_policy"])
+            elif "/networkAttachments/" in resource.name:
+                info = parse_network_attachment_name(resource.name)
+                res = self.network_attachments.get(project=info["project"], region=info["region"], network_attachment=info["network_attachment"])
+            elif "/serviceAttachments/" in resource.name:
+                info = parse_service_attachment_name(resource.name)
+                res = self.service_attachments.get(project=info["project"], region=info["region"], service_attachment=info["service_attachment"])
+            elif "/vpnGateways/" in resource.name:
+                info = parse_vpn_gateway_name(resource.name)
+                res = self.vpn_gateways.get(project=info["project"], region=info["region"], vpn_gateway=info["vpn_gateway"])
+            elif "/packetMirrorings/" in resource.name:
+                info = parse_packet_mirroring_name(resource.name)
+                res = self.packet_mirroring.get(project=info["project"], region=info["region"], packet_mirroring=info["packet_mirroring"])
+            elif "/externalVpnGateways/" in resource.name:
+                info = parse_external_vpn_gateway_name(resource.name)
+                res = self.external_vpn_gateways.get(project=info["project"], external_vpn_gateway=info["external_vpn_gateway"])
+            else:
+                logger.error(f"Labels not supported for: {resource.name}")
+                return None
+            
+            return dict(res.labels or {})
+        except Exception as e:
+            logger.exception(f"Failed to fetch labels for {resource.name}: {e}")
+            return None
 
     def _merge_labels(self, existing, labels):
         merged = existing.copy()

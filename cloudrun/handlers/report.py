@@ -18,7 +18,9 @@ def report():
 
     context = RequestContext()
     governance = GovernanceService()
-    service = ReportService(context.discovery)
+    
+    # FIX: Pass both required arguments to the ReportService constructor
+    service = ReportService(context.repository, context.discovery)
 
     project_id = request.args.get("project")
     reports = []

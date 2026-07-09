@@ -36,6 +36,9 @@ class Dispatcher:
         if route == "compliance":
             return compliance()
 
+        if route == "compliance_report":
+            return compliance_report()  
+
         if route == "verify":
             return verify()
 
@@ -62,9 +65,6 @@ class Dispatcher:
 
         if route == "dashboard":
             return dashboard()
-        
-        if route == "compliance_report":
-            return compliance_report()
 
         if route == "metrics":
             return metrics()

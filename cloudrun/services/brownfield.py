@@ -92,13 +92,6 @@ class BrownfieldService:
             run_id,
         )
 
-        # Added status record creation
-        self.executor.run_status.create(
-            run_id=run_id,
-            project_id=project_id,
-            planned=plan["planned_actions"],
-        )
-
         logger.info(
             "Remediation plan created. Run ID: %s",
             plan["run_id"],

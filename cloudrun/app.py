@@ -91,9 +91,12 @@ def runs_endpoint():
     return Dispatcher.dispatch("runs")
 
 
-@app.get("/reports/run")
-def run_endpoint():
-    return Dispatcher.dispatch("run")
+@app.get("/reports/run/<run_id>")
+def run_endpoint(run_id):
+    return Dispatcher.dispatch(
+        "run",
+        run_id=run_id,
+    )
 
 @app.post("/worker")
 def worker_endpoint():
