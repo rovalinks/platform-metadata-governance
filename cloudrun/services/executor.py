@@ -1,6 +1,8 @@
 from types import SimpleNamespace
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import math
+import time
+from google.api_core.exceptions import BadRequest
 
 import config
 from repositories.execution_repository import ExecutionRepository
@@ -198,15 +200,31 @@ class ExecutorService:
             )
 
             if status == "SUCCESS":
-                self.repository.mark_success(
-                    run_id,
-                    plan.resource_name,
-                )
+                for attempt in range(12):
+                    try:
+                        self.repository.mark_success(
+                            run_id,
+                            plan.resource_name,
+                        )
+                        break
+                    except BadRequest as e:
+                        if "streaming buffer" not in str(e):
+                            raise
+                        logger.info("Waiting for streaming buffer...")
+                        time.sleep(10)
             else:
-                self.repository.mark_failed(
-                    run_id,
-                    plan.resource_name,
-                )
+                for attempt in range(12):
+                    try:
+                        self.repository.mark_failed(
+                            run_id,
+                            plan.resource_name,
+                        )
+                        break
+                    except BadRequest as e:
+                        if "streaming buffer" not in str(e):
+                            raise
+                        logger.info("Waiting for streaming buffer...")
+                        time.sleep(10)
 
         if self.execution_repository.is_completed(
             run_id
