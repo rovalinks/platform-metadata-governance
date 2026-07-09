@@ -45,15 +45,11 @@ class ReportRepository:
         """
         Returns a list of resources that still need remediation.
         """
-        # Note: missing_labels and compliance_reason are commented out 
-        # until the schema is extended in BigQuery.
         query = f"""
         SELECT
             project_id,
             asset_type,
             resource_name
-            -- missing_labels,
-            -- compliance_reason
         FROM `{self.dataset}.compliance_snapshot`
         WHERE compliant = FALSE
         ORDER BY asset_type, resource_name
@@ -195,19 +191,34 @@ class ReportRepository:
     def remediation_runs(self, limit: int = 100):
         """
         Returns recent remediation runs with summary metrics.
+        Joins remediation_plan (planned) with remediation_execution (status).
         """
         query = f"""
-        SELECT
-            run_id,
-            COUNT(*) AS planned,
-            COUNTIF(status='SUCCESS') AS completed,
-            COUNTIF(status='FAILED') AS failed,
-            COUNTIF(status='PLANNED') AS remaining,
-            COUNTIF(status='IN_PROGRESS') AS in_progress,
-            MIN(created_at) AS started
-        FROM `{self.dataset}.remediation_plan`
-        GROUP BY run_id
-        ORDER BY started DESC
+        WITH plan_counts AS (
+            SELECT run_id, COUNT(*) AS planned_total, MIN(created_at) AS started
+            FROM `{self.dataset}.remediation_plan`
+            GROUP BY run_id
+        ),
+        exec_counts AS (
+            SELECT 
+                run_id,
+                COUNTIF(status='SUCCESS') AS completed,
+                COUNTIF(status='FAILED') AS failed,
+                COUNTIF(status='IN_PROGRESS') AS in_progress
+            FROM `{self.dataset}.remediation_execution`
+            GROUP BY run_id
+        )
+        SELECT 
+            p.run_id,
+            p.planned_total AS planned,
+            COALESCE(e.completed, 0) AS completed,
+            COALESCE(e.failed, 0) AS failed,
+            COALESCE(e.in_progress, 0) AS in_progress,
+            (p.planned_total - COALESCE(e.completed, 0) - COALESCE(e.failed, 0) - COALESCE(e.in_progress, 0)) AS remaining,
+            p.started
+        FROM plan_counts p
+        LEFT JOIN exec_counts e ON p.run_id = e.run_id
+        ORDER BY p.started DESC
         LIMIT @limit
         """
 
@@ -237,24 +248,33 @@ class ReportRepository:
         WITH
         planned AS (
             SELECT
+                run_id,
                 COUNT(*) AS planned,
-                COUNTIF(status='SUCCESS') AS completed,
-                COUNTIF(status='FAILED') AS failed,
-                COUNTIF(status='PLANNED') AS remaining,
-                COUNTIF(status='IN_PROGRESS') AS in_progress,
                 MIN(created_at) AS started
             FROM `{self.dataset}.remediation_plan`
             WHERE run_id=@run_id
+            GROUP BY run_id
         ),
         execution AS (
             SELECT
+                run_id,
+                COUNTIF(status='SUCCESS') AS completed,
+                COUNTIF(status='FAILED') AS failed,
+                COUNTIF(status='IN_PROGRESS') AS in_progress,
                 MAX(executed_at) AS finished
             FROM `{self.dataset}.remediation_execution`
             WHERE run_id=@run_id
+            GROUP BY run_id
         )
-        SELECT *
-        FROM planned
-        CROSS JOIN execution
+        SELECT 
+            p.planned,
+            e.completed,
+            e.failed,
+            e.in_progress,
+            p.started,
+            e.finished
+        FROM planned p
+        LEFT JOIN execution e ON p.run_id = e.run_id
         """
 
         job = self.client.query(
@@ -266,15 +286,18 @@ class ReportRepository:
 
         row = next(job.result())
         total = row.planned
+        completed = row.completed or 0
+        failed = row.failed or 0
+        in_progress = row.in_progress or 0
 
         return {
             "run_id": run_id,
             "planned": total,
-            "completed": row.completed,
-            "failed": row.failed,
-            "remaining": row.remaining,
-            "in_progress": row.in_progress,
-            "success_rate": round(row.completed * 100 / total, 2) if total else 100,
+            "completed": completed,
+            "failed": failed,
+            "remaining": total - (completed + failed + in_progress),
+            "in_progress": in_progress,
+            "success_rate": round(completed * 100 / total, 2) if total else 100,
             "started": row.started,
             "finished": row.finished,
         }
