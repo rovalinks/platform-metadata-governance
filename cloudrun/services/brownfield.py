@@ -105,7 +105,10 @@ class BrownfieldService:
 
 
         if plan["planned_actions"] == 0:
-            logger.info("No remediation required.")
+                    logger.info(
+                        """No remediation required. All supported resources are compliant.
+                           ========== BROWNFIELD COMPLETE =========="""
+                    )
 
             return {
                 "project": project_id,

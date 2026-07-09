@@ -1,18 +1,11 @@
-from flask import (
-    jsonify,
-    request,
-)
-
-from services.brownfield import (
-    BrownfieldService,
-)
+import config
+from flask import (jsonify,request,)
+from services.brownfield import BrownfieldService
 
 
 def brownfield():
 
-    project = request.args.get(
-        "project"
-    )
+    project = request.args.get("project") or config.PROJECT_ID
 
     if not project:
         return (

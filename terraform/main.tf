@@ -38,7 +38,19 @@ module "cloud_run" {
   log_level             = var.log_level
   bigquery              = var.bigquery
   task_queue            = module.cloud_tasks.queue_name
-  cloud_run_url         ="https://metadata-governance-375142238023.europe-west2.run.app"
+  cloud_run_url         = "https://metadata-governance-375142238023.europe-west2.run.app"
+}
+
+module "cloud_scheduler" {
+  source = "./modules/cloud-scheduler"
+
+  enabled           = var.enable_cloud_scheduler && var.deploy_cloud_run
+  project_id        = var.project_id
+  region            = var.region
+  cloud_run_service = module.cloud_run[0].service_name
+  cloud_run_url     = module.cloud_run[0].uri
+  schedule          = var.brownfield_schedule
+  time_zone         = var.brownfield_time_zone
 }
 
 module "eventarc" {
@@ -109,3 +121,4 @@ module "cloud_tasks" {
     module.project_services
   ]
 }
+

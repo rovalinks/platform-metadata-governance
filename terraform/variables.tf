@@ -114,3 +114,21 @@ variable "eventarc" {
     }))
   })
 }
+
+variable "brownfield_schedule" {
+  description = "Nightly Brownfield schedule."
+  type        = string
+  default     = "0 2 * * *"
+}
+
+variable "brownfield_time_zone" {
+  description = "Timezone for Brownfield scheduler."
+  type        = string
+  default     = "Europe/London"
+}
+
+variable "enable_cloud_scheduler" {
+  description = "Deploy Cloud Scheduler."
+  type        = bool
+  default     = true
+}
