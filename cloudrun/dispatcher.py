@@ -14,6 +14,9 @@ from handlers.metrics import metrics
 from handlers.greenfield import greenfield
 from handlers.brownfield import brownfield
 from handlers.run_status import run_status
+from handlers.compliance_report import compliance_report
+from handlers.resources import resources
+from handlers.non_compliant import non_compliant
 
 class Dispatcher:
 
@@ -60,6 +63,9 @@ class Dispatcher:
         if route == "dashboard":
             return dashboard()
         
+        if route == "compliance_report":
+            return compliance_report()
+
         if route == "metrics":
             return metrics()
 
@@ -73,6 +79,15 @@ class Dispatcher:
             return run_status(
                 kwargs["run_id"]
             )
+
+        if route == "run":
+            return run(kwargs["run_id"])
+
+        if route == "resources":
+            return resources()
+        
+        if route == "non_compliant":
+            return non_compliant()
 
         return {
             "error": "Endpoint not found"

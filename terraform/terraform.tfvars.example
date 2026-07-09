@@ -1,48 +1,44 @@
 # ------------------------------------------------------------------
-# Google Cloud Project
+# Enterprise Metadata Governance Platform Configuration
 # ------------------------------------------------------------------
 
-project_id = "my-gcp-project"
-
-region = "europe-west2"
+project_id = "platform-metadata-demo"
+region     = "europe-west2"
 
 # ------------------------------------------------------------------
 # Artifact Registry
 # ------------------------------------------------------------------
 
 artifact_registry_repository = "platform-images"
-
-artifact_registry_description = "Platform Metadata Governance Images"
+artifact_registry_description = "Enterprise Metadata Governance Platform Images"
+registry_bucket_name = "platform-metadata-demo-registry"
+registry_cache_ttl = 300
 
 # ------------------------------------------------------------------
 # Service Accounts
 # ------------------------------------------------------------------
 
 service_accounts = {
-
-  terraform = {
-    account_id   = "terraform-sa"
-    display_name = "Terraform Service Account"
-    description  = "Deploys platform infrastructure using Terraform"
-  }
-
-  governance = {
-    account_id   = "governance-engine-sa"
-    display_name = "Metadata Governance Engine"
-    description  = "Runs the Cloud Run governance service"
-  }
-
-  github = {
-    account_id   = "github-actions-sa"
-    display_name = "GitHub Actions"
-    description  = "Used by GitHub Actions through Workload Identity Federation"
-  }
-
-  cloudbuild = {
-    account_id   = "cloud-build-sa"
-    display_name = "Cloud Build"
-    description  = "Builds and deploys the governance platform"
-  }
+    "terraform": {
+        "account_id": "terraform-sa",
+        "display_name": "Terraform Service Account",
+        "description": "Deploys platform infrastructure using Terraform"
+    },
+    "governance": {
+        "account_id": "governance-engine-sa",
+        "display_name": "Metadata Governance Engine",
+        "description": "Runs the Cloud Run metadata governance application"
+    },
+    "github": {
+        "account_id": "github-actions-sa",
+        "display_name": "GitHub Actions",
+        "description": "Used by GitHub Actions through Workload Identity Federation"
+    },
+    "cloudbuild": {
+        "account_id": "cloud-build-sa",
+        "display_name": "Cloud Build Service Account",
+        "description": "Builds and deploys the Governance Platform"
+    }
 }
 
 # ------------------------------------------------------------------
@@ -50,58 +46,92 @@ service_accounts = {
 # ------------------------------------------------------------------
 
 service_account_roles = {
-
-  terraform = [
-    "roles/serviceusage.serviceUsageAdmin",
-    "roles/iam.serviceAccountAdmin",
-    "roles/artifactregistry.admin"
-  ]
-
-  github = [
-    "roles/cloudbuild.builds.editor",
-    "roles/artifactregistry.writer",
-    "roles/storage.objectAdmin",
-    "roles/run.developer",
-    "roles/serviceusage.serviceUsageConsumer"
-  ]
-
-  governance = [
-    "roles/logging.logWriter",
-    "roles/cloudasset.viewer",
-    "roles/viewer"
-  ]
-
-  cloudbuild = [
-    "roles/artifactregistry.writer",
-    "roles/logging.logWriter",
-    "roles/storage.objectViewer",
-    "roles/run.developer"
-  ]
+    "terraform": [
+        "roles/serviceusage.serviceUsageAdmin",
+        "roles/iam.serviceAccountAdmin",
+        "roles/artifactregistry.admin"
+    ],
+    "github": [
+        "roles/artifactregistry.writer",
+        "roles/run.admin",
+        "roles/iam.serviceAccountUser"
+    ],
+    "governance": [
+        "roles/logging.logWriter",
+        "roles/cloudasset.viewer",
+        "roles/compute.admin",
+        "roles/storage.admin",
+        "roles/bigquery.admin",
+        "roles/cloudsql.admin",
+        "roles/artifactregistry.admin",
+        "roles/pubsub.admin",
+        "roles/container.admin",
+        "roles/eventarc.eventReceiver",
+        "roles/cloudtasks.enqueuer",
+        "roles/cloudtasks.viewer",
+        "roles/iam.serviceAccountUser",
+        "roles/run.invoker",
+        "roles/secretmanager.admin",
+        "roles/cloudkms.admin",
+        "roles/cloudfunctions.viewer",
+        "roles/cloudfunctions.developer",
+        "roles/serviceusage.apiKeysAdmin",
+        "roles/resourcemanager.projectIamAdmin"
+    ],
+    "cloudbuild": [
+        "roles/artifactregistry.writer",
+        "roles/logging.logWriter",
+        "roles/storage.objectViewer",
+        "roles/run.developer"
+    ]
 }
 
 # ------------------------------------------------------------------
-# Cloud Run
+# Cloud Run & Workload Identity
 # ------------------------------------------------------------------
 
 cloud_run = {
-  service_name = "metadata-governance"
-
-  image = "europe-west2-docker.pkg.dev/my-gcp-project/platform-images/governance-engine:latest"
+    "service_name": "metadata-governance",
+    "image": "europe-west2-docker.pkg.dev/platform-metadata-demo/platform-images/governance-engine:latest"
 }
-
-# ------------------------------------------------------------------
-# Workload Identity Federation
-# ------------------------------------------------------------------
 
 workload_identity = {
-  pool_id           = "github-pool"
-  provider_id       = "github-provider"
-  github_owner      = "my-github-org"
-  github_repository = "my-repository"
+    "pool_id": "github-pool",
+    "provider_id": "github-provider",
+    "github_owner": "rovalinks",
+    "github_repository": "platform-metadata-governance"
 }
 
 # ------------------------------------------------------------------
-# Feature Flags
+# Platform Settings & Eventarc Triggers
 # ------------------------------------------------------------------
 
-deploy_cloud_run = true
+deploy_cloud_run = True
+dry_run = False
+log_level = "INFO"
+
+excluded_buckets = [
+    "platform-metadata-demo-registry",
+    "platform-metadata-demo-tfstate",
+    "platform-metadata-demo_cloudbuild"
+]
+
+bigquery = {
+    "dataset_id": "metadata_governance_dataset"
+}
+
+eventarc = {
+    "triggers": [
+        {"name": "compute-instance-created", "service": "compute.googleapis.com", "method": "v1.compute.instances.insert", "location": "global"},
+        {"name": "compute-disk-created", "service": "compute.googleapis.com", "method": "v1.compute.disks.insert", "location": "global"},
+        {"name": "compute-address-created", "service": "compute.googleapis.com", "method": "v1.compute.addresses.insert", "location": "global"},
+        {"name": "compute-forwarding-rule-created", "service": "compute.googleapis.com", "method": "v1.compute.forwardingRules.insert", "location": "global"},
+        {"name": "storage-bucket-created", "service": "storage.googleapis.com", "method": "storage.buckets.create", "location": "global"},
+        {"name": "bigquery-dataset-created", "service": "bigquery.googleapis.com", "method": "google.cloud.bigquery.v2.DatasetService.InsertDataset", "location": "global"},
+        {"name": "cloudsql-instance-created", "service": "cloudsql.googleapis.com", "method": "cloudsql.instances.create", "location": "global"},
+        {"name": "artifact-repository-created", "service": "artifactregistry.googleapis.com", "method": "google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository", "location": "global"},
+        {"name": "gke-cluster-created", "service": "container.googleapis.com", "method": "google.container.v1.ClusterManager.CreateCluster", "location": "global"},
+        {"name": "gke-nodepool-created", "service": "container.googleapis.com", "method": "google.container.v1.ClusterManager.CreateNodePool", "location": "global"},
+        {"name": "secret-created", "service": "secretmanager.googleapis.com", "method": "google.cloud.secretmanager.v1.SecretManagerService.CreateSecret", "location": "global"}
+    ]
+}

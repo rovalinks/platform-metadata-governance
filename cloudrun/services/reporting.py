@@ -20,6 +20,12 @@ class ReportingService:
 
         return self.repository.dashboard()
 
+    def compliance(self):
+        """
+        Returns compliance breakdown by resource type.
+        """
+        return self.repository.compliance_breakdown()
+
     def runs(
         self,
         limit: int = 100,
@@ -53,8 +59,30 @@ class ReportingService:
             ),
         }
 
+    def resources(
+        self,
+        limit: int = 100,
+    ):
+        """
+        Returns a list of resources.
+        """
+        return self.repository.resources(
+            limit
+        )
+
     def metrics(
         self,
     ):
 
         return self.repository.metrics()
+
+    def non_compliant(
+        self,
+        limit: int = 100,
+    ):
+        """
+        Returns a list of non-compliant resources.
+        """
+        return self.repository.non_compliant(
+            limit
+        )

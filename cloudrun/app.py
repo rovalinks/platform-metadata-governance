@@ -82,6 +82,9 @@ def report_endpoint():
 def dashboard_endpoint():
     return Dispatcher.dispatch("dashboard")
 
+@app.get("/reports/compliance")
+def compliance_report_endpoint():
+    return Dispatcher.dispatch("compliance_report")
 
 @app.get("/reports/runs")
 def runs_endpoint():
@@ -105,7 +108,18 @@ def history_endpoint():
 def metrics_endpoint():
     return Dispatcher.dispatch("metrics")
 
+@app.get("/reports/resources")
+def resources_endpoint():
+    return Dispatcher.dispatch(
+        "resources"
+    )
 
+@app.get("/reports/non-compliant")
+def non_compliant_endpoint():
+    return Dispatcher.dispatch(
+        "non_compliant"
+    )
+    
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
