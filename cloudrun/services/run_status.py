@@ -1,5 +1,6 @@
 from repositories.execution_repository import ExecutionRepository
 from repositories.run_status_repository import RunStatusRepository
+from utils.logger import logger
 
 
 class RunStatusService:
@@ -15,17 +16,42 @@ class RunStatusService:
         self,
         run_id: str,
     ):
+        logger.info(
+            "Loading status for run %s",
+            run_id,
+        )
+
         run = self.run_status.get(run_id)
 
         if run is None:
+            logger.error(
+                "Run %s not found.",
+                run_id,
+            )
+
             raise RuntimeError(
                 f"Run {run_id} not found."
             )
 
+        logger.info(
+            "Run status record loaded: %s",
+            run,
+        )
+
         planned = run["planned"]
+
+        logger.info(
+            "Planned remediation actions: %d",
+            planned,
+        )
 
         execution_counts = self.execution.count_by_status(
             run_id
+        )
+
+        logger.info(
+            "Execution counts: %s",
+            execution_counts,
         )
 
         successful = execution_counts.get(
@@ -58,6 +84,18 @@ class RunStatusService:
             "COMPLETED"
             if processed >= planned
             else "RUNNING"
+        )
+
+        logger.info(
+            "Run %s summary: planned=%d processed=%d successful=%d failed=%d remaining=%d progress=%.2f%% status=%s",
+            run_id,
+            planned,
+            processed,
+            successful,
+            failed,
+            remaining,
+            progress,
+            status,
         )
 
         return {
