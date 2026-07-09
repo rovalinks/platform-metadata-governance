@@ -1,19 +1,31 @@
 from datetime import datetime
+
 from google.cloud import bigquery
+
 import config
 from utils.logger import logger
 
+
 class RunStatusRepository:
     """
-    Persists and retrieves remediation run status using an append-only pattern.
+    Persists and retrieves remediation run status.
+
+    BigQuery streaming rows cannot be updated immediately,
+    so this repository is append-only.
     """
 
     def __init__(self):
         self.client = bigquery.Client()
-        self.table = f"{config.BIGQUERY_DATASET}.run_status"
+        self.table = (
+            f"{config.BIGQUERY_DATASET}.run_status"
+        )
 
-    def create(self, run_id: str, project_id: str, planned_actions: int):
-        # We store the status as a new row
+    def create(
+        self,
+        run_id: str,
+        project_id: str,
+        planned_actions: int,
+    ):
         row = {
             "run_id": run_id,
             "project_id": project_id,
@@ -25,45 +37,66 @@ class RunStatusRepository:
             "completed_at": None,
         }
 
-        errors = self.client.insert_rows_json(self.table, [row])
+        errors = self.client.insert_rows_json(
+            self.table,
+            [row],
+        )
+
         if errors:
-            raise RuntimeError(f"Failed to insert run status: {errors}")
+            raise RuntimeError(errors)
 
-        logger.info("Created run status %s", run_id)
+        logger.info(
+            "Created run status %s",
+            run_id,
+        )
 
-    def complete(self, run_id: str, successful: int, failed: int):
-        """
-        Appends a 'COMPLETED' status record instead of updating existing ones.
-        """
-        # Fetch the original record to preserve project_id and planned count
-        original_run = self.get(run_id)
-        
+    def complete(
+        self,
+        run_id: str,
+        successful: int,
+        failed: int,
+    ):
+        run = self.get(run_id)
+
+        if run is None:
+            raise RuntimeError(
+                f"Run {run_id} not found."
+            )
+
         row = {
             "run_id": run_id,
-            "project_id": original_run["project_id"],
+            "project_id": run["project_id"],
             "status": "COMPLETED",
-            "planned": original_run["planned"],
+            "planned": run["planned"],
             "successful": successful,
             "failed": failed,
-            "started_at": original_run["started_at"],
+            "started_at": run["started_at"],
             "completed_at": datetime.utcnow().isoformat(),
         }
 
-        errors = self.client.insert_rows_json(self.table, [row])
+        errors = self.client.insert_rows_json(
+            self.table,
+            [row],
+        )
+
         if errors:
-            raise RuntimeError(f"Failed to append completion status: {errors}")
+            raise RuntimeError(errors)
 
-        logger.info("Run %s marked COMPLETE via append", run_id)
+        logger.info(
+            "Run %s marked COMPLETE",
+            run_id,
+        )
 
-    def get(self, run_id: str):
-        """
-        Retrieves the most recent record for a run_id using QUALIFY.
-        """
+    def get(
+        self,
+        run_id: str,
+    ):
         query = f"""
         SELECT *
         FROM `{self.table}`
-        WHERE run_id = @run_id
-        QUALIFY ROW_NUMBER() OVER(PARTITION BY run_id ORDER BY completed_at DESC, started_at DESC) = 1
+        WHERE run_id=@run_id
+        ORDER BY started_at DESC,
+                 completed_at DESC
         LIMIT 1
         """
 
@@ -71,7 +104,11 @@ class RunStatusRepository:
             query,
             job_config=bigquery.QueryJobConfig(
                 query_parameters=[
-                    bigquery.ScalarQueryParameter("run_id", "STRING", run_id)
+                    bigquery.ScalarQueryParameter(
+                        "run_id",
+                        "STRING",
+                        run_id,
+                    )
                 ]
             ),
         )
