@@ -95,16 +95,15 @@ class ReportRepository:
         ),
         plans AS (
             SELECT 
-                COUNT(*) AS planned_remediations,
-                COUNTIF(status='PLANNED') AS remaining_remediations,
-                COUNTIF(status='IN_PROGRESS') AS in_progress_remediations
+                COUNT(*) AS planned_remediations
             FROM `{self.dataset}.remediation_plan`
         ),
         executions AS (
             SELECT
                 COUNT(*) AS executed_remediations,
                 COUNTIF(status = 'SUCCESS') AS successful_remediations,
-                COUNTIF(status = 'FAILED') AS failed_remediations
+                COUNTIF(status = 'FAILED') AS failed_remediations,
+                COUNTIF(status = 'IN_PROGRESS') AS in_progress_remediations
             FROM `{self.dataset}.remediation_execution`
         )
         SELECT *
@@ -125,7 +124,10 @@ class ReportRepository:
             "compliance_percentage": round((row.compliant_resources / row.supported_resources) * 100, 2) 
                                      if row.supported_resources > 0 else 100,
             "planned_remediations": row.planned_remediations,
-            "remaining_remediations": row.remaining_remediations,
+            "remaining_remediations": (
+                row.planned_remediations
+                - row.executed_remediations
+            ),
             "in_progress_remediations": row.in_progress_remediations,
             "executed_remediations": row.executed_remediations,
             "successful_remediations": row.successful_remediations,

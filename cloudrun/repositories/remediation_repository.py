@@ -209,40 +209,15 @@ class RemediationRepository:
         status: str,
     ):
         """
-        Update remediation execution status.
-        """
-        query = f"""
-        UPDATE `{self.table_id}`
-        SET status = @status
-        WHERE run_id = @run_id
-        AND resource_name = @resource_name
-        """
+        Status updates are intentionally disabled.
 
-        self.client.query(
-            query,
-            job_config=bigquery.QueryJobConfig(
-                query_parameters=[
-                    bigquery.ScalarQueryParameter(
-                        "status",
-                        "STRING",
-                        status,
-                    ),
-                    bigquery.ScalarQueryParameter(
-                        "run_id",
-                        "STRING",
-                        run_id,
-                    ),
-                    bigquery.ScalarQueryParameter(
-                        "resource_name",
-                        "STRING",
-                        resource_name,
-                    ),
-                ]
-            ),
-        ).result()
+        BigQuery does not allow UPDATEs against rows still in the
+        streaming buffer. Execution status is recorded in the
+        remediation_execution table instead.
+        """
 
         logger.info(
-            "Updated %s -> %s",
+            "Skipping remediation_plan update for %s -> %s",
             resource_name,
             status,
         )
@@ -252,34 +227,14 @@ class RemediationRepository:
         run_id: str,
     ):
         """
-        Recover from interrupted executions.
+        Disabled.
 
-        Any resource left IN_PROGRESS is returned
-        to PLANNED so execution can resume.
+        Recovery is handled from remediation_execution.
         """
-
-        query = f"""
-        UPDATE `{self.table_id}`
-        SET status = 'PLANNED'
-        WHERE run_id = @run_id
-          AND status = 'IN_PROGRESS'
-        """
-
-        self.client.query(
-            query,
-            job_config=bigquery.QueryJobConfig(
-                query_parameters=[
-                    bigquery.ScalarQueryParameter(
-                        "run_id",
-                        "STRING",
-                        run_id,
-                    )
-                ]
-            ),
-        ).result()
 
         logger.info(
-            "Recovered interrupted remediation actions."
+            "Skipping remediation recovery for run %s",
+            run_id,
         )
 
     def count_by_status(
