@@ -3,6 +3,7 @@ from services.compliance import ComplianceService
 from services.planner import PlannerService
 from services.executor import ExecutorService
 from utils.logger import logger
+import config
 import uuid
 
 
@@ -102,6 +103,20 @@ class BrownfieldService:
             plan["planned_actions"],
         )
 
+
+        if plan["planned_actions"] == 0:
+            logger.info("No remediation required.")
+
+            return {
+                "project": project_id,
+                "discovered": discovered,
+                "evaluated": evaluated,
+                "planned": 0,
+                "queued": 0,
+                "batches": 0,
+                "run_id": run_id,
+                "status": "COMPLIANT",
+            }
         #
         # Execute
         #
@@ -134,7 +149,14 @@ class BrownfieldService:
             "evaluated": evaluated,
             "planned": plan["planned_actions"],
             "queued": plan["planned_actions"],
-            "batches": execution["batches"],
+            "batches": execution.get(
+                "batches",
+                (
+                    plan["planned_actions"]
+                    + config.REMEDIATION_BATCH_SIZE
+                    - 1
+                ) # config.REMEDIATION_BATCH_SIZE
+            ),
             "run_id": execution["run_id"],
             "status": execution["status"],
         }

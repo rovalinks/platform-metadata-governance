@@ -94,13 +94,23 @@ class ReportRepository:
                 COUNT(*) AS planned_remediations
             FROM `{self.dataset}.remediation_plan`
         ),
+        latest_execution AS (
+            SELECT
+                status,
+                ROW_NUMBER() OVER(
+                    PARTITION BY run_id, resource_name 
+                    ORDER BY executed_at DESC
+                ) as rn
+            FROM `{self.dataset}.remediation_execution`
+        ),
         executions AS (
             SELECT
                 COUNT(*) AS executed_remediations,
                 COUNTIF(status = 'SUCCESS') AS successful_remediations,
                 COUNTIF(status = 'FAILED') AS failed_remediations,
                 COUNTIF(status = 'IN_PROGRESS') AS in_progress_remediations
-            FROM `{self.dataset}.remediation_execution`
+            FROM latest_execution
+            WHERE rn = 1
         )
         SELECT *
         FROM resources
@@ -129,7 +139,7 @@ class ReportRepository:
             "successful_remediations": row.successful_remediations,
             "failed_remediations": row.failed_remediations,
             "success_rate": round((row.successful_remediations / row.executed_remediations) * 100, 2) 
-                       if row.executed_remediations > 0 else 100,
+                        if row.executed_remediations > 0 else 100,
         }
 
         # 2. Compliance breakdown
@@ -199,13 +209,24 @@ class ReportRepository:
             FROM `{self.dataset}.remediation_plan`
             GROUP BY run_id
         ),
+        latest_execution AS (
+            SELECT
+                run_id,
+                status,
+                ROW_NUMBER() OVER(
+                    PARTITION BY run_id, resource_name 
+                    ORDER BY executed_at DESC
+                ) as rn
+            FROM `{self.dataset}.remediation_execution`
+        ),
         exec_counts AS (
             SELECT 
                 run_id,
                 COUNTIF(status='SUCCESS') AS completed,
                 COUNTIF(status='FAILED') AS failed,
                 COUNTIF(status='IN_PROGRESS') AS in_progress
-            FROM `{self.dataset}.remediation_execution`
+            FROM latest_execution
+            WHERE rn = 1
             GROUP BY run_id
         )
         SELECT 
@@ -255,6 +276,18 @@ class ReportRepository:
             WHERE run_id=@run_id
             GROUP BY run_id
         ),
+        latest_execution AS (
+            SELECT
+                run_id,
+                status,
+                executed_at,
+                ROW_NUMBER() OVER(
+                    PARTITION BY run_id, resource_name 
+                    ORDER BY executed_at DESC
+                ) as rn
+            FROM `{self.dataset}.remediation_execution`
+            WHERE run_id=@run_id
+        ),
         execution AS (
             SELECT
                 run_id,
@@ -262,8 +295,8 @@ class ReportRepository:
                 COUNTIF(status='FAILED') AS failed,
                 COUNTIF(status='IN_PROGRESS') AS in_progress,
                 MAX(executed_at) AS finished
-            FROM `{self.dataset}.remediation_execution`
-            WHERE run_id=@run_id
+            FROM latest_execution
+            WHERE rn = 1
             GROUP BY run_id
         )
         SELECT 
@@ -335,12 +368,23 @@ class ReportRepository:
         Returns remediation metrics over time.
         """
         query = f"""
+        WITH latest_execution AS (
+            SELECT
+                status,
+                executed_at,
+                ROW_NUMBER() OVER(
+                    PARTITION BY run_id, resource_name 
+                    ORDER BY executed_at DESC
+                ) as rn
+            FROM `{self.dataset}.remediation_execution`
+        )
         SELECT
             DATE(executed_at) AS day,
             COUNT(*) AS total,
             COUNTIF(status='SUCCESS') AS successful,
             COUNTIF(status='FAILED') AS failed
-        FROM `{self.dataset}.remediation_execution`
+        FROM latest_execution
+        WHERE rn = 1
         GROUP BY day
         ORDER BY day
         """

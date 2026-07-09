@@ -124,6 +124,179 @@ class ComputeClient(ResourceClient):
             logger.exception(f"Failed to fetch labels for {resource.name}: {e}")
             return None
 
+    def get(self, resource_name: str) -> Resource:
+        """
+        Returns a Resource object for Greenfield remediation.
+        Supports all Compute resource types defined in SUPPORTED_LABEL_TYPES.
+        """
+        if "/instances/" in resource_name:
+            info = parse_instance_name(resource_name)
+            res = self.instances.get(project=info["project"], zone=info["zone"], instance=info["instance"])
+            return Resource(
+                asset_type="compute.googleapis.com/Instance",
+                name=resource_name,
+                project=info["project"],
+                location=info["zone"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/disks/" in resource_name:
+            info = parse_disk_name(resource_name)
+            res = self.disks.get(project=info["project"], zone=info["zone"], disk=info["disk"])
+            return Resource(
+                asset_type="compute.googleapis.com/Disk",
+                name=resource_name,
+                project=info["project"],
+                location=info["zone"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/addresses/" in resource_name:
+            info = parse_address_name(resource_name)
+            res = self.addresses.get(project=info["project"], region=info["region"], address=info["address"])
+            return Resource(
+                asset_type="compute.googleapis.com/Address",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/forwardingRules/" in resource_name:
+            info = parse_forwarding_rule_name(resource_name)
+            res = self.forwarding_rules.get(project=info["project"], region=info["region"], forwarding_rule=info["forwarding_rule"])
+            return Resource(
+                asset_type="compute.googleapis.com/ForwardingRule",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/networkEndpointGroups/" in resource_name:
+            info = parse_network_endpoint_group_name(resource_name)
+            res = self.network_endpoint_groups.get(project=info["project"], zone=info["zone"], network_endpoint_group=info["network_endpoint_group"])
+            return Resource(
+                asset_type="compute.googleapis.com/NetworkEndpointGroup",
+                name=resource_name,
+                project=info["project"],
+                location=info["zone"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/snapshots/" in resource_name:
+            info = parse_snapshot_name(resource_name)
+            res = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
+            return Resource(
+                asset_type="compute.googleapis.com/Snapshot",
+                name=resource_name,
+                project=info["project"],
+                location="global",
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/images/" in resource_name:
+            info = parse_image_name(resource_name)
+            res = self.images.get(project=info["project"], image=info["image"])
+            return Resource(
+                asset_type="compute.googleapis.com/Image",
+                name=resource_name,
+                project=info["project"],
+                location="global",
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/machineImages/" in resource_name:
+            info = parse_machine_image_name(resource_name)
+            res = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
+            return Resource(
+                asset_type="compute.googleapis.com/MachineImage",
+                name=resource_name,
+                project=info["project"],
+                location="global",
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/instanceGroups/" in resource_name:
+            info = parse_instance_group_name(resource_name)
+            res = self.instance_groups.get(project=info["project"], zone=info["zone"], instance_group=info["instance_group"])
+            return Resource(
+                asset_type="compute.googleapis.com/InstanceGroup",
+                name=resource_name,
+                project=info["project"],
+                location=info["zone"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/targetPools/" in resource_name:
+            info = parse_target_pool_name(resource_name)
+            res = self.target_pools.get(project=info["project"], region=info["region"], target_pool=info["target_pool"])
+            return Resource(
+                asset_type="compute.googleapis.com/TargetPool",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/networkAttachments/" in resource_name:
+            info = parse_network_attachment_name(resource_name)
+            res = self.network_attachments.get(project=info["project"], region=info["region"], network_attachment=info["network_attachment"])
+            return Resource(
+                asset_type="compute.googleapis.com/NetworkAttachment",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/serviceAttachments/" in resource_name:
+            info = parse_service_attachment_name(resource_name)
+            res = self.service_attachments.get(project=info["project"], region=info["region"], service_attachment=info["service_attachment"])
+            return Resource(
+                asset_type="compute.googleapis.com/ServiceAttachment",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/vpnGateways/" in resource_name:
+            info = parse_vpn_gateway_name(resource_name)
+            res = self.vpn_gateways.get(project=info["project"], region=info["region"], vpn_gateway=info["vpn_gateway"])
+            return Resource(
+                asset_type="compute.googleapis.com/VpnGateway",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/packetMirrorings/" in resource_name:
+            info = parse_packet_mirroring_name(resource_name)
+            res = self.packet_mirroring.get(project=info["project"], region=info["region"], packet_mirroring=info["packet_mirroring"])
+            return Resource(
+                asset_type="compute.googleapis.com/PacketMirroring",
+                name=resource_name,
+                project=info["project"],
+                location=info["region"],
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        elif "/externalVpnGateways/" in resource_name:
+            info = parse_external_vpn_gateway_name(resource_name)
+            res = self.external_vpn_gateways.get(project=info["project"], external_vpn_gateway=info["external_vpn_gateway"])
+            return Resource(
+                asset_type="compute.googleapis.com/ExternalVpnGateway",
+                name=resource_name,
+                project=info["project"],
+                location="global",
+                labels=dict(getattr(res, "labels", {}))
+            )
+
+        else:
+            raise ValueError(f"Unsupported Compute resource: {resource_name}")
+
     def _merge_labels(self, existing, labels):
         merged = existing.copy()
         if config.PRESERVE_EXISTING_LABELS:
