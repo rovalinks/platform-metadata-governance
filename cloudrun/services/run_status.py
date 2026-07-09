@@ -1,59 +1,75 @@
-from datetime import datetime
-import config
+from repositories.execution_repository import ExecutionRepository
+from repositories.run_status_repository import RunStatusRepository
 
-class RunStatusRepository:
+
+class RunStatusService:
     """
-    Handles persistence for the status and progress of remediation runs.
+    Returns the current status of a remediation run.
     """
 
     def __init__(self):
-        self.db = firestore.Client(project=config.PROJECT_ID)
-        self.collection = self.db.collection("run_status")
+        self.run_status = RunStatusRepository()
+        self.execution = ExecutionRepository()
 
-    def create(
+    def get_status(
         self,
         run_id: str,
-        project_id: str,
-        planned_actions: int,
     ):
-        """
-        Creates a new run status record in Firestore.
-        """
-        data = {
+        run = self.run_status.get(run_id)
+
+        if run is None:
+            raise RuntimeError(
+                f"Run {run_id} not found."
+            )
+
+        planned = run["planned"]
+
+        execution_counts = self.execution.count_by_status(
+            run_id
+        )
+
+        successful = execution_counts.get(
+            "SUCCESS",
+            0,
+        )
+
+        failed = execution_counts.get(
+            "FAILED",
+            0,
+        )
+
+        processed = successful + failed
+
+        remaining = max(
+            planned - processed,
+            0,
+        )
+
+        progress = (
+            round(
+                (processed / planned) * 100,
+                2,
+            )
+            if planned
+            else 100
+        )
+
+        status = (
+            "COMPLETED"
+            if processed >= planned
+            else "RUNNING"
+        )
+
+        return {
             "run_id": run_id,
-            "project_id": project_id,
-            "status": "QUEUED",
-            "planned_actions": planned_actions,
-            "successful": 0,
-            "failed": 0,
-            "started_at": datetime.utcnow().isoformat(),
-            "completed_at": None,
-        }
-
-        self.collection.document(run_id).set(data)
-        return data
-
-    def complete(
-        self,
-        run_id: str,
-        successful: int,
-        failed: int,
-    ):
-        """
-        Marks the run as completed and updates final counts.
-        """
-        self.collection.document(run_id).update({
-            "status": "COMPLETED",
+            "project_id": run["project_id"],
+            "planned": planned,
+            "processed": processed,
             "successful": successful,
             "failed": failed,
-            "completed_at": datetime.utcnow().isoformat(),
-        })
-
-    def get_run(self, run_id: str):
-        """
-        Retrieves the status record for a specific run.
-        """
-        doc = self.collection.document(run_id).get()
-        if doc.exists:
-            return doc.to_dict()
-        return {}
+            "remaining": remaining,
+            "progress": progress,
+            "status": status,
+            "started_at": run["started_at"],
+            "completed_at": run["completed_at"],
+        }
