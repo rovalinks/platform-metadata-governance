@@ -270,6 +270,7 @@ class ExecutorService:
                 "run_id": run_id,
                 "status": "COMPLETED",
                 "resources": 0,
+                "batches": 0,
             }
 
         total_batches = math.ceil(
