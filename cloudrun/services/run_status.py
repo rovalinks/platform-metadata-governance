@@ -1,5 +1,4 @@
 from datetime import datetime
-from google.cloud import firestore
 import config
 
 class RunStatusRepository:
