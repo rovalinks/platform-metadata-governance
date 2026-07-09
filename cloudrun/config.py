@@ -139,6 +139,6 @@ MAX_PARALLEL_WORKERS = int(
 REMEDIATION_BATCH_SIZE = int(
     os.getenv(
         "REMEDIATION_BATCH_SIZE",
-        "500",
+        "2",
     )
 )

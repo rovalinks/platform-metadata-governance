@@ -21,13 +21,13 @@ class RunStatusRepository:
         self,
         run_id: str,
         project_id: str,
-        planned: int,
+        planned_actions: int,
     ):
         row = {
             "run_id": run_id,
             "project_id": project_id,
             "status": "RUNNING",
-            "planned": planned,
+            "planned": planned_actions,
             "successful": 0,
             "failed": 0,
             "started_at": datetime.utcnow().isoformat(),
