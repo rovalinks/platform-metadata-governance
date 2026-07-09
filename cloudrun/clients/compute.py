@@ -41,6 +41,10 @@ class ComputeClient(ResourceClient):
         self.packet_mirroring = compute_v1.PacketMirroringsClient()
         self.external_vpn_gateways = compute_v1.ExternalVpnGatewaysClient()
 
+    def supports(self, asset_type: str):
+        """Checks if the asset type is supported by this client."""
+        return asset_type.startswith("compute.googleapis.com/")
+
     def _merge_labels(self, existing, labels):
         merged = existing.copy()
         if config.PRESERVE_EXISTING_LABELS:
