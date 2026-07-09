@@ -49,7 +49,7 @@ def execute_endpoint():
     return Dispatcher.dispatch("execute")
 
 @app.route(
-    "/runs/<run_id>",
+    "/run-status/<run_id>",
     methods=["GET"],
 )
 def run_status_endpoint(run_id):
