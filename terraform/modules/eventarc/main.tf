@@ -12,7 +12,7 @@ resource "google_eventarc_trigger" "this" {
 
   project = var.project_id
 
-  location = var.region
+  location = each.value.location
 
   matching_criteria {
 

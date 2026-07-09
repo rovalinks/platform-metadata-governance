@@ -107,9 +107,10 @@ variable "eventarc" {
 
   type = object({
     triggers = list(object({
-      name    = string
-      service = string
-      method  = string
+      name     = string
+      service  = string
+      method   = string
+      location = string
     }))
   })
 }

@@ -1,4 +1,5 @@
 from google.cloud import compute_v1
+from google.api_core.exceptions import PreconditionFailed
 import logging
 from clients.base import ResourceClient
 from models.resource import Resource
@@ -188,6 +189,7 @@ class ComputeClient(ResourceClient):
         raise ValueError(f"Unsupported Compute resource: {resource_name}")
     
     def apply_labels(self, resource, labels: dict):
+        # 1. Network Endpoint Groups
         if "/networkEndpointGroups/" in resource.name:
             info = parse_network_endpoint_group_name(resource.name)
             neg = self.network_endpoint_groups.get(project=info["project"], zone=info["zone"], network_endpoint_group=info["network_endpoint_group"])
@@ -195,7 +197,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.ZoneSetLabelsRequest(labels=merged, label_fingerprint=neg.label_fingerprint)
-            operation = self.network_endpoint_groups.set_labels(project=info["project"], zone=info["zone"], resource=info["network_endpoint_group"], zone_set_labels_request_resource=request)
+            try:
+                operation = self.network_endpoint_groups.set_labels(project=info["project"], zone=info["zone"], resource=info["network_endpoint_group"], zone_set_labels_request_resource=request)
+            except PreconditionFailed:
+                neg = self.network_endpoint_groups.get(project=info["project"], zone=info["zone"], network_endpoint_group=info["network_endpoint_group"])
+                request = compute_v1.ZoneSetLabelsRequest(labels=self._merge_labels(dict(neg.labels or {}), labels), label_fingerprint=neg.label_fingerprint)
+                operation = self.network_endpoint_groups.set_labels(project=info["project"], zone=info["zone"], resource=info["network_endpoint_group"], zone_set_labels_request_resource=request)
+            self.zone_operations.wait(project=info["project"], zone=info["zone"], operation=operation.name)
+
+        # 2. Snapshots
         elif "/snapshots/" in resource.name:
             info = parse_snapshot_name(resource.name)
             snapshot = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
@@ -203,7 +213,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.GlobalSetLabelsRequest(labels=merged, label_fingerprint=snapshot.label_fingerprint)
-            operation = self.snapshots.set_labels(project=info["project"], resource=info["snapshot"], global_set_labels_request_resource=request)
+            try:
+                operation = self.snapshots.set_labels(project=info["project"], resource=info["snapshot"], global_set_labels_request_resource=request)
+            except PreconditionFailed:
+                snapshot = self.snapshots.get(project=info["project"], snapshot=info["snapshot"])
+                request = compute_v1.GlobalSetLabelsRequest(labels=self._merge_labels(dict(snapshot.labels or {}), labels), label_fingerprint=snapshot.label_fingerprint)
+                operation = self.snapshots.set_labels(project=info["project"], resource=info["snapshot"], global_set_labels_request_resource=request)
+            self.global_operations.wait(project=info["project"], operation=operation.name)
+
+        # 3. Images
         elif "/images/" in resource.name:
             info = parse_image_name(resource.name)
             image = self.images.get(project=info["project"], image=info["image"])
@@ -211,7 +229,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.GlobalSetLabelsRequest(labels=merged, label_fingerprint=image.label_fingerprint)
-            operation = self.images.set_labels(project=info["project"], resource=info["image"], global_set_labels_request_resource=request)
+            try:
+                operation = self.images.set_labels(project=info["project"], resource=info["image"], global_set_labels_request_resource=request)
+            except PreconditionFailed:
+                image = self.images.get(project=info["project"], image=info["image"])
+                request = compute_v1.GlobalSetLabelsRequest(labels=self._merge_labels(dict(image.labels or {}), labels), label_fingerprint=image.label_fingerprint)
+                operation = self.images.set_labels(project=info["project"], resource=info["image"], global_set_labels_request_resource=request)
+            self.global_operations.wait(project=info["project"], operation=operation.name)
+
+        # 4. Machine Images
         elif "/machineImages/" in resource.name:
             info = parse_machine_image_name(resource.name)
             machine_image = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
@@ -219,7 +245,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.GlobalSetLabelsRequest(labels=merged, label_fingerprint=machine_image.label_fingerprint)
-            operation = self.machine_images.set_labels(project=info["project"], resource=info["machine_image"], global_set_labels_request_resource=request)
+            try:
+                operation = self.machine_images.set_labels(project=info["project"], resource=info["machine_image"], global_set_labels_request_resource=request)
+            except PreconditionFailed:
+                machine_image = self.machine_images.get(project=info["project"], machine_image=info["machine_image"])
+                request = compute_v1.GlobalSetLabelsRequest(labels=self._merge_labels(dict(machine_image.labels or {}), labels), label_fingerprint=machine_image.label_fingerprint)
+                operation = self.machine_images.set_labels(project=info["project"], resource=info["machine_image"], global_set_labels_request_resource=request)
+            self.global_operations.wait(project=info["project"], operation=operation.name)
+
+        # 5. Instance Groups
         elif "/instanceGroups/" in resource.name:
             info = parse_instance_group_name(resource.name)
             group = self.instance_groups.get(project=info["project"], zone=info["zone"], instance_group=info["instance_group"])
@@ -227,7 +261,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.ZoneSetLabelsRequest(labels=merged, label_fingerprint=group.label_fingerprint)
-            operation = self.instance_groups.set_labels(project=info["project"], zone=info["zone"], resource=info["instance_group"], zone_set_labels_request_resource=request)
+            try:
+                operation = self.instance_groups.set_labels(project=info["project"], zone=info["zone"], resource=info["instance_group"], zone_set_labels_request_resource=request)
+            except PreconditionFailed:
+                group = self.instance_groups.get(project=info["project"], zone=info["zone"], instance_group=info["instance_group"])
+                request = compute_v1.ZoneSetLabelsRequest(labels=self._merge_labels(dict(group.labels or {}), labels), label_fingerprint=group.label_fingerprint)
+                operation = self.instance_groups.set_labels(project=info["project"], zone=info["zone"], resource=info["instance_group"], zone_set_labels_request_resource=request)
+            self.zone_operations.wait(project=info["project"], zone=info["zone"], operation=operation.name)
+
+        # 6. Target Pools
         elif "/targetPools/" in resource.name:
             info = parse_target_pool_name(resource.name)
             pool = self.target_pools.get(project=info["project"], region=info["region"], target_pool=info["target_pool"])
@@ -235,7 +277,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.RegionSetLabelsRequest(labels=merged, label_fingerprint=pool.label_fingerprint)
-            operation = self.target_pools.set_labels(project=info["project"], region=info["region"], resource=info["target_pool"], region_set_labels_request_resource=request)
+            try:
+                operation = self.target_pools.set_labels(project=info["project"], region=info["region"], resource=info["target_pool"], region_set_labels_request_resource=request)
+            except PreconditionFailed:
+                pool = self.target_pools.get(project=info["project"], region=info["region"], target_pool=info["target_pool"])
+                request = compute_v1.RegionSetLabelsRequest(labels=self._merge_labels(dict(pool.labels or {}), labels), label_fingerprint=pool.label_fingerprint)
+                operation = self.target_pools.set_labels(project=info["project"], region=info["region"], resource=info["target_pool"], region_set_labels_request_resource=request)
+            self.region_operations.wait(project=info["project"], region=info["region"], operation=operation.name)
+
+        # 7. Resource Policies
         elif "/resourcePolicies/" in resource.name:
             info = parse_resource_policy_name(resource.name)
             policy = self.resource_policies.get(project=info["project"], region=info["region"], resource_policy=info["resource_policy"])
@@ -243,7 +293,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.RegionSetLabelsRequest(labels=merged, label_fingerprint=policy.label_fingerprint)
-            operation = self.resource_policies.set_labels(project=info["project"], region=info["region"], resource=info["resource_policy"], region_set_labels_request_resource=request)
+            try:
+                operation = self.resource_policies.set_labels(project=info["project"], region=info["region"], resource=info["resource_policy"], region_set_labels_request_resource=request)
+            except PreconditionFailed:
+                policy = self.resource_policies.get(project=info["project"], region=info["region"], resource_policy=info["resource_policy"])
+                request = compute_v1.RegionSetLabelsRequest(labels=self._merge_labels(dict(policy.labels or {}), labels), label_fingerprint=policy.label_fingerprint)
+                operation = self.resource_policies.set_labels(project=info["project"], region=info["region"], resource=info["resource_policy"], region_set_labels_request_resource=request)
+            self.region_operations.wait(project=info["project"], region=info["region"], operation=operation.name)
+
+        # 8. Instances
         elif "/instances/" in resource.name:
             info = parse_instance_name(resource.name)
             instance = self.instances.get(project=info["project"], zone=info["zone"], instance=info["instance"])
@@ -251,7 +309,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.InstancesSetLabelsRequest(labels=merged, label_fingerprint=instance.label_fingerprint)
-            operation = self.instances.set_labels(project=info["project"], zone=info["zone"], instance=info["instance"], instances_set_labels_request_resource=request)
+            try:
+                operation = self.instances.set_labels(project=info["project"], zone=info["zone"], instance=info["instance"], instances_set_labels_request_resource=request)
+            except PreconditionFailed:
+                instance = self.instances.get(project=info["project"], zone=info["zone"], instance=info["instance"])
+                request = compute_v1.InstancesSetLabelsRequest(labels=self._merge_labels(dict(instance.labels or {}), labels), label_fingerprint=instance.label_fingerprint)
+                operation = self.instances.set_labels(project=info["project"], zone=info["zone"], instance=info["instance"], instances_set_labels_request_resource=request)
+            self.zone_operations.wait(project=info["project"], zone=info["zone"], operation=operation.name)
+
+        # 9. Disks
         elif "/disks/" in resource.name:
             info = parse_disk_name(resource.name)
             disk = self.disks.get(project=info["project"], zone=info["zone"], disk=info["disk"])
@@ -259,7 +325,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.ZoneSetLabelsRequest(labels=merged, label_fingerprint=disk.label_fingerprint)
-            operation = self.disks.set_labels(project=info["project"], zone=info["zone"], resource=info["disk"], zone_set_labels_request_resource=request)
+            try:
+                operation = self.disks.set_labels(project=info["project"], zone=info["zone"], resource=info["disk"], zone_set_labels_request_resource=request)
+            except PreconditionFailed:
+                disk = self.disks.get(project=info["project"], zone=info["zone"], disk=info["disk"])
+                request = compute_v1.ZoneSetLabelsRequest(labels=self._merge_labels(dict(disk.labels or {}), labels), label_fingerprint=disk.label_fingerprint)
+                operation = self.disks.set_labels(project=info["project"], zone=info["zone"], resource=info["disk"], zone_set_labels_request_resource=request)
+            self.zone_operations.wait(project=info["project"], zone=info["zone"], operation=operation.name)
+
+        # 10. Addresses
         elif "/addresses/" in resource.name:
             info = parse_address_name(resource.name)
             address = self.addresses.get(project=info["project"], region=info["region"], address=info["address"])
@@ -267,7 +341,15 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.RegionSetLabelsRequest(labels=merged, label_fingerprint=address.label_fingerprint)
-            operation = self.addresses.set_labels(project=info["project"], region=info["region"], resource=info["address"], region_set_labels_request_resource=request)
+            try:
+                operation = self.addresses.set_labels(project=info["project"], region=info["region"], resource=info["address"], region_set_labels_request_resource=request)
+            except PreconditionFailed:
+                address = self.addresses.get(project=info["project"], region=info["region"], address=info["address"])
+                request = compute_v1.RegionSetLabelsRequest(labels=self._merge_labels(dict(address.labels or {}), labels), label_fingerprint=address.label_fingerprint)
+                operation = self.addresses.set_labels(project=info["project"], region=info["region"], resource=info["address"], region_set_labels_request_resource=request)
+            self.region_operations.wait(project=info["project"], region=info["region"], operation=operation.name)
+
+        # 11. Forwarding Rules
         elif "/forwardingRules/" in resource.name:
             info = parse_forwarding_rule_name(resource.name)
             rule = self.forwarding_rules.get(project=info["project"], region=info["region"], forwarding_rule=info["forwarding_rule"])
@@ -275,17 +357,17 @@ class ComputeClient(ResourceClient):
             merged = self._merge_labels(existing, labels)
             if merged == existing: return True
             request = compute_v1.RegionSetLabelsRequest(labels=merged, label_fingerprint=rule.label_fingerprint)
-            operation = self.forwarding_rules.set_labels(project=info["project"], region=info["region"], resource=info["forwarding_rule"], region_set_labels_request_resource=request)
+            try:
+                operation = self.forwarding_rules.set_labels(project=info["project"], region=info["region"], resource=info["forwarding_rule"], region_set_labels_request_resource=request)
+            except PreconditionFailed:
+                rule = self.forwarding_rules.get(project=info["project"], region=info["region"], forwarding_rule=info["forwarding_rule"])
+                request = compute_v1.RegionSetLabelsRequest(labels=self._merge_labels(dict(rule.labels or {}), labels), label_fingerprint=rule.label_fingerprint)
+                operation = self.forwarding_rules.set_labels(project=info["project"], region=info["region"], resource=info["forwarding_rule"], region_set_labels_request_resource=request)
+            self.region_operations.wait(project=info["project"], region=info["region"], operation=operation.name)
+
         else:
             raise ValueError(f"Unsupported Compute resource: {resource.name}")
         
-        # Operation handling
-        if ("/instances/" in resource.name or "/disks/" in resource.name or "/networkEndpointGroups/" in resource.name or "/instanceGroups/" in resource.name):
-            self.zone_operations.wait(project=info["project"], zone=info["zone"], operation=operation.name)
-        elif ("/snapshots/" in resource.name or "/images/" in resource.name or "/machineImages/" in resource.name):
-            self.global_operations.wait(project=info["project"], operation=operation.name)
-        else:
-            self.region_operations.wait(project=info["project"], region=info["region"], operation=operation.name)
         return True
 
     def _merge_labels(self, existing, labels):
