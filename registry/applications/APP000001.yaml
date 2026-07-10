@@ -5,7 +5,7 @@ team: cloud-platform-engineering
 owner: rks
 budgetOwner: rohit
 organization: rba
-department: cloud-platform-engineering
+department: cloud-engineering
 costCenter: PLACEHOLDER
 
 bindings:
@@ -15,4 +15,3 @@ bindings:
     region: europe-west2
     environment: dev
     businessCriticality: low
-

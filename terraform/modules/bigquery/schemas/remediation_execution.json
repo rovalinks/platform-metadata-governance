@@ -25,6 +25,11 @@
     "mode": "REQUIRED"
   },
   {
+    "name": "managed_labels",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "status",
     "type": "STRING",
     "mode": "REQUIRED"

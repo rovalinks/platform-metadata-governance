@@ -80,19 +80,12 @@ class PlannerService:
             plans.append(
 
                 RemediationPlan(
-
                     run_id=run_id,
-
                     project_id=project,
-
                     asset_type=result.asset_type,
-
                     resource_name=result.name,
-
                     missing_labels=result.missing_labels,
-
                     planned_labels=planned_labels,
-
                 )
 
             )

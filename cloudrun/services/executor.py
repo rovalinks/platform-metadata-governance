@@ -8,11 +8,12 @@ import config
 from repositories.execution_repository import ExecutionRepository
 from repositories.remediation_repository import RemediationRepository
 from repositories.run_status_repository import RunStatusRepository
+from repositories.label_ownership_repository import LabelOwnershipRepository
 from services.adapter import AdapterService
 from services.cloud_task_service import CloudTaskService
 from utils.exceptions import format_gcp_exception
 from utils.logger import logger
-
+from services.label_ownership import LabelOwnershipService
 
 class ExecutorService:
     """Executes enforcement actions."""
@@ -23,6 +24,8 @@ class ExecutorService:
         self.execution_repository = ExecutionRepository()
         self.run_status = RunStatusRepository()
         self.cloud_tasks = CloudTaskService()
+        self.label_ownership = LabelOwnershipService()
+        self.label_repository = LabelOwnershipRepository()
 
     def execute(self, actions):
         """Executes enforcement actions in parallel."""
@@ -73,15 +76,28 @@ class ExecutorService:
             client.__class__.__name__,
         )
 
-        resource = SimpleNamespace(
-            name=action["resource"]
-        )
-
         try:
+            resource = client.get(action["resource"])
+
+            managed_labels, _ = self.label_repository.load(
+                action["resource"]
+            )
+
+            final_labels = self.label_ownership.build(
+                existing=resource.labels,
+                desired=action["labels"],
+                managed=managed_labels,
+            )
+
+            new_managed_labels = self.label_ownership.managed_keys(
+                existing=resource.labels,
+                desired=action["labels"],
+                managed=managed_labels,
+            )
 
             client.apply_labels(
                 resource,
-                action["labels"],
+                final_labels,
             )
 
             logger.info(
@@ -92,6 +108,7 @@ class ExecutorService:
             return {
                 "resource": action["resource"],
                 "status": "updated",
+                "managed_labels": new_managed_labels,
             }
 
         except Exception as error:
@@ -200,6 +217,13 @@ class ExecutorService:
             )
 
             if status == "SUCCESS":
+                self.label_repository.save(
+                    resource_name=plan.resource_name,
+                    managed_labels=result["managed_labels"],
+                    managed_tags=[],
+                )
+
+                # Mark success with streaming buffer retry loop
                 for attempt in range(12):
                     try:
                         self.repository.mark_success(

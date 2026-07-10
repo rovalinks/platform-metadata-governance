@@ -105,10 +105,10 @@ class BrownfieldService:
 
 
         if plan["planned_actions"] == 0:
-                    logger.info(
-                        """No remediation required. All supported resources are compliant.
-                           ========== BROWNFIELD COMPLETE =========="""
-                    )
+            logger.info(
+                "No remediation required. All supported resources are compliant.\n"
+                "========== BROWNFIELD COMPLETE =========="
+            )
 
             return {
                 "project": project_id,
@@ -120,6 +120,7 @@ class BrownfieldService:
                 "run_id": run_id,
                 "status": "COMPLIANT",
             }
+            
         #
         # Execute
         #
@@ -158,7 +159,7 @@ class BrownfieldService:
                     plan["planned_actions"]
                     + config.REMEDIATION_BATCH_SIZE
                     - 1
-                ) # config.REMEDIATION_BATCH_SIZE
+                ) // config.REMEDIATION_BATCH_SIZE 
             ),
             "run_id": execution["run_id"],
             "status": execution["status"],

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "resource_name",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "managed_labels",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "managed_tags",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  }
+]
