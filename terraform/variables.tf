@@ -1,3 +1,7 @@
+variable "organization_id" {
+  type = string
+}
+
 variable "project_id" {
   description = "Google Cloud project ID"
 
@@ -131,4 +135,8 @@ variable "enable_cloud_scheduler" {
   description = "Deploy Cloud Scheduler."
   type        = bool
   default     = true
+}
+
+variable "tag_keys" {
+  type = list(string)
 }

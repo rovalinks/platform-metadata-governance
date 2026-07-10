@@ -1,7 +1,7 @@
 from utils.logger import logger
 
 
-class LabelOwnershipService:
+class OwnershipService:
     """
     Determines which labels are managed by the platform.
 

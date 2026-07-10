@@ -24,6 +24,8 @@ class RemediationPlan:
 
     planned_labels: dict[str, Any] = field(default_factory=dict)
 
+    planned_tags: dict[str, Any] = field(default_factory=dict)
+
     status: str = "PLANNED"
 
     created_at: datetime = field(
@@ -39,6 +41,7 @@ class RemediationPlan:
             "resource_name": self.resource_name,
             "missing_labels": self.missing_labels,
             "planned_labels": self.planned_labels,
+            "planned_tags": self.planned_tags,
             "status": self.status,
             "created_at": self.created_at.isoformat(),
         }

@@ -21,24 +21,37 @@ class ComplianceService:
         )
 
         results = []
-        expected_cache = {}  # Cache for governance labels
+        # Caches to avoid redundant governance API calls
+        label_cache = {}
+        tag_cache = {}
 
         for resource in resources:
-            # Check if resource type is supported for label evaluation
-            if not self.capability.supports_labels(resource.asset_type):
+            is_label_supported = self.capability.supports_labels(resource.asset_type)
+            is_tag_supported = self.capability.supports_tags(resource.asset_type)
+
+            # Check if resource type is supported for either label or tag evaluation
+            if not (is_label_supported or is_tag_supported):
                 continue
 
-            # Fetch expected labels for the specific project, using cache
+            # Fetch expected schema based on capability, using caches
             project = resource.project
-            if project not in expected_cache:
-                expected_cache[project] = self.governance.expected_labels(project)
-            expected_labels = expected_cache[project]
+            expected = {}
+
+            if is_label_supported:
+                if project not in label_cache:
+                    label_cache[project] = self.governance.expected_labels(project)
+                expected = label_cache[project]
+            else:
+                if project not in tag_cache:
+                    tag_cache[project] = self.governance.expected_tags(project)
+                expected = tag_cache[project]
 
             # Evaluate resource
             results.append(
                 self._evaluate_resource(
                     resource,
-                    expected_labels,
+                    expected,
+                    is_label_supported
                 )
             )
 
@@ -60,18 +73,25 @@ class ComplianceService:
     def _evaluate_resource(
         self,
         resource,
-        expected_labels,
+        expected_schema,
+        is_label_mode,
     ):
         """Helper to evaluate compliance for a single resource."""
         missing = []
         incorrect = []
 
-        for key, expected in expected_labels.items():
-            actual = resource.labels.get(key)
+        # Choose the metadata source based on the mode determined in evaluate()
+        actual_metadata = (resource.labels if is_label_mode else resource.tags) or {}
+        logger.info("Mode: %s", "labels" if is_label_mode else "tags")
+        logger.info("Expected: %s", expected_schema)
+        logger.info("Actual: %s", actual_metadata)
 
-            if actual is None:
+        for key, expected_value in expected_schema.items():
+            actual_value = actual_metadata.get(key)
+
+            if actual_value is None:
                 missing.append(key)
-            elif str(actual) != str(expected):
+            elif str(actual_value) != str(expected_value):
                 incorrect.append(key)
 
         return ComplianceResult(
@@ -90,8 +110,13 @@ class ComplianceService:
         """
         Evaluate compliance for a single discovered resource.
         """
-        expected = self.governance.expected_labels(resource.project)
-        return self._evaluate_resource(resource, expected)
+        # Determine mode for single resource evaluation
+        if self.capability.supports_labels(resource.asset_type):
+            expected = self.governance.expected_labels(resource.project)
+            return self._evaluate_resource(resource, expected, is_label_mode=True)
+        else:
+            expected = self.governance.expected_tags(resource.project)
+            return self._evaluate_resource(resource, expected, is_label_mode=False)
 
     def summary(self, resources):
         """

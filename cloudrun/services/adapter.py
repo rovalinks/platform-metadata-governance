@@ -1,5 +1,7 @@
 import logging
 
+from services.tag_service import TagService
+from services.capability import CapabilityService
 from clients.compute import ComputeClient
 from clients.bigquery import BigQueryClient
 from clients.storage import StorageClient
@@ -21,6 +23,9 @@ logger = logging.getLogger(__name__)
 class AdapterService:
 
     def __init__(self):
+        self.tag_service = TagService()
+        self.capability = CapabilityService()
+        
         self.clients = [
             ComputeClient(),
             BigQueryClient(),
@@ -53,7 +58,7 @@ class AdapterService:
         resource,
     ):
         """
-        Populate a discovered resource with live metadata.
+        Populate a discovered resource with live metadata and tags.
         """
         client = self.client_for(
             resource.asset_type
@@ -93,5 +98,13 @@ class AdapterService:
             return None
 
         resource.labels = labels
+
+        # Apply tags if the resource supports them
+        if self.capability.supports_tags(
+            resource.asset_type,
+        ):
+            resource.tags = self.tag_service.get_tags(
+                resource.name,
+            )
 
         return resource

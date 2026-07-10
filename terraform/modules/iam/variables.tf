@@ -14,3 +14,8 @@ variable "service_account_roles" {
 
   type = map(list(string))
 }
+
+variable "organization_id" {
+  type    = string
+  default = null
+}

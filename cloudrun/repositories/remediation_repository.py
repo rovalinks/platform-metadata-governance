@@ -60,6 +60,9 @@ class RemediationRepository:
                     "planned_labels": json.dumps(
                         plan.planned_labels
                     ),
+                    "planned_tags": json.dumps(
+                        plan.planned_tags
+                    ),
                     "status": plan.status,
                     "created_at": (
                         plan.created_at.isoformat()
@@ -131,6 +134,9 @@ class RemediationRepository:
                     planned_labels=self._json_value(
                         row.planned_labels
                     ),
+                    planned_tags=self._json_value(
+                        row.planned_tags
+                    ),
                     status=row.status,
                     created_at=row.created_at,
                 )
@@ -194,6 +200,9 @@ class RemediationRepository:
                     ),
                     planned_labels=self._json_value(
                         row.planned_labels
+                    ),
+                    planned_tags=self._json_value(
+                        row.planned_tags
                     ),
                     status=row.status,
                     created_at=row.created_at,

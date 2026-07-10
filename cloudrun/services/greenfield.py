@@ -4,6 +4,7 @@ from utils.logger import logger
 from utils.cloudevent_parser import CloudEventParser
 
 from services.adapter import AdapterService
+from services.capability import CapabilityService
 from services.classification import ClassificationService
 from services.compliance import ComplianceService
 from services.discovery import DiscoveryService
@@ -25,6 +26,7 @@ class GreenfieldService:
         self.compliance = ComplianceService()
         self.governance = GovernanceService()
         self.executor = ExecutorService()
+        self.capability = CapabilityService()
 
     def process(
         self,
@@ -104,8 +106,17 @@ class GreenfieldService:
             resource.name,
         )
 
+        if self.capability.supports_tags(
+            resource.asset_type,
+        ):
+            resource.tags = self.adapters.tag_service.get_tags(
+                resource.name,
+            )
+            
         # Evaluate only the single triggered resource
         resources = [resource]
+        logger.info("Resource labels: %s", resource.labels)
+        logger.info("Resource tags: %s", resource.tags)
         compliance_results = self.compliance.evaluate(resources)
         compliance = compliance_results[0]
 
@@ -116,16 +127,33 @@ class GreenfieldService:
                 "resource": resource.name,
             }
 
-        labels = self.governance.expected_labels(resource.project)
+        if self.compliance.capability.supports_labels(
+            resource.asset_type,
+        ):
+            labels = self.governance.expected_labels(
+                resource.project,
+            )
+            tags = {}
 
-        logger.info(
-            "Applying %d governance labels.",
-            len(labels),
-        )
+            logger.info(
+                "Applying %d governance labels.",
+                len(labels),
+            )
+        else:
+            labels = {}
+            tags = self.governance.expected_tags(
+                resource.project,
+            )
+
+            logger.info(
+                "Applying %d governance tags.",
+                len(tags),
+            )
 
         result = self.executor.execute_resource(
             resource,
             labels,
+            tags,
         )
 
         return {

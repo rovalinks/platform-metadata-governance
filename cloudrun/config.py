@@ -20,6 +20,7 @@ def get_env_or_raise(key: str) -> str:
     return value
 
 # Mandatory Configuration (Fail fast if missing)
+TAG_PARENT = get_env_or_raise("TAG_PARENT")
 PROJECT_ID = get_env_or_raise("PROJECT_ID")
 REGION = get_env_or_raise("REGION")
 TASK_QUEUE = get_env_or_raise("TASK_QUEUE")

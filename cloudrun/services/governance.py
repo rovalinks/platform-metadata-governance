@@ -88,3 +88,30 @@ class GovernanceService:
             "environment": normalize_label_value(binding["environment"]),
             "businesscriticality": normalize_label_value(binding["businessCriticality"]),
         }
+
+    def expected_tags(self, project_id: str):
+        """
+        Returns expected governance labels for a project.
+        """
+
+        logger.info(
+            "Loading governance metadata for project %s",
+            project_id,
+        )
+
+        application, binding = self.project_metadata(project_id)
+
+        if application is None:
+            return {}
+
+        return {
+            "application": normalize_label_value(application["product"]),
+            "team": normalize_label_value(application["team"]),
+            "owner": normalize_label_value(application["owner"]),
+            "budgetOwner": normalize_label_value(application["budgetOwner"]),
+            "organization": normalize_label_value(application["organization"]),
+            "department": normalize_label_value(application["department"]),
+            "costCenter": normalize_label_value(application["costCenter"]),
+            "environment": normalize_label_value(binding["environment"]),
+            "businessCriticality": normalize_label_value(binding["businessCriticality"]),
+        }

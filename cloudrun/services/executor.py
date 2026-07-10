@@ -13,7 +13,9 @@ from services.adapter import AdapterService
 from services.cloud_task_service import CloudTaskService
 from utils.exceptions import format_gcp_exception
 from utils.logger import logger
-from services.label_ownership import LabelOwnershipService
+from services.ownership import OwnershipService
+from services.capability import CapabilityService
+from services.tag_service import TagService
 
 class ExecutorService:
     """Executes enforcement actions."""
@@ -24,8 +26,10 @@ class ExecutorService:
         self.execution_repository = ExecutionRepository()
         self.run_status = RunStatusRepository()
         self.cloud_tasks = CloudTaskService()
-        self.label_ownership = LabelOwnershipService()
+        self.ownership = OwnershipService()
         self.label_repository = LabelOwnershipRepository()
+        self.capability = CapabilityService()
+        self.tag_service = TagService()
 
     def execute(self, actions):
         """Executes enforcement actions in parallel."""
@@ -71,7 +75,7 @@ class ExecutorService:
             }
 
         logger.info(
-            "Applying labels to %s using %s",
+            "Applying remediation to %s using %s",
             action["resource"],
             client.__class__.__name__,
         )
@@ -79,26 +83,42 @@ class ExecutorService:
         try:
             resource = client.get(action["resource"])
 
-            managed_labels, _ = self.label_repository.load(
-                action["resource"]
+            managed_labels, managed_tags = self.label_repository.load(
+                action["resource"],
             )
 
-            final_labels = self.label_ownership.build(
-                existing=resource.labels,
-                desired=action["labels"],
-                managed=managed_labels,
-            )
+            new_managed_labels = []
+            new_managed_tags = []
 
-            new_managed_labels = self.label_ownership.managed_keys(
-                existing=resource.labels,
-                desired=action["labels"],
-                managed=managed_labels,
-            )
+            # 1 & 2: Flow control for Labels vs Tags
+            if self.capability.supports_labels(action["asset_type"]):
+                final_labels = self.ownership.build(
+                    existing=resource.labels,
+                    desired=action["labels"],
+                    managed=managed_labels,
+                )
 
-            client.apply_labels(
-                resource,
-                final_labels,
-            )
+                new_managed_labels = self.ownership.managed_keys(
+                    existing=resource.labels,
+                    desired=action["labels"],
+                    managed=managed_labels,
+                )
+
+                client.apply_labels(resource, final_labels)
+
+            elif self.capability.supports_tags(action["asset_type"]):
+                # 3, 4 & 5: Use loaded tags and return new managed tags
+                new_managed_tags = self.tag_service.apply_tags(
+                    resource_name=resource.name,
+                    desired_tags=action["tags"],
+                    managed_tags=managed_tags,
+                )
+
+            else:
+                logger.info(
+                    "Resource %s supports neither labels nor tags.",
+                    resource.name,
+                )
 
             logger.info(
                 "Successfully updated %s",
@@ -109,10 +129,10 @@ class ExecutorService:
                 "resource": action["resource"],
                 "status": "updated",
                 "managed_labels": new_managed_labels,
+                "managed_tags": new_managed_tags,
             }
 
         except Exception as error:
-
             logger.exception(
                 "Failed updating %s",
                 action["resource"],
@@ -121,15 +141,14 @@ class ExecutorService:
             return {
                 "resource": action["resource"],
                 "status": "failed",
-                "error": format_gcp_exception(
-                    error
-                ),
+                "error": format_gcp_exception(error),
             }
 
     def execute_resource(
         self,
         resource,
         labels: dict,
+        tags: dict,
     ):
 
         results = self.execute(
@@ -138,6 +157,7 @@ class ExecutorService:
                     "resource": resource.name,
                     "asset_type": resource.asset_type,
                     "labels": labels,
+                    "tags": tags,
                 }
             ]
         )
@@ -173,6 +193,7 @@ class ExecutorService:
                 "resource": plan.resource_name,
                 "asset_type": plan.asset_type,
                 "labels": plan.planned_labels,
+                "tags": plan.planned_tags,
             }
             for plan in plans
         ]
@@ -220,7 +241,7 @@ class ExecutorService:
                 self.label_repository.save(
                     resource_name=plan.resource_name,
                     managed_labels=result["managed_labels"],
-                    managed_tags=[],
+                    managed_tags=result["managed_tags"],
                 )
 
                 # Mark success with streaming buffer retry loop

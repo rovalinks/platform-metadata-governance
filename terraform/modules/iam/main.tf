@@ -23,3 +23,24 @@ resource "google_project_iam_member" "service_account_roles" {
 
   member = "serviceAccount:${each.value.email}"
 }
+
+resource "google_organization_iam_member" "governance_tag_roles" {
+
+  for_each = {
+    for binding in local.iam_bindings :
+    binding.role => binding
+    if (
+      binding.service_account == "governance" &&
+      (
+        binding.role == "roles/resourcemanager.tagAdmin" ||
+        binding.role == "roles/resourcemanager.tagUser"
+      )
+    )
+  }
+
+  org_id = var.organization_id
+
+  role = each.value.role
+
+  member = "serviceAccount:${each.value.email}"
+}

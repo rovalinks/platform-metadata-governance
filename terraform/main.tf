@@ -21,6 +21,7 @@ module "iam" {
   project_id             = var.project_id
   service_account_emails = module.service_accounts.emails
   service_account_roles  = var.service_account_roles
+  organization_id        = var.organization_id
 }
 
 module "cloud_run" {
@@ -122,3 +123,11 @@ module "cloud_tasks" {
   ]
 }
 
+module "tag_keys" {
+
+  source = "./modules/tag-keys"
+
+  organization_id = var.organization_id
+
+  tag_keys = var.tag_keys
+}

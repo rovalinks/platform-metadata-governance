@@ -30,6 +30,11 @@
     "mode": "REQUIRED"
   },
   {
+    "name": "planned_tags",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "status",
     "type": "STRING",
     "mode": "REQUIRED"
