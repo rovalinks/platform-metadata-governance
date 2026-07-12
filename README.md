@@ -1,309 +1,293 @@
-# Platform Metadata Governance
+# Enterprise Metadata Governance Platform
 
-A cloud-native metadata governance platform for Google Cloud that discovers resources, evaluates compliance against a central application registry, automatically remediates supported resources, and provides governance reporting.
+## Overview
 
-The platform is designed using Google Cloud managed services and follows Infrastructure as Code, GitOps, and Zero Trust authentication principles.
+The Enterprise Metadata Governance Platform is a cloud-native governance solution built on Google Cloud Platform (GCP) to automatically discover, evaluate, remediate, and report on metadata compliance across an organization's cloud resources.
+
+The platform supports both:
+
+- Brownfield governance for existing cloud resources.
+- Greenfield governance for newly created cloud resources in near real time.
+
+Rather than relying on manual audits or custom scripts, the platform provides centralized governance through policy-driven automation, standardized metadata, enterprise reporting, and Infrastructure as Code.
 
 ---
 
-# Features
+## Business Problem
 
-- Registry-driven governance
-- Cloud Asset Inventory resource discovery
+Large enterprises typically manage thousands of cloud resources across multiple projects and environments. As cloud estates grow, maintaining consistent metadata becomes increasingly difficult.
+
+Missing or inconsistent metadata impacts:
+
+- Cost allocation
+- Ownership tracking
+- Operational support
+- Security investigations
+- Regulatory compliance
+- FinOps reporting
+- Resource lifecycle management
+
+Manual governance approaches are difficult to scale and often lead to inconsistent outcomes.
+
+---
+
+## Solution
+
+The Enterprise Metadata Governance Platform provides an automated governance framework that continuously enforces standardized metadata across supported Google Cloud resources.
+
+The platform delivers:
+
+- Automated discovery of cloud resources
 - Metadata compliance evaluation
-- Registry-based expected metadata generation
-- Automated metadata enforcement
-- Metadata verification
-- Governance reporting
-- GitHub Pull Request validation
-- Infrastructure as Code using Terraform
-- Workload Identity Federation
-- Cloud Run deployment
-- Unit tested business services
+- Automated remediation
+- Organization and project level reporting
+- Executive governance dashboards
+- Near real-time governance for new resources
+- Infrastructure as Code deployment using Terraform
 
 ---
 
-# Architecture
+# Key Features
 
-```
-                    +----------------------+
-                    |  Application Registry|
-                    |  APP000001.yaml      |
-                    |  APP000002.yaml      |
-                    +----------+-----------+
-                               |
-                               v
-                  +---------------------------+
-                  |   Governance Service      |
-                  +---------------------------+
-                               |
-         +---------------------+---------------------+
-         |                     |                     |
-         v                     v                     v
-  Discovery Service     Compliance Service   Enforcement Service
-         |                     |                     |
-         +----------+----------+----------+----------+
-                    |                     |
-                    v                     v
-           Cloud Asset Inventory     Adapter Layer
-                                           |
-                     +---------------------+----------------------+
-                     |                                            |
-                     v                                            v
-              Compute Engine                              BigQuery Dataset
-```
+## Brownfield Governance
+
+- Project-wide resource discovery
+- Compliance evaluation
+- Remediation planning
+- Automated execution
+- Execution tracking
+- Audit reporting
+
+---
+
+## Greenfield Governance
+
+- Event-driven governance
+- Eventarc integration
+- Cloud Logging integration
+- Pub/Sub messaging
+- Cloud Run processing
+- Automatic metadata enforcement
+
+---
+
+## Executive Dashboard
+
+- Organization view
+- Project view
+- Compliance reporting
+- Resource inventory
+- Remediation tracking
+- Brownfield metrics
+- Greenfield metrics
+- Executive KPIs
+
+---
+
+## Governance Registry
+
+Application metadata is defined within a centralized registry.
+
+Each application specifies:
+
+- Product
+- Team
+- Owner
+- Budget owner
+- Organization
+- Department
+- Cost center
+- Environment
+- Business criticality
+
+The registry acts as the single source of truth for governance.
+
+---
+
+# Supported Resources
+
+Current supported resources include:
+
+| Service | Labels | Tags |
+|---------|--------|------|
+| Compute Engine Instances | ✓ | |
+| Compute Engine Disks | ✓ | |
+| Cloud Storage Buckets | ✓ | |
+| BigQuery Datasets | ✓ | |
+| Pub/Sub Topics | | ✓ |
+| Artifact Registry | ✓ | |
+| Cloud SQL | ✓ | |
+| Secret Manager | ✓ | |
+| Cloud KMS | ✓ | |
+
+The platform is designed to support additional Google Cloud services through a modular adapter architecture.
+
+---
+
+# High-Level Architecture
+
+The platform consists of the following major components:
+
+- Governance Registry
+- Discovery Engine
+- Compliance Engine
+- Governance Engine
+- Remediation Planner
+- Execution Engine
+- Reporting Engine
+- Executive Dashboard
+
+Supporting Google Cloud services include:
+
+- Cloud Run
+- Eventarc
+- Cloud Logging
+- Pub/Sub
+- Cloud Asset Inventory
+- BigQuery
+- Artifact Registry
+- Terraform
+
+---
+
+# Brownfield Workflow
+
+1. Discover resources
+2. Evaluate compliance
+3. Generate remediation plan
+4. Execute remediation
+5. Persist execution results
+6. Publish governance reports
+
+---
+
+# Greenfield Workflow
+
+1. Resource created
+2. Audit Log generated
+3. Eventarc trigger activated
+4. Pub/Sub message published
+5. Cloud Run receives event
+6. Resource classified
+7. Compliance evaluated
+8. Metadata automatically applied
+9. Results persisted
+
+---
+
+# Executive Dashboard
+
+The Executive Dashboard provides a real-time governance overview including:
+
+- Executive Summary
+- Brownfield status
+- Greenfield status
+- Project compliance
+- Resource type compliance
+- Remediation history
+- Top non-compliant resources
+
+Dashboard supports:
+
+- Organization scope
+- Project scope
+
+---
+
+# Technology Stack
+
+## Infrastructure
+
+- Google Cloud Platform
+- Terraform
+
+## Compute
+
+- Cloud Run
+
+## Event Processing
+
+- Eventarc
+- Pub/Sub
+- Cloud Logging
+
+## Data
+
+- BigQuery
+
+## Programming Language
+
+- Python
+
+## Web Framework
+
+- Flask
 
 ---
 
 # Repository Structure
 
 ```
-platform-metadata-governance/
-
-├── cloudrun/
-│   ├── clients/
-│   ├── handlers/
-│   ├── models/
-│   ├── registry/
-│   ├── services/
-│   ├── utils/
-│   ├── app.py
-│   └── Dockerfile
-│
-├── registry/
-│   ├── applications/
-│   └── schemas/
-│
-├── terraform/
-│
-├── validation/
-│
-├── tests/
-│
-└── docs/
+cloudrun/
+terraform/
+registry/
+docs/
 ```
-
----
-
-# Components
-
-## Registry
-
-Contains application metadata.
-
-Each application is defined in an individual YAML file.
-
-Example
-
-```
-registry/applications/APP000001.yaml
-```
-
----
-
-## Discovery
-
-Uses Cloud Asset Inventory to discover supported Google Cloud resources.
-
-Currently supported:
-
-- Compute Engine
-- BigQuery Dataset
-- Cloud Storage (discovery)
-- Artifact Registry (discovery)
-
----
-
-## Governance
-
-Builds the expected metadata model from the Application Registry.
-
-Produces:
-
-- application
-- owner
-- team
-- budgetowner
-- organization
-- department
-- costcenter
-- environment
-- businesscriticality
-
----
-
-## Compliance
-
-Compares discovered metadata against registry metadata.
-
-Determines
-
-- compliant
-- missing labels
-- incorrect labels
-
----
-
-## Enforcement
-
-Creates remediation plans.
-
-Delegates execution through adapters.
-
-Currently supports
-
-- Compute Engine labels
-- BigQuery Dataset labels
-
----
-
-## Verification
-
-Verifies metadata after remediation.
-
----
-
-## Reporting
-
-Produces governance summary including
-
-- Total resources
-- Supported resources
-- Compliant resources
-- Non-compliant resources
-- Enforcement candidates
-- Compliance percentage
-
----
-
-# REST APIs
-
-| Endpoint | Description |
-|----------|-------------|
-| GET /health | Platform health |
-| GET /discover | Resource discovery |
-| GET /compliance | Compliance evaluation |
-| GET /verify | Metadata verification |
-| GET /enforce | Metadata enforcement |
-| GET /report | Governance reporting |
-
----
-
-# Technology Stack
-
-Infrastructure
-
-- Terraform
-
-Runtime
-
-- Cloud Run
-- Flask
-
-Google Cloud Services
-
-- Cloud Asset Inventory
-- Artifact Registry
-- Cloud Run
-- IAM
-- Workload Identity Federation
-
-CI/CD
-
-- GitHub Actions
-- GitHub Pull Requests
-
-Testing
-
-- Pytest
-
----
-
-# Security
-
-The platform follows Google Cloud security best practices.
-
-- Workload Identity Federation
-- No service account keys
-- Least privilege IAM
-- Pull Request approval
-- Registry validation
-- Infrastructure as Code
 
 ---
 
 # Deployment
 
-See
+Infrastructure is provisioned using Terraform.
+
+Deployment includes:
+
+- Google Cloud APIs
+- IAM
+- BigQuery
+- Cloud Run
+- Artifact Registry
+- Eventarc
+- Pub/Sub
+- Logging
+- Governance Registry
+
+Detailed deployment instructions are available in:
 
 ```
-docs/runbooks/deployment.md
-```
-
----
-
-# Customer Onboarding
-
-See
-
-```
-docs/runbooks/customer-onboarding.md
-```
-
----
-
-# API Documentation
-
-See
-
-```
-docs/api/API.md
+docs/deployment.md
 ```
 
 ---
 
-# Architecture
+# Documentation
 
-See
+Additional documentation is available under the `docs` directory.
 
-```
-docs/architecture/platform-architecture.md
-```
-
----
-
-# Testing
-
-Run all unit tests
-
-```bash
-pytest
-```
-
----
-
-# Current Status
-
-| Feature | Status |
-|----------|--------|
-| Registry | ✅ |
-| Validation | ✅ |
-| Discovery | ✅ |
-| Governance | ✅ |
-| Compliance | ✅ |
-| Enforcement | ✅ |
-| Verification | ✅ |
-| Reporting | ✅ |
-| Terraform | ✅ |
-| GitHub Actions | ✅ |
-| Workload Identity Federation | ✅ |
+- Architecture
+- Deployment
+- Brownfield Governance
+- Greenfield Governance
+- Dashboard
+- Demonstration Guide
 
 ---
 
 # Future Enhancements
 
-- Eventarc automatic enforcement
-- Cloud Scheduler
-- Cloud Monitoring
-- Alerting
-- Additional Google Cloud resource adapters
+The platform architecture supports future expansion including:
+
+- Additional Google Cloud resource types
+- Multi-organization governance
+- Policy-as-Code integration
+- Advanced analytics
+- Trend reporting
+- Compliance forecasting
+- FinOps insights
+- Executive scorecards
+
+---
+
+# License
+
+Internal Enterprise Platform
