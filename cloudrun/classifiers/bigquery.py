@@ -12,14 +12,9 @@ class BigQueryClassifier(ResourceClassifier):
         self,
         event: AuditLogEvent,
     ) -> bool:
-
-        if event.service_name != self.SERVICE:
-            return False
-
         return (
-            event.method_name.endswith(
-                "InsertDataset"
-            )
+            event.service_name == self.SERVICE
+            and self.normalize_method(event.method_name).endswith("InsertDataset")
             and "/datasets/" in event.resource_name
         )
 
@@ -27,19 +22,11 @@ class BigQueryClassifier(ResourceClassifier):
         self,
         event: AuditLogEvent,
     ) -> ResourceEvent:
-
         return ResourceEvent(
-
             project_id=event.project_id,
-
             asset_type="bigquery.googleapis.com/Dataset",
-
             resource_name=event.resource_name,
-
             service_name=event.service_name,
-
             method_name=event.method_name,
-
             location=event.location,
-
         )

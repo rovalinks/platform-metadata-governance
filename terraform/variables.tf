@@ -106,18 +106,18 @@ variable "bigquery" {
   })
 }
 
-variable "eventarc" {
-  description = "Eventarc configuration"
+# variable "eventarc" {
+#   description = "Eventarc configuration"
 
-  type = object({
-    triggers = list(object({
-      name     = string
-      service  = string
-      method   = string
-      location = string
-    }))
-  })
-}
+#   type = object({
+#     triggers = list(object({
+#       name     = string
+#       service  = string
+#       method   = string
+#       location = string
+#     }))
+#   })
+# }
 
 variable "brownfield_schedule" {
   description = "Nightly Brownfield schedule."
@@ -139,4 +139,13 @@ variable "enable_cloud_scheduler" {
 
 variable "tag_keys" {
   type = list(string)
+}
+
+variable "pubsub" {
+  description = "Pub/Sub configuration"
+
+  type = object({
+    topic_name        = string
+    subscription_name = string
+  })
 }

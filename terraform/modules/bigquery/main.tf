@@ -69,9 +69,9 @@ resource "google_bigquery_table" "remediation_execution" {
 
 resource "google_bigquery_table" "label_ownership" {
 
-  project = var.project_id
-  dataset_id = google_bigquery_dataset.metadata.dataset_id
-  table_id = "label_ownership"
+  project             = var.project_id
+  dataset_id          = google_bigquery_dataset.metadata.dataset_id
+  table_id            = "label_ownership"
   deletion_protection = false
 
   schema = file(

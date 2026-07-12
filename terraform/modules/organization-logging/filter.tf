@@ -1,0 +1,59 @@
+locals {
+  greenfield_filter = <<EOT
+(
+  (
+    protoPayload.serviceName="compute.googleapis.com"
+    AND
+    (
+      protoPayload.methodName="v1.compute.instances.insert"
+      OR
+      protoPayload.methodName="beta.compute.instances.insert"
+      OR
+      protoPayload.methodName="v1.compute.disks.insert"
+      OR
+      protoPayload.methodName="beta.compute.disks.insert"
+    )
+  )
+  OR
+  (
+    protoPayload.serviceName="storage.googleapis.com"
+    AND
+    protoPayload.methodName="storage.buckets.create"
+  )
+  OR
+  (
+    protoPayload.serviceName="pubsub.googleapis.com"
+    AND
+    protoPayload.methodName="google.pubsub.v1.Publisher.CreateTopic"
+  )
+  OR
+  (
+    protoPayload.serviceName="container.googleapis.com"
+    AND
+    (
+      protoPayload.methodName="google.container.v1.ClusterManager.CreateCluster"
+      OR
+      protoPayload.methodName="google.container.v1.ClusterManager.CreateNodePool"
+    )
+  )
+  OR
+  (
+    protoPayload.serviceName="artifactregistry.googleapis.com"
+    AND
+    protoPayload.methodName="google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository"
+  )
+  OR
+  (
+    protoPayload.serviceName="secretmanager.googleapis.com"
+    AND
+    protoPayload.methodName="google.cloud.secretmanager.v1.SecretManagerService.CreateSecret"
+  )
+  OR
+  (
+    protoPayload.serviceName="cloudsql.googleapis.com"
+    AND
+    protoPayload.methodName="cloudsql.instances.create"
+  )
+)
+EOT
+}

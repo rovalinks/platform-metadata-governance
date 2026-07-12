@@ -4,6 +4,7 @@ from flask import (
 )
 
 from dispatcher import Dispatcher
+from routes.pubsub import handle as pubsub_handler
 
 app = Flask(__name__)
 
@@ -14,6 +15,10 @@ def greenfield_endpoint():
         "greenfield",
         request.get_json(),
     )
+
+@app.post("/events/pubsub")
+def pubsub_endpoint():
+    return pubsub_handler(request)
 
 @app.get("/brownfield")
 def brownfield_endpoint():

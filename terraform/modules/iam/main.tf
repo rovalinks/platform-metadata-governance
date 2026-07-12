@@ -29,7 +29,7 @@ resource "google_organization_iam_member" "governance_tag_roles" {
   for_each = {
     for binding in local.iam_bindings :
     binding.role => binding
-    if (
+    if(
       binding.service_account == "governance" &&
       (
         binding.role == "roles/resourcemanager.tagAdmin" ||

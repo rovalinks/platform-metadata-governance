@@ -39,7 +39,7 @@ module "cloud_run" {
   log_level             = var.log_level
   bigquery              = var.bigquery
   task_queue            = module.cloud_tasks.queue_name
-  cloud_run_url         = "https://metadata-governance-375142238023.europe-west2.run.app"
+  # cloud_run_url         = module.cloud_run[0].uri
 }
 
 module "cloud_scheduler" {
@@ -54,14 +54,34 @@ module "cloud_scheduler" {
   time_zone         = var.brownfield_time_zone
 }
 
-module "eventarc" {
-  count                 = var.deploy_cloud_run ? 1 : 0
-  source                = "./modules/eventarc"
-  project_id            = var.project_id
-  region                = var.region
-  cloud_run_service     = module.cloud_run[0].service_name
-  service_account_email = module.service_accounts.emails["governance"]
-  triggers              = var.eventarc.triggers
+# module "eventarc" {
+#   count                 = var.deploy_cloud_run ? 1 : 0
+#   source                = "./modules/eventarc"
+#   project_id            = var.project_id
+#   region                = var.region
+#   cloud_run_service     = module.cloud_run[0].service_name
+#   service_account_email = module.service_accounts.emails["governance"]
+#   triggers              = var.eventarc.triggers
+# }
+
+
+module "pubsub" {
+  source                 = "./modules/pubsub"
+  project_id             = var.project_id
+  region                 = var.region
+  topic_name             = var.pubsub.topic_name
+  subscription_name      = var.pubsub.subscription_name
+  cloud_run_url          = module.cloud_run[0].uri
+  cloud_run_service_name = module.cloud_run[0].service_name
+  push_service_account   = module.service_accounts.emails["governance"]
+}
+
+module "organization_logging" {
+  source = "./modules/organization-logging"
+
+  organization_id = var.organization_id
+  project_id      = var.project_id
+  topic_name      = module.pubsub.topic_name
 }
 
 module "workload_identity" {
