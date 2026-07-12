@@ -15,6 +15,24 @@ class ReportRepository:
 
     # --- Private Helpers ---
 
+    def _latest_snapshot_where(self, alias=""):
+        prefix = f"{alias}." if alias else ""
+        return f"""
+        {prefix}snapshot_time=(
+            SELECT MAX(snapshot_time)
+            FROM `{self.dataset}.resource_snapshot`
+        )
+        """
+
+    def _latest_compliance_snapshot_where(self, alias=""):
+        prefix = f"{alias}." if alias else ""
+        return f"""
+        {prefix}snapshot_time=(
+            SELECT MAX(snapshot_time)
+            FROM `{self.dataset}.compliance_snapshot`
+        )
+        """
+
     def _scope_filter(self, scope: str, project_id: str | None, column: str = "project_id") -> tuple[str, list]:
         """Builds a full WHERE clause."""
         match scope:
@@ -70,10 +88,17 @@ class ReportRepository:
         where_clause, params = self._where_scope_filter(scope, project_id)
         and_clause, _ = self._and_scope_filter(scope, project_id)
         
+        resource_latest = self._latest_snapshot_where()
+        compliance_latest = self._latest_compliance_snapshot_where()
+        
+        # Adjust clause logic for joining WHERE/AND
+        res_filter = f"{where_clause} {'AND' if where_clause else 'WHERE'} {resource_latest}"
+        comp_filter = f"{where_clause} {'AND' if where_clause else 'WHERE'} {compliance_latest}"
+        
         query = f"""
         WITH
-        resources AS (SELECT COUNT(*) AS total_resources, COUNT(DISTINCT project_id) AS total_projects FROM `{self.dataset}.resource_snapshot` {where_clause}),
-        compliance AS (SELECT COUNT(*) AS supported_resources, COUNTIF(compliant = TRUE) AS compliant_resources, COUNTIF(compliant = FALSE) AS non_compliant_resources FROM `{self.dataset}.compliance_snapshot` {where_clause}),
+        resources AS (SELECT COUNT(*) AS total_resources, COUNT(DISTINCT project_id) AS total_projects FROM `{self.dataset}.resource_snapshot` {res_filter}),
+        compliance AS (SELECT COUNT(*) AS supported_resources, COUNTIF(compliant = TRUE) AS compliant_resources, COUNTIF(compliant = FALSE) AS non_compliant_resources FROM `{self.dataset}.compliance_snapshot` {comp_filter}),
         plans AS (SELECT COUNT(*) AS planned_remediations FROM `{self.dataset}.remediation_plan` {where_clause}),
         latest_execution AS (SELECT status, ROW_NUMBER() OVER(PARTITION BY run_id, resource_name ORDER BY executed_at DESC) as rn FROM `{self.dataset}.remediation_execution` {where_clause}),
         executions AS (SELECT COUNT(*) AS executed_remediations, COUNTIF(status = 'SUCCESS') AS successful_remediations, COUNTIF(status = 'FAILED') AS failed_remediations, COUNTIF(status = 'IN_PROGRESS') AS in_progress_remediations FROM latest_execution WHERE rn = 1)
@@ -108,10 +133,11 @@ class ReportRepository:
     def resources(self, scope: str = "organization", project_id: str | None = None, limit: int = 100):
         where_clause, params = self._where_scope_filter(scope, project_id)
         params.append(self._limit_parameter(limit))
+        latest = self._latest_snapshot_where()
         query = f"""
         SELECT project_id, asset_type, resource_name, location, labels
         FROM `{self.dataset}.resource_snapshot`
-        {where_clause}
+        {where_clause} {'AND' if where_clause else 'WHERE'} {latest}
         ORDER BY project_id, asset_type
         LIMIT @limit
         """
@@ -120,10 +146,11 @@ class ReportRepository:
     def non_compliant(self, scope: str = "organization", project_id: str | None = None, limit: int = 100):
         and_clause, params = self._and_scope_filter(scope, project_id)
         params.append(self._limit_parameter(limit))
+        latest = self._latest_compliance_snapshot_where()
         query = f"""
         SELECT project_id, asset_type, resource_name
         FROM `{self.dataset}.compliance_snapshot`
-        WHERE compliant = FALSE
+        WHERE compliant = FALSE AND {latest}
         {and_clause}
         ORDER BY asset_type, resource_name
         LIMIT @limit
@@ -131,45 +158,26 @@ class ReportRepository:
         return self._rows(self._job(query, params))
 
     def dashboard(self, scope: str = "organization", project_id: str | None = None):
-        # Fetch the requested scope projects and the full organization list[cite: 4]
-        projects = self.project_summary(
-            scope,
-            project_id,
-        )
-        all_projects = self.project_summary(
-            "organization",
-            None,
-        )
+        projects = self.project_summary(scope, project_id)
+        all_projects = self.project_summary("organization", None)
         
         return {
-            "executive_summary": self.executive_summary(
-                scope,
-                project_id,
-            ),
+            "executive_summary": self.executive_summary(scope, project_id),
             "projects": projects,
             "all_projects": all_projects,
-            "resource_types": self.compliance_breakdown(
-                scope,
-                project_id,
-            ),
-            "top_non_compliant": self.top_non_compliant(
-                scope,
-                project_id,
-            ),
-            "recent_runs": self.remediation_runs(
-                scope,
-                project_id,
-                5,
-            ),
+            "resource_types": self.compliance_breakdown(scope, project_id),
+            "top_non_compliant": self.top_non_compliant(scope, project_id),
+            "recent_runs": self.remediation_runs(scope, project_id, 5),
         }
 
     def top_non_compliant(self, scope: str = "organization", project_id: str | None = None, limit: int = 10):
         and_clause, params = self._and_scope_filter(scope, project_id)
         params.append(self._limit_parameter(limit))
+        latest = self._latest_compliance_snapshot_where()
         query = f"""
         SELECT project_id, asset_type, resource_name, missing_labels, incorrect_labels
         FROM `{self.dataset}.compliance_snapshot`
-        WHERE compliant = FALSE
+        WHERE compliant = FALSE AND {latest}
         {and_clause}
         LIMIT @limit
         """
@@ -177,10 +185,11 @@ class ReportRepository:
 
     def compliance_breakdown(self, scope: str = "organization", project_id: str | None = None):
         where_clause, params = self._where_scope_filter(scope, project_id)
+        latest = self._latest_compliance_snapshot_where()
         query = f"""
         SELECT asset_type, COUNT(*) AS total, COUNTIF(compliant) AS compliant, COUNTIF(NOT compliant) AS non_compliant
         FROM `{self.dataset}.compliance_snapshot`
-        {where_clause}
+        {where_clause} {'AND' if where_clause else 'WHERE'} {latest}
         GROUP BY asset_type
         ORDER BY total DESC
         """
@@ -196,16 +205,9 @@ class ReportRepository:
             })
         return results
 
-    def project_summary(
-        self,
-        scope: str = "organization",
-        project_id: str | None = None,
-    ):
-        where_clause, parameters = self._scope_filter(
-            scope,
-            project_id,
-        )
-
+    def project_summary(self, scope: str = "organization", project_id: str | None = None):
+        where_clause, parameters = self._scope_filter(scope, project_id)
+        latest = self._latest_compliance_snapshot_where()
         query = f"""
         SELECT
             project_id,
@@ -213,38 +215,25 @@ class ReportRepository:
             COUNTIF(compliant) AS compliant_resources,
             COUNTIF(NOT compliant) AS non_compliant_resources
         FROM `{self.dataset}.compliance_snapshot`
-        {where_clause}
+        {where_clause} {'AND' if where_clause else 'WHERE'} {latest}
         GROUP BY project_id
         ORDER BY total_resources DESC
         """
 
-        job = self.client.query(
-            query,
-            job_config=bigquery.QueryJobConfig(
-                query_parameters=parameters,
-            ),
-        )
-
+        job = self.client.query(query, job_config=bigquery.QueryJobConfig(query_parameters=parameters))
         results = []
         for row in job.result():
             total = row.total_resources
-
             results.append({
                 "project_id": row.project_id,
                 "total_resources": total,
                 "compliant_resources": row.compliant_resources,
                 "non_compliant_resources": row.non_compliant_resources,
-                "compliance_percentage": (
-                    round(
-                        row.compliant_resources * 100 / total,
-                        2,
-                    )
-                    if total
-                    else 100
-                ),
+                "compliance_percentage": (round(row.compliant_resources * 100 / total, 2) if total else 100),
             })
         return results
 
+    # [Remaining methods: remediation_runs, remediation_run_summary, execution_history, metrics, greenfield_summary, brownfield_summary remain unchanged as per instructions]
     def remediation_runs(self, scope: str = "organization", project_id: str | None = None, limit: int = 100):
         where_clause, params = self._where_scope_filter(scope, project_id)
         query = f"""
@@ -339,9 +328,6 @@ class ReportRepository:
     def brownfield_summary(self, scope: str = "organization", project_id: str | None = None):
         where_clause, params = self._where_scope_filter(scope, project_id)
         prefix = "WHERE" if not where_clause else "AND"
-        # Since remediation_plan/execution don't always have project_id, 
-        # we assume filtering by project_id is handled via project_id column if present
-        # or joined on the snapshot. Here we apply direct filters.
         query = f"""
         WITH plan_counts AS (
             SELECT run_id, COUNT(*) AS planned_total 
