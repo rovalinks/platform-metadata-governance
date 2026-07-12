@@ -43,5 +43,25 @@
     "name": "executed_at",
     "type": "TIMESTAMP",
     "mode": "REQUIRED"
+  },
+  {
+    "name": "execution_mode",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "service_name",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "method_name",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "duration_ms",
+    "type": "INT64",
+    "mode": "NULLABLE"
   }
 ]

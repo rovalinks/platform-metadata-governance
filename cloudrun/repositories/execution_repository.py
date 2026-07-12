@@ -28,6 +28,10 @@ class ExecutionRepository:
         asset_type: str,
         resource_name: str,
         status: str,
+        execution_mode: str,
+        service_name: str | None = None,
+        method_name: str | None = None,
+        duration_ms: int | None = None,
         error_message: str | None = None,
     ):
         row = {
@@ -36,6 +40,10 @@ class ExecutionRepository:
             "project_id": project_id,
             "asset_type": asset_type,
             "resource_name": resource_name,
+            "execution_mode": execution_mode,
+            "service_name": service_name,
+            "method_name": method_name,
+            "duration_ms": duration_ms,
             "status": status,
             "error_message": (
                 str(error_message)

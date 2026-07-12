@@ -1,22 +1,14 @@
 from flask import jsonify, request
-
 from services.reporting import ReportingService
-
 
 def runs():
     """
     Returns remediation runs.
-
-    GET /runs
-
-    GET /runs?limit=25
+    GET /runs?scope=...&project_id=...&limit=...
     """
-
-    limit = request.args.get(
-        "limit",
-        default=100,
-        type=int,
-    )
+    scope = request.args.get("scope", "organization")
+    project_id = request.args.get("project_id")
+    limit = request.args.get("limit", default=100, type=int)
 
     # Validate limit to prevent excessive resource usage
     if limit < 1:
@@ -25,7 +17,4 @@ def runs():
         limit = 1000
 
     service = ReportingService()
-
-    return jsonify(
-        service.runs(limit)
-    )
+    return jsonify(service.runs(scope=scope, project_id=project_id, limit=limit))

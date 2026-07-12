@@ -1,13 +1,14 @@
-from flask import (
-    Flask,
-    request,
-)
+from flask import (Flask,request,render_template)
 
 from dispatcher import Dispatcher
 from routes.pubsub import handle as pubsub_handler
 
 app = Flask(__name__)
 
+
+@app.get("/")
+def dashboard_ui():
+    return render_template("dashboard.html")
 
 @app.post("/")
 def greenfield_endpoint():
