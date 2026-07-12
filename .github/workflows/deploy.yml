@@ -70,4 +70,4 @@ jobs:
             --cpu=2 \
             --timeout=900 \
             --concurrency=80 \
-            --no-allow-unauthenticated
+            --allow-unauthenticated
