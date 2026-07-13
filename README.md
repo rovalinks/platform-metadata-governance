@@ -291,3 +291,166 @@ The platform architecture supports future expansion including:
 # License
 
 Internal Enterprise Platform
+
+
+# 1. Enterprise Solution Architecture (Main Diagram)
+
+                                    Enterprise Metadata Governance Platform
+
+                                              +-----------------------+
+                                              | Governance Registry   |
+                                              | (Application Metadata)|
+                                              +-----------+-----------+
+                                                          |
+                                                          |
+                                              Expected Labels / Tags
+                                                          |
+                                                          v
++-----------------------------------------------------------------------------------------------+
+|                                      Cloud Run Platform                                        |
+|                                                                                               |
+| +------------------+     +------------------+      +------------------+                       |
+| | Brownfield       | --> | Compliance       | -->  | Remediation      |                       |
+| | Discovery        |     | Evaluation       |      | Planner          |                       |
+| +------------------+     +------------------+      +------------------+                       |
+|          |                        |                          |                                 |
+|          |                        |                          v                                 |
+|          |                        |               +----------------------+                     |
+|          |                        +-------------> | Remediation Engine   |                     |
+|          |                                        +----------+-----------+                     |
+|          |                                                   |                                 |
+|          +---------------------------------------------------+                                 |
+|                                                              |                                 |
++--------------------------------------------------------------|---------------------------------+
+                                                               |
+                                                               v
+                                              Google Cloud Resources
+
+   Compute  Storage  BigQuery  Pub/Sub  Cloud SQL  Secret Manager  Artifact Registry  KMS
+
+                                                               |
+                                                               v
+
+                                            +-------------------------------+
+                                            | Reporting Repository          |
+                                            | BigQuery                      |
+                                            | resource_snapshot             |
+                                            | compliance_snapshot           |
+                                            | remediation_plan             |
+                                            | remediation_execution        |
+                                            +---------------+---------------+
+                                                            |
+                                                            |
+                                                            v
+                                             Executive Governance Dashboard
+
+
+# 2. Brownfield Workflow
+User
+
+   |
+
+POST /brownfield
+
+   |
+
+Cloud Run
+
+   |
+
+Cloud Asset Inventory
+
+   |
+
+Discover Resources
+
+   |
+
+Classification
+
+   |
+
+Compliance Evaluation
+
+   |
+
+Remediation Planning
+
+   |
+
+Remediation Execution
+
+   |
+
+BigQuery Reporting
+
+   |
+
+Dashboard
+
+# 3. Greenfield Workflow
+Resource Created
+
+        |
+
+Cloud Audit Logs
+
+        |
+
+Logging Sink
+
+        |
+
+Pub/Sub
+
+        |
+
+Eventarc
+
+        |
+
+Cloud Run
+
+        |
+
+Classification
+
+        |
+
+Compliance
+
+        |
+
+Automatic Labels / Tags
+
+        |
+
+BigQuery
+
+        |
+
+Dashboard
+
+# 4. Reporting Architecture
+
+Brownfield
+                \
+                 \
+                  \
+                   --> resource_snapshot
+                   --> compliance_snapshot
+                   --> remediation_plan
+                   --> remediation_execution
+                               |
+                               |
+                               v
+                    Report Repository
+                               |
+                               |
+                     Reporting Service
+                               |
+                               |
+                      REST API (/reports/*)
+                               |
+                               |
+                     Executive Dashboard
