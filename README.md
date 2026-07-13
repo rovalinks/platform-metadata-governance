@@ -148,7 +148,6 @@ Supporting Google Cloud services include:
 - Artifact Registry
 - Terraform
 
----
 
                                     Enterprise Metadata Governance Platform
 
@@ -211,7 +210,6 @@ Supporting Google Cloud services include:
 5. Persist execution results
 6. Publish governance reports
 
----
 
 User
 
@@ -269,7 +267,6 @@ Dashboard
 8. Metadata automatically applied
 9. Results persisted
 
----
 
 Resource Created
 
@@ -332,7 +329,6 @@ Dashboard supports:
 - Organization scope
 - Project scope
 
----
 
 Brownfield
                 \
