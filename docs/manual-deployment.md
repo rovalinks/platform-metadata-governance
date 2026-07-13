@@ -1,102 +1,162 @@
-# Manual Deployment Guide (Without Terraform)
+# Enterprise Metadata Governance Platform
 
-# Purpose
+# Manual Deployment Guide
 
-This document describes how to manually deploy the Enterprise Metadata Governance Platform into Google Cloud without using Terraform.
+**Version:** 1.0
 
-The guide is intended for:
+**Audience**
 
 - Cloud Platform Engineers
+- Platform Administrators
+- DevOps Engineers
 - Google Cloud Administrators
-- Platform Operations Teams
-- Support Engineers
-- Demonstration Environments
-- Proof of Concepts
-
-Every deployment step includes:
-
-- Purpose
-- Commands
-- Expected Results
-- Validation
-- Common Issues
-
-Although the platform can be deployed using Terraform, understanding the manual deployment process helps with troubleshooting, platform onboarding, and operational support.
+- Operations Teams
 
 ---
 
-# Deployment Overview
+# Purpose
 
-The deployment consists of the following phases.
+This guide describes how to deploy the Enterprise Metadata Governance Platform manually into Google Cloud without using Terraform.
+
+The document is intended for organizations that want to understand the platform deployment process or perform a manual installation for demonstration, testing, or production environments.
+
+Unlike the Terraform deployment, this guide walks through every Google Cloud component that must be created and configured.
+
+The deployment is fully parameterized and can be used in any Google Cloud organization, project, or supported region.
+
+---
+
+# Platform Overview
+
+The Enterprise Metadata Governance Platform provides continuous metadata governance across Google Cloud.
+
+It consists of four major capabilities.
+
+- Brownfield Governance
+- Greenfield Governance
+- Metadata Registry
+- Executive Reporting
+
+Brownfield discovers existing resources and evaluates compliance.
+
+Greenfield automatically evaluates newly created resources using Google Cloud Audit Logs.
+
+The Governance Registry defines the expected metadata for every application.
+
+BigQuery stores governance information for reporting and executive dashboards.
+
+---
+
+# High-Level Architecture
 
 ```
-Project Setup
-        │
-        ▼
-Enable APIs
-        │
-        ▼
-Create Service Accounts
-        │
-        ▼
-Configure IAM
-        │
-        ▼
-Create Artifact Registry
-        │
-        ▼
-Build Container
-        │
-        ▼
-Deploy Cloud Run
-        │
-        ▼
-Create BigQuery
-        │
-        ▼
-Configure Pub/Sub
-        │
-        ▼
-Configure Eventarc
-        │
-        ▼
-Configure Logging
-        │
-        ▼
-Configure Governance Registry
-        │
-        ▼
-Brownfield Validation
-        │
-        ▼
-Greenfield Validation
-        │
-        ▼
-Dashboard Validation
+                           +--------------------------------+
+                           | Governance Registry            |
+                           | Application Metadata           |
+                           +---------------+----------------+
+                                           |
+                                           |
+                                           v
+                          +-------------------------------+
+                          | Cloud Run                     |
+                          | Metadata Governance Platform  |
+                          +---------------+---------------+
+                                          |
+          +-------------------------------+-------------------------------+
+          |                               |                               |
+          v                               v                               v
+
+ Brownfield Discovery             Greenfield Events               Reporting Engine
+
+          |                               |                               |
+          +---------------+---------------+-------------------------------+
+                          |
+                          v
+
+                    BigQuery Dataset
+
+                          |
+
+                          v
+
+                 Executive Dashboard
+```
+
+---
+
+# Supported Deployment Regions
+
+The platform is region independent.
+
+Any Google Cloud region supporting Cloud Run, Eventarc and BigQuery may be used.
+
+Examples include:
+
+| Region | Location |
+|---------|----------|
+| us-central1 | Iowa |
+| us-east1 | South Carolina |
+| us-east4 | Northern Virginia |
+| europe-west1 | Belgium |
+| europe-west2 | London |
+| europe-west4 | Netherlands |
+| australia-southeast1 | Sydney |
+| asia-southeast1 | Singapore |
+
+Choose the region closest to the workloads being governed.
+
+---
+
+# Deployment Variables
+
+Before beginning deployment define the following variables.
+
+| Variable | Description | Example |
+|-----------|-------------|---------|
+| PROJECT_ID | Google Cloud project hosting the platform | metadata-governance-prod |
+| ORGANIZATION_ID | Google Cloud Organization ID | 123456789012 |
+| REGION | Deployment region | europe-west2 |
+| DATASET_NAME | BigQuery reporting dataset | metadata_governance_dataset |
+| SERVICE_NAME | Cloud Run service | metadata-governance |
+| REPOSITORY_NAME | Artifact Registry repository | metadata-governance |
+| IMAGE_NAME | Cloud Run container image | metadata-governance |
+| SERVICE_ACCOUNT_NAME | Runtime service account | metadata-governance |
+| REGISTRY_PATH | Governance registry location | registry/ |
+
+Example shell variables.
+
+```bash
+export PROJECT_ID=my-governance-project
+export ORGANIZATION_ID=123456789012
+export REGION=europe-west2
+export DATASET_NAME=metadata_governance_dataset
+export SERVICE_NAME=metadata-governance
+export REPOSITORY_NAME=metadata-governance
+export IMAGE_NAME=metadata-governance
+export SERVICE_ACCOUNT_NAME=metadata-governance
 ```
 
 ---
 
 # Prerequisites
 
-Before beginning deployment ensure the following software is installed.
+Install the latest versions of the following tools.
 
-| Component | Recommended Version |
-|------------|--------------------|
-| Google Cloud SDK | Latest |
-| Terraform | Latest (optional) |
-| Python | 3.12+ |
-| Git | Latest |
-| Docker | Latest |
+| Software | Required |
+|-----------|----------|
+| Google Cloud SDK | Yes |
+| Git | Yes |
+| Docker | Yes |
+| Python 3.12+ | Yes |
 
-Verify installations.
+Verify installation.
 
 ```bash
 gcloud version
 ```
 
 ```bash
-python --version
+git --version
 ```
 
 ```bash
@@ -104,105 +164,14 @@ docker --version
 ```
 
 ```bash
-git --version
-```
-
-Expected output should display the installed versions without errors.
-
----
-
-# Required Google Cloud Permissions
-
-The deploying user should have sufficient permissions to create Google Cloud infrastructure.
-
-Typical deployment permissions include:
-
-- Organization Administrator (or delegated equivalent)
-- Project Owner
-- Billing Administrator
-- IAM Administrator
-- Service Usage Administrator
-
-Runtime permissions for the application are documented separately in:
-
-```
-docs/iam-permissions.md
+python --version
 ```
 
 ---
 
-# Step 1 - Create or Select a Google Cloud Project
+# Google Cloud Authentication
 
-## Purpose
-
-Create a dedicated project for the Metadata Governance Platform or select an existing project.
-
-Example project:
-
-```
-platform-metadata-demo
-```
-
-Create a project.
-
-```bash
-gcloud projects create platform-metadata-demo
-```
-
-Set the active project.
-
-```bash
-gcloud config set project platform-metadata-demo
-```
-
-Verify.
-
-```bash
-gcloud config get-value project
-```
-
-Expected output.
-
-```
-platform-metadata-demo
-```
-
----
-
-# Step 2 - Enable Billing
-
-The project must have billing enabled before resources can be created.
-
-List billing accounts.
-
-```bash
-gcloud billing accounts list
-```
-
-Link a billing account.
-
-```bash
-gcloud billing projects link platform-metadata-demo \
-    --billing-account=BILLING_ACCOUNT_ID
-```
-
-Verify.
-
-```bash
-gcloud billing projects describe platform-metadata-demo
-```
-
-Expected output.
-
-```
-billingEnabled: true
-```
-
----
-
-# Step 3 - Authenticate
-
-Authenticate using your Google account.
+Authenticate with Google Cloud.
 
 ```bash
 gcloud auth login
@@ -214,21 +183,44 @@ Configure Application Default Credentials.
 gcloud auth application-default login
 ```
 
-Verify.
+Verify authentication.
 
 ```bash
 gcloud auth list
 ```
 
-Expected output should show the active authenticated account.
+The active account should have sufficient permissions to deploy Google Cloud resources.
 
 ---
 
-# Step 4 - Enable Required Google Cloud APIs
+# Required IAM Permissions
 
-## Purpose
+The deploying identity requires permissions to create and configure Google Cloud services.
 
-The platform depends on several managed Google Cloud services.
+Typical deployment roles include:
+
+| IAM Role | Purpose |
+|-----------|---------|
+| Project Owner | Create project resources |
+| IAM Admin | Configure IAM |
+| Service Usage Admin | Enable APIs |
+| Cloud Run Admin | Deploy Cloud Run |
+| Artifact Registry Admin | Create repositories |
+| BigQuery Admin | Create datasets and tables |
+| Eventarc Admin | Create Eventarc triggers |
+| Pub/Sub Admin | Create topics and subscriptions |
+| Logging Admin | Configure logging sinks |
+| Service Account Admin | Create service accounts |
+
+Runtime permissions are documented separately in:
+
+```
+docs/iam-permissions.md
+```
+
+---
+
+# Enable Required Google Cloud APIs
 
 Enable all required APIs.
 
@@ -238,6 +230,7 @@ artifactregistry.googleapis.com \
 bigquery.googleapis.com \
 cloudasset.googleapis.com \
 cloudbuild.googleapis.com \
+cloudresourcemanager.googleapis.com \
 eventarc.googleapis.com \
 iam.googleapis.com \
 logging.googleapis.com \
@@ -246,11 +239,8 @@ run.googleapis.com \
 secretmanager.googleapis.com \
 serviceusage.googleapis.com \
 sqladmin.googleapis.com \
-storage.googleapis.com \
-cloudresourcemanager.googleapis.com
+storage.googleapis.com
 ```
-
-This process may take several minutes.
 
 Verify.
 
@@ -258,60 +248,43 @@ Verify.
 gcloud services list --enabled
 ```
 
-Expected output should include all enabled services.
-
-If an API is missing, enable it individually.
-
-Example.
-
-```bash
-gcloud services enable run.googleapis.com
-```
+Confirm all required services are enabled before continuing.
 
 ---
 
-# Step 5 - Clone the Repository
+# Clone the Repository
 
-Clone the Metadata Governance Platform repository.
+Clone the platform repository.
 
 ```bash
 git clone https://github.com/<organization>/platform-metadata-governance.git
 ```
 
-Navigate into the repository.
+Navigate into the project.
 
 ```bash
 cd platform-metadata-governance
 ```
 
-Verify.
-
-```bash
-dir
-```
-
-Expected directories.
+Expected repository structure.
 
 ```
-cloudrun
-terraform
-registry
-docs
+cloudrun/
+terraform/
+registry/
+docs/
+validation/
 ```
 
 ---
 
-# Step 6 - Create the Cloud Run Service Account
+# Create the Cloud Run Service Account
 
-## Purpose
-
-The Cloud Run service executes all Brownfield, Greenfield, reporting, and dashboard workloads.
-
-Create the service account.
+Create the runtime service account.
 
 ```bash
-gcloud iam service-accounts create metadata-governance \
-    --display-name="Metadata Governance"
+gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
+    --display-name="Metadata Governance Platform"
 ```
 
 Verify.
@@ -320,109 +293,45 @@ Verify.
 gcloud iam service-accounts list
 ```
 
-Expected output.
+Expected output should include:
 
 ```
-metadata-governance@platform-metadata-demo.iam.gserviceaccount.com
+metadata-governance@PROJECT_ID.iam.gserviceaccount.com
 ```
 
 ---
 
-# Step 7 - Configure IAM
+# Configure Runtime IAM
 
 Grant the required runtime permissions to the Cloud Run service account.
 
-Replace the project ID if required.
-
-```bash
-PROJECT_ID=platform-metadata-demo
-
-SA=metadata-governance@$PROJECT_ID.iam.gserviceaccount.com
-```
-
-Grant BigQuery permissions.
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/bigquery.dataEditor"
-```
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/bigquery.jobUser"
-```
-
-Grant Cloud Asset permissions.
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/cloudasset.viewer"
-```
-
-Grant Logging permissions.
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/logging.viewer"
-```
-
-Grant Pub/Sub permissions.
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/pubsub.subscriber"
-```
-
-Grant Tag permissions.
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/resourcemanager.tagUser"
-```
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/resourcemanager.tagViewer"
-```
-
-Grant Compute permissions.
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member="serviceAccount:$SA" \
-    --role="roles/compute.admin"
-```
-
-Repeat as required for Storage, Cloud SQL, Secret Manager, Artifact Registry, and Cloud KMS.
-
-The complete permission matrix is available in:
+The recommended permissions are documented in:
 
 ```
 docs/iam-permissions.md
 ```
 
+Apply each required role using:
+
+```bash
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
+--role="ROLE_NAME"
+```
+
+Repeat for every required runtime role.
+
 ---
 
-# Step 8 - Create Artifact Registry
-
-## Purpose
-
-Artifact Registry stores the Cloud Run container image.
+# Create Artifact Registry
 
 Create the Docker repository.
 
 ```bash
-gcloud artifacts repositories create metadata-governance \
-    --repository-format=docker \
-    --location=europe-west2 \
-    --description="Metadata Governance Images"
+gcloud artifacts repositories create $REPOSITORY_NAME \
+--repository-format=docker \
+--location=$REGION \
+--description="Enterprise Metadata Governance Platform Images"
 ```
 
 Verify.
@@ -439,12 +348,12 @@ metadata-governance
 
 ---
 
-# Step 9 - Configure Docker Authentication
+# Configure Docker Authentication
 
-Configure Docker to authenticate with Artifact Registry.
+Configure Docker authentication.
 
 ```bash
-gcloud auth configure-docker europe-west2-docker.pkg.dev
+gcloud auth configure-docker $REGION-docker.pkg.dev
 ```
 
 Expected output.
@@ -455,140 +364,309 @@ Docker configuration updated.
 
 ---
 
-# Step 10 - Build the Container Image
+# Build the Cloud Run Container
 
-## Purpose
-
-Cloud Build packages the application into a container image.
-
-Run the build.
+Submit the build.
 
 ```bash
 gcloud builds submit \
-    --tag europe-west2-docker.pkg.dev/platform-metadata-demo/metadata-governance/metadata-governance:latest
+--tag $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME/$IMAGE_NAME:latest
 ```
 
-Build duration varies depending on the environment.
-
-Verify.
+Monitor the build.
 
 ```bash
 gcloud builds list
 ```
 
-Expected output.
-
-```
-STATUS: SUCCESS
-```
-
 If the build fails.
 
-Check logs.
+Retrieve logs.
 
 ```bash
 gcloud builds log BUILD_ID
 ```
 
-Resolve any reported issues before continuing.
+Correct any reported issues before continuing.
 
 ---
 
-# Step 11 - Verify the Image
+# Validate the Container Image
 
-List stored images.
+Verify the image exists.
 
 ```bash
 gcloud artifacts docker images list \
-europe-west2-docker.pkg.dev/platform-metadata-demo/metadata-governance
+$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME
 ```
 
 Expected output.
 
 ```
-metadata-governance
+IMAGE_NAME
+
 latest
+```
+
+
+# Step 13 - Deploy Cloud Run
+
+## Purpose
+
+Cloud Run hosts the Metadata Governance Platform.
+
+The service provides:
+
+- Brownfield APIs
+- Greenfield Event Processing
+- Dashboard APIs
+- Executive Dashboard
+
+Deploy the container.
+
+```bash
+gcloud run deploy $SERVICE_NAME \
+--image=$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_NAME/$IMAGE_NAME:latest \
+--region=$REGION \
+--service-account=$SERVICE_ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com \
+--port=8080 \
+--cpu=2 \
+--memory=2Gi \
+--min-instances=0 \
+--max-instances=20 \
+--timeout=900 \
+--concurrency=80 \
+--no-allow-unauthenticated
 ```
 
 ---
 
-# Step 12 - Prepare Cloud Run Deployment
+## Recommended Cloud Run Configuration
 
-Before deployment gather the following information.
-
-| Setting | Example |
-|----------|----------|
-| Region | europe-west2 |
-| Service Name | metadata-governance |
-| Container Image | Artifact Registry Image |
-| Service Account | metadata-governance |
+| Setting | Recommended Value |
+|----------|------------------|
+| CPU | 2 |
+| Memory | 2 GiB |
+| Timeout | 900 seconds |
+| Port | 8080 |
+| Min Instances | 0 |
+| Max Instances | 20 |
+| Concurrency | 80 |
 | Authentication | IAM |
 
-The next section will deploy Cloud Run, configure environment variables, and connect the application to BigQuery, Pub/Sub, Eventarc, and the Governance Registry.
+These values can be adjusted based on workload size.
 
-# Step 13 - Create the BigQuery Dataset
+---
+
+## Verify Deployment
+
+```bash
+gcloud run services list
+```
+
+Expected output
+
+```
+SERVICE
+
+metadata-governance
+
+READY
+```
+
+Retrieve the service URL.
+
+```bash
+gcloud run services describe $SERVICE_NAME \
+--region=$REGION \
+--format="value(status.url)"
+```
+
+Save the URL.
+
+Example
+
+```
+https://metadata-governance-xxxxxxxx.run.app
+```
+
+---
+
+# Step 14 - Configure Environment Variables
+
+Update the Cloud Run service.
+
+```bash
+gcloud run services update $SERVICE_NAME \
+--region=$REGION \
+--update-env-vars \
+BIGQUERY_DATASET=$DATASET_NAME,\
+REGISTRY_PATH=registry,\
+LOG_LEVEL=INFO,\
+PYTHONUNBUFFERED=1
+```
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| BIGQUERY_DATASET | Yes | BigQuery reporting dataset |
+| REGISTRY_PATH | Yes | Registry folder |
+| LOG_LEVEL | No | Logging level |
+| PYTHONUNBUFFERED | Yes | Flush Python logs immediately |
+
+Verify.
+
+```bash
+gcloud run services describe $SERVICE_NAME \
+--region=$REGION
+```
+
+---
+
+# Step 15 - Verify Cloud Run
+
+Health Check
+
+```bash
+TOKEN=$(gcloud auth print-identity-token)
+
+curl \
+-H "Authorization: Bearer $TOKEN" \
+https://YOUR_CLOUD_RUN_URL/health
+```
+
+Expected
+
+```json
+{
+    "status":"healthy"
+}
+```
+
+Verify Dashboard
+
+```bash
+curl \
+-H "Authorization: Bearer $TOKEN" \
+https://YOUR_CLOUD_RUN_URL/
+```
+
+---
+
+# Step 16 - Create BigQuery Dataset
 
 ## Purpose
 
-The Enterprise Metadata Governance Platform stores all governance data in BigQuery.
-
-The reporting dataset contains:
-
-- Resource inventory
-- Compliance snapshots
-- Remediation plans
-- Execution history
+The platform stores all governance information inside BigQuery.
 
 Create the dataset.
 
 ```bash
 bq mk \
---location=europe-west2 \
-metadata_governance_dataset
+--location=$REGION \
+$DATASET_NAME
 ```
 
-Verify.
+Verify
 
 ```bash
 bq ls
 ```
 
-Expected output.
-
-```
-metadata_governance_dataset
-```
-
-If the dataset already exists.
-
-```
-Already Exists
-```
-
-This can be ignored.
-
 ---
 
-# Step 14 - Create Reporting Tables
+# Step 17 - Create BigQuery Reporting Tables
 
 The platform uses four reporting tables.
 
 | Table | Purpose |
-|--------|---------|
-| resource_snapshot | Current resource inventory |
+|---------|----------|
+| resource_snapshot | Current cloud inventory |
 | compliance_snapshot | Compliance evaluation results |
-| remediation_plan | Planned remediation actions |
-| remediation_execution | Remediation execution history |
+| remediation_plan | Planned remediation |
+| remediation_execution | Execution history |
 
-These tables can be created manually using BigQuery DDL or by applying the provided schemas from the repository.
+---
 
-Verify.
+## resource_snapshot
+
+Purpose
+
+Stores the discovered inventory from every Brownfield execution.
+
+| Column | Type | Description |
+|---------|------|-------------|
+| run_id | STRING | Brownfield execution identifier |
+| snapshot_time | TIMESTAMP | Discovery timestamp |
+| project_id | STRING | Google Cloud Project |
+| asset_type | STRING | Cloud Asset type |
+| resource_name | STRING | Full Cloud Asset name |
+| location | STRING | Region or Zone |
+| labels | JSON | Current labels |
+| tags | JSON | Resource Manager Tags |
+
+---
+
+## compliance_snapshot
+
+Stores compliance evaluation.
+
+| Column | Type |
+|----------|------|
+| run_id | STRING |
+| evaluated_time | TIMESTAMP |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| compliant | BOOLEAN |
+| missing_labels | JSON |
+| incorrect_labels | JSON |
+
+---
+
+## remediation_plan
+
+Stores planned remediation actions.
+
+| Column | Type |
+|----------|------|
+| remediation_id | STRING |
+| run_id | STRING |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| status | STRING |
+| planned_time | TIMESTAMP |
+
+---
+
+## remediation_execution
+
+Stores execution history.
+
+| Column | Type |
+|----------|------|
+| execution_id | STRING |
+| run_id | STRING |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| status | STRING |
+| error_message | STRING |
+| executed_at | TIMESTAMP |
+
+---
+
+Verify
 
 ```bash
-bq ls metadata_governance_dataset
+bq ls $DATASET_NAME
 ```
 
-Expected output.
+Expected
 
 ```
 resource_snapshot
@@ -602,112 +680,19 @@ remediation_execution
 
 ---
 
-# Step 15 - Deploy Cloud Run
-
-## Purpose
-
-Cloud Run hosts the Enterprise Metadata Governance Platform.
-
-Deploy the application.
-
-```bash
-gcloud run deploy metadata-governance \
-    --image=europe-west2-docker.pkg.dev/platform-metadata-demo/metadata-governance/metadata-governance:latest \
-    --region=europe-west2 \
-    --service-account=metadata-governance@platform-metadata-demo.iam.gserviceaccount.com \
-    --allow-unauthenticated=false
-```
-
-Cloud Run returns a service URL.
-
-Example.
-
-```
-https://metadata-governance-xxxxxxxx.europe-west2.run.app
-```
-
-Record this URL.
-
-It will be used throughout the remainder of the deployment.
-
----
-
-# Step 16 - Configure Environment Variables
-
-The application requires several environment variables.
-
-Update the Cloud Run service.
-
-```bash
-gcloud run services update metadata-governance \
-    --region=europe-west2 \
-    --update-env-vars \
-BIGQUERY_DATASET=metadata_governance_dataset,\
-REGISTRY_PATH=registry,\
-LOG_LEVEL=INFO
-```
-
-Verify.
-
-```bash
-gcloud run services describe metadata-governance \
---region=europe-west2
-```
-
-Check that all environment variables are present.
-
----
-
-# Step 17 - Validate Cloud Run
-
-Retrieve an Identity Token.
-
-```bash
-TOKEN=$(gcloud auth print-identity-token)
-```
-
-Health Check.
-
-```bash
-curl \
--H "Authorization: Bearer $TOKEN" \
-https://YOUR_CLOUD_RUN_URL/health
-```
-
-Expected response.
-
-```json
-{
-    "status":"healthy"
-}
-```
-
-Verify the dashboard.
-
-```bash
-curl \
--H "Authorization: Bearer $TOKEN" \
-https://YOUR_CLOUD_RUN_URL/
-```
-
-Expected output.
-
-```
-Enterprise Metadata Governance Platform
-```
-
----
-
-# Step 18 - Create Pub/Sub Topic
-
-## Purpose
-
-Pub/Sub transports Audit Log events to Eventarc.
+# Step 18 - Create Pub/Sub
 
 Create the topic.
 
 ```bash
 gcloud pubsub topics create metadata-governance-events
+```
+
+Create the subscription.
+
+```bash
+gcloud pubsub subscriptions create metadata-governance-sub \
+--topic=metadata-governance-events
 ```
 
 Verify.
@@ -716,112 +701,68 @@ Verify.
 gcloud pubsub topics list
 ```
 
-Expected output.
-
-```
-metadata-governance-events
-```
-
----
-
-# Step 19 - Create Pub/Sub Subscription
-
-Create the subscription.
-
-```bash
-gcloud pubsub subscriptions create metadata-governance-sub \
-    --topic=metadata-governance-events
-```
-
-Verify.
-
 ```bash
 gcloud pubsub subscriptions list
 ```
 
-Expected output.
-
-```
-metadata-governance-sub
-```
-
 ---
 
-# Step 20 - Configure Organization Logging Sink
+# Step 19 - Configure Logging Sink
 
-## Purpose
+Create the Logging Sink.
 
-The Logging Sink exports Cloud Audit Logs into Pub/Sub.
-
-Create the sink.
+Organization example
 
 ```bash
 gcloud logging sinks create metadata-governance-sink \
-pubsub.googleapis.com/projects/platform-metadata-demo/topics/metadata-governance-events \
---organization=ORGANIZATION_ID \
+pubsub.googleapis.com/projects/$PROJECT_ID/topics/metadata-governance-events \
+--organization=$ORGANIZATION_ID \
 --log-filter='logName:"cloudaudit.googleapis.com"'
 ```
 
-Alternatively, create a project-level sink if organization-level permissions are not available.
+Project example
 
-Verify.
+```bash
+gcloud logging sinks create metadata-governance-sink \
+pubsub.googleapis.com/projects/$PROJECT_ID/topics/metadata-governance-events
+```
+
+Verify
 
 ```bash
 gcloud logging sinks list
 ```
 
-Expected output.
-
-```
-metadata-governance-sink
-```
-
 ---
 
-# Step 21 - Grant Logging Sink Permissions
+# Step 20 - Grant Pub/Sub Publisher
 
-Retrieve the Logging Sink writer identity.
+Retrieve the writer identity.
 
 ```bash
 gcloud logging sinks describe metadata-governance-sink
 ```
 
-Example.
-
-```
-serviceAccount:p123456789@gcp-sa-logging.iam.gserviceaccount.com
-```
-
-Grant Pub/Sub Publisher.
+Grant publisher permissions.
 
 ```bash
 gcloud pubsub topics add-iam-policy-binding metadata-governance-events \
---member="serviceAccount:LOGGING_SERVICE_ACCOUNT" \
+--member="serviceAccount:LOGGING_WRITER_IDENTITY" \
 --role="roles/pubsub.publisher"
-```
-
-Verify.
-
-```bash
-gcloud pubsub topics get-iam-policy metadata-governance-events
 ```
 
 ---
 
-# Step 22 - Create Eventarc Trigger
+# Step 21 - Create Eventarc Trigger
 
-## Purpose
-
-Eventarc delivers Pub/Sub events to Cloud Run.
-
-Create the trigger.
+Eventarc forwards Pub/Sub messages to Cloud Run.
 
 ```bash
 gcloud eventarc triggers create metadata-governance-trigger \
-    --location=europe-west2 \
-    --destination-run-service=metadata-governance \
-    --destination-run-region=europe-west2 \
-    --transport-topic=metadata-governance-events
+--location=$REGION \
+--destination-run-service=$SERVICE_NAME \
+--destination-run-region=$REGION \
+--transport-topic=metadata-governance-events
 ```
 
 Verify.
@@ -830,20 +771,14 @@ Verify.
 gcloud eventarc triggers list
 ```
 
-Expected output.
-
-```
-metadata-governance-trigger
-```
-
-Describe the trigger.
+Describe.
 
 ```bash
 gcloud eventarc triggers describe metadata-governance-trigger \
---location=europe-west2
+--location=$REGION
 ```
 
-Expected state.
+Expected
 
 ```
 ACTIVE
@@ -851,21 +786,11 @@ ACTIVE
 
 ---
 
-# Step 23 - Configure the Governance Registry
+# Step 22 - Configure Governance Registry
 
-The Governance Registry defines the expected metadata for each application.
+Each application requires one registry file.
 
-Each registry file must contain:
-
-- Product
-- Team
-- Owner
-- Budget Owner
-- Organization
-- Department
-- Cost Center
-
-Example.
+Example
 
 ```yaml
 schemaVersion: v1
@@ -882,7 +807,7 @@ organization: example
 
 department: engineering
 
-costCenter: FIN001
+costCenter: CC100
 
 bindings:
 
@@ -893,13 +818,35 @@ bindings:
   businessCriticality: medium
 ```
 
-Validate the registry.
+---
+
+## Registry Structure
+
+```
+registry/
+
+    payments.yaml
+
+    banking.yaml
+
+    platform.yaml
+
+    analytics.yaml
+```
+
+One YAML file represents one application.
+
+One application can contain multiple project bindings.
+
+---
+
+# Step 23 - Validate Registry
 
 ```bash
 python validation/validate_registry.py
 ```
 
-Expected output.
+Expected
 
 ```
 Validation Passed
@@ -909,11 +856,9 @@ Validation Passed
 
 # Step 24 - Configure Resource Manager Tags
 
-If using Resource Manager Tags.
-
 Create Tag Keys.
 
-Example.
+Example
 
 ```
 environment
@@ -946,90 +891,84 @@ gcloud resource-manager tags values list \
 
 ---
 
-# Step 25 - Verify Platform Deployment
+# Step 25 - Verify Infrastructure
 
-Confirm the following resources exist.
-
-Cloud Run.
+Cloud Run
 
 ```bash
 gcloud run services list
 ```
 
-Artifact Registry.
-
-```bash
-gcloud artifacts repositories list
-```
-
-BigQuery.
+BigQuery
 
 ```bash
 bq ls
 ```
 
-Pub/Sub.
+Pub/Sub
 
 ```bash
 gcloud pubsub topics list
 ```
 
-Eventarc.
+Eventarc
 
 ```bash
 gcloud eventarc triggers list
 ```
 
-Logging.
+Logging
 
 ```bash
 gcloud logging sinks list
 ```
 
-If every component exists, the platform infrastructure has been successfully deployed.
+Artifact Registry
 
-The final section covers Brownfield validation, Greenfield validation, Dashboard validation, operational checks, and post-deployment verification.
+```bash
+gcloud artifacts repositories list
+```
+
 
 # Step 26 - Validate Brownfield Governance
 
 ## Purpose
 
-Brownfield governance discovers existing Google Cloud resources, evaluates compliance, generates remediation plans, and executes metadata remediation.
+Brownfield Governance discovers existing Google Cloud resources, evaluates metadata compliance, generates remediation plans, and applies remediation where required.
 
-Run a Brownfield scan.
+Execute a Brownfield scan.
 
 ```bash
 TOKEN=$(gcloud auth print-identity-token)
 
 curl \
 -H "Authorization: Bearer $TOKEN" \
-"https://YOUR_CLOUD_RUN_URL/brownfield?project=platform-metadata-demo"
+"https://YOUR_CLOUD_RUN_URL/brownfield?project=YOUR_PROJECT_ID"
 ```
 
 Example response.
 
 ```json
 {
-    "project":"platform-metadata-demo",
-    "run_id":"761c615e-e4bf-426a-ae3a-b4e4d60641be",
-    "status":"COMPLETED",
-    "discovered":79604,
-    "evaluated":2567,
-    "planned":520,
-    "successful":420,
-    "failed":0
+  "project":"YOUR_PROJECT_ID",
+  "run_id":"761c615e-e4bf-426a-ae3a-b4e4d60641be",
+  "status":"COMPLETED",
+  "discovered":79604,
+  "evaluated":2567,
+  "planned":520,
+  "successful":420,
+  "failed":0
 }
 ```
 
-### Validation
+Verify:
 
-Confirm:
-
-- Resources were discovered.
-- Supported resources were evaluated.
-- Compliance results were generated.
-- A remediation plan was created.
-- Execution history was written to BigQuery.
+- Resources discovered
+- Supported resources evaluated
+- Compliance calculated
+- Remediation planned
+- Execution completed
+- BigQuery updated
 
 ---
 
@@ -1037,22 +976,22 @@ Confirm:
 
 ## Purpose
 
-Greenfield governance automatically evaluates newly created resources using Google Cloud Audit Logs.
+Greenfield Governance automatically evaluates newly created resources.
 
 Create a supported resource.
 
-Example:
+Example
 
 ```bash
-gcloud compute instances create governance-demo-vm \
-    --project=platform-metadata-demo \
-    --zone=europe-west2-a \
-    --machine-type=e2-medium \
-    --image-family=debian-12 \
-    --image-project=debian-cloud
+gcloud compute instances create governance-test-vm \
+--project=YOUR_PROJECT_ID \
+--zone=YOUR_ZONE \
+--machine-type=e2-medium \
+--image-family=debian-12 \
+--image-project=debian-cloud
 ```
 
-The following workflow should occur automatically.
+Expected workflow.
 
 ```
 Compute Engine
@@ -1087,7 +1026,7 @@ Compliance
 
 ↓
 
-Remediation
+Automatic Remediation
 
 ↓
 
@@ -1096,127 +1035,101 @@ BigQuery
 
 ---
 
-# Step 28 - Verify Greenfield Processing
+# Step 28 - Verify Cloud Run Processing
 
 Monitor Cloud Run logs.
 
 ```bash
-gcloud beta run services logs tail metadata-governance \
-    --region=europe-west2
+gcloud beta run services logs tail $SERVICE_NAME \
+--region=$REGION
 ```
 
-Expected log sequence.
+Expected sequence.
 
 ```
-Audit Log received
+Audit Event Received
 
 ↓
 
-Classification completed
+Classification Completed
 
 ↓
 
-Resource resolved
+Resource Retrieved
 
 ↓
 
-Compliance evaluated
+Compliance Evaluated
 
 ↓
 
-Remediation executed
+Remediation Executed
 
 ↓
 
-Execution persisted
-```
+Execution Persisted
 
-If any stage fails, refer to:
+↓
 
-```
-docs/troubleshooting.md
+Dashboard Updated
 ```
 
 ---
 
-# Step 29 - Verify BigQuery Reporting
+# Step 29 - Validate BigQuery
 
 Open BigQuery.
 
 Verify the reporting dataset.
 
 ```bash
-bq ls metadata_governance_dataset
+bq ls $DATASET_NAME
 ```
 
-Expected tables.
-
-```
-resource_snapshot
-
-compliance_snapshot
-
-remediation_plan
-
-remediation_execution
-```
-
-Verify snapshots.
+Verify table contents.
 
 ```sql
-SELECT COUNT(*)
-FROM metadata_governance_dataset.resource_snapshot;
+SELECT COUNT(*) FROM resource_snapshot;
 ```
-
-Verify compliance.
 
 ```sql
-SELECT COUNT(*)
-FROM metadata_governance_dataset.compliance_snapshot;
+SELECT COUNT(*) FROM compliance_snapshot;
 ```
-
-Verify remediation plans.
 
 ```sql
-SELECT COUNT(*)
-FROM metadata_governance_dataset.remediation_plan;
+SELECT COUNT(*) FROM remediation_plan;
 ```
-
-Verify execution history.
 
 ```sql
-SELECT COUNT(*)
-FROM metadata_governance_dataset.remediation_execution;
+SELECT COUNT(*) FROM remediation_execution;
 ```
 
-Each query should return records after Brownfield or Greenfield processing.
+All tables should contain records.
 
 ---
 
-# Step 30 - Validate the Executive Dashboard
+# Step 30 - Validate Dashboard
 
-Open the dashboard.
+Open
 
 ```
-https://YOUR_CLOUD_RUN_URL/
+https://YOUR_CLOUD_RUN_URL
 ```
 
-Verify the following sections.
+Verify:
 
 ## Executive Summary
 
-Confirm:
-
 - Total Resources
 - Supported Resources
-- Compliance Percentage
+- Compliance %
 - Projects
 
 ---
 
 ## Brownfield
 
-Confirm:
+Verify:
 
 - Planned
 - Completed
@@ -1228,11 +1141,11 @@ Confirm:
 
 ## Greenfield
 
-Confirm:
+Verify:
 
 - Total Events
 - Remediated
-- Already Compliant
+- Compliant
 - Failed
 - Average Processing Time
 
@@ -1242,9 +1155,9 @@ Confirm:
 
 Verify:
 
-- Organization scope lists all onboarded projects.
-- Project scope filters correctly.
-- Project metrics match BigQuery.
+- Organization view
+- Project filtering
+- Resource counts
 
 ---
 
@@ -1252,13 +1165,13 @@ Verify:
 
 Verify:
 
-- Compliance percentages
-- Resource totals
-- Progress indicators
+- Total resources
+- Compliance
+- Progress bars
 
 ---
 
-## Recent Remediation Runs
+## Recent Runs
 
 Verify:
 
@@ -1266,7 +1179,6 @@ Verify:
 - Planned
 - Completed
 - Failed
-- Remaining
 - Success Rate
 
 ---
@@ -1275,37 +1187,14 @@ Verify:
 
 Verify:
 
-- Resource Name
-- Resource Type
+- Resource
+- Type
 - Missing Metadata
 - Incorrect Metadata
 
 ---
 
-# Step 31 - Execute End-to-End Validation
-
-Complete the following checklist.
-
-| Validation | Status |
-|------------|--------|
-| APIs Enabled | ☐ |
-| Cloud Run Healthy | ☐ |
-| Artifact Registry Available | ☐ |
-| BigQuery Dataset Created | ☐ |
-| Reporting Tables Created | ☐ |
-| Pub/Sub Configured | ☐ |
-| Eventarc Trigger Active | ☐ |
-| Logging Sink Active | ☐ |
-| Governance Registry Loaded | ☐ |
-| Brownfield Successful | ☐ |
-| Greenfield Successful | ☐ |
-| Dashboard Operational | ☐ |
-
-All items should be complete before handing the platform to users.
-
----
-
-# Step 32 - Operational Validation
+# Step 31 - Verify Google Cloud Components
 
 Run the following commands.
 
@@ -1313,6 +1202,25 @@ Cloud Run
 
 ```bash
 gcloud run services list
+```
+
+Cloud Run Logs
+
+```bash
+gcloud beta run services logs tail $SERVICE_NAME \
+--region=$REGION
+```
+
+Artifact Registry
+
+```bash
+gcloud artifacts repositories list
+```
+
+BigQuery
+
+```bash
+bq ls
 ```
 
 Eventarc
@@ -1327,70 +1235,140 @@ Pub/Sub
 gcloud pubsub topics list
 ```
 
-BigQuery
+Logging
 
 ```bash
-bq ls
-```
-
-Artifact Registry
-
-```bash
-gcloud artifacts repositories list
+gcloud logging sinks list
 ```
 
 IAM
 
 ```bash
-gcloud projects get-iam-policy platform-metadata-demo
+gcloud projects get-iam-policy $PROJECT_ID
 ```
-
-Cloud Run Logs
-
-```bash
-gcloud beta run services logs tail metadata-governance \
-    --region=europe-west2
-```
-
-All commands should complete without errors.
 
 ---
 
-# Step 33 - Post-Deployment Recommendations
+# Supported Resource Types
 
-After deployment, perform the following operational tasks.
+| Google Cloud Service | Brownfield | Greenfield | Remediation |
+|----------------------|:----------:|:----------:|:-----------:|
+| Compute Engine VM | ✅ | ✅ | ✅ |
+| Compute Disk | ✅ | ✅ | ✅ |
+| Static IP Address | ✅ | ✅ | ✅ |
+| Forwarding Rule | ✅ | ✅ | ✅ |
+| Cloud Storage Bucket | ✅ | ✅ | ✅ |
+| BigQuery Dataset | ✅ | ❌ | ✅ |
+| Pub/Sub Topic | ✅ | ✅ | ✅ |
+| Cloud SQL Instance | ✅ | ✅ | ✅ |
+| Secret Manager Secret | ✅ | ✅ | ✅ |
+| Artifact Registry | ✅ | ✅ | ✅ |
+| Cloud KMS CryptoKey | ✅ | ✅ | ✅ |
+| GKE Cluster | ✅ | ❌ | Planned |
+| GKE Node Pool | ✅ | ❌ | Planned |
 
-- Protect the main branch using Pull Requests.
-- Enable Cloud Run Monitoring and Alerting.
-- Enable BigQuery cost monitoring.
-- Review IAM permissions regularly.
-- Schedule Brownfield scans.
-- Keep the Governance Registry current.
-- Monitor failed remediations.
-- Review dashboard KPIs regularly.
-- Maintain documentation alongside code changes.
+---
+
+# Platform APIs
+
+| Endpoint | Purpose |
+|-----------|---------|
+| GET / | Dashboard UI |
+| GET /health | Health Check |
+| GET /reports/dashboard | Executive Dashboard API |
+| POST /brownfield | Execute Brownfield Governance |
+| POST /execute | Execute Remediation Plan |
+
+---
+
+# Rollback Procedure
+
+If deployment fails:
+
+1. Stop Cloud Run deployment.
+2. Restore previous Cloud Run revision.
+3. Verify Eventarc trigger.
+4. Verify Pub/Sub.
+5. Verify BigQuery.
+6. Redeploy previous container image.
+
+Restore previous revision.
+
+```bash
+gcloud run revisions list \
+--service=$SERVICE_NAME \
+--region=$REGION
+```
+
+Route traffic back.
+
+```bash
+gcloud run services update-traffic \
+$SERVICE_NAME \
+--to-revisions=REVISION_NAME=100 \
+--region=$REGION
+```
+
+---
+
+# Upgrade Procedure
+
+1. Pull latest source code.
+2. Validate Governance Registry.
+3. Build container.
+4. Deploy Cloud Run.
+5. Verify Health Check.
+6. Execute Brownfield validation.
+7. Execute Greenfield validation.
+8. Validate Dashboard.
+
+---
+
+# Operational Best Practices
+
+- Keep Governance Registry current.
+- Review failed remediations daily.
+- Review Cloud Run logs.
+- Monitor BigQuery growth.
+- Review IAM permissions.
+- Validate Eventarc triggers.
+- Validate Pub/Sub subscriptions.
+- Backup Governance Registry.
+- Protect the main branch.
+- Monitor deployment costs.
+
+---
+
+# Deployment Validation Checklist
+
+| Validation | Status |
+|------------|--------|
+| APIs Enabled | ☐ |
+| IAM Configured | ☐ |
+| Artifact Registry Created | ☐ |
+| Cloud Run Deployed | ☐ |
+| Environment Variables Configured | ☐ |
+| BigQuery Dataset Created | ☐ |
+| Reporting Tables Created | ☐ |
+| Pub/Sub Configured | ☐ |
+| Logging Sink Configured | ☐ |
+| Eventarc Trigger Active | ☐ |
+| Governance Registry Loaded | ☐ |
+| Brownfield Working | ☐ |
+| Greenfield Working | ☐ |
+| Dashboard Operational | ☐ |
 
 ---
 
 # Deployment Complete
 
-The Enterprise Metadata Governance Platform has now been deployed and validated.
+The Enterprise Metadata Governance Platform is now fully deployed.
 
-The platform is capable of:
+The platform continuously:
 
-- Discovering existing Google Cloud resources.
-- Evaluating metadata compliance.
-- Planning and executing metadata remediation.
-- Automatically governing newly created resources.
-- Producing centralized governance reporting.
-- Providing organization-level and project-level executive dashboards.
-
-Refer to the remaining documentation for ongoing operations and maintenance:
-
-- `docs/architecture.md`
-- `docs/brownfield.md`
-- `docs/greenfield.md`
-- `docs/dashboard.md`
-- `docs/operations.md`
-- `docs/troubleshooting.md`
-- `docs/iam-permissions.md`
+- Discovers Google Cloud resources.
+- Evaluates metadata compliance.
+- Automatically remediates supported resources.
+- Monitors newly created resources.
+- Produces executive governance reporting.
+- Supports organization-level and project-level governance.
