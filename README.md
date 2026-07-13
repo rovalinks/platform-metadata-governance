@@ -150,6 +150,58 @@ Supporting Google Cloud services include:
 
 ---
 
+                                    Enterprise Metadata Governance Platform
+
+                                              +-----------------------+
+                                              | Governance Registry   |
+                                              | (Application Metadata)|
+                                              +-----------+-----------+
+                                                          |
+                                                          |
+                                              Expected Labels / Tags
+                                                          |
+                                                          v
++-----------------------------------------------------------------------------------------------+
+|                                      Cloud Run Platform                                        |
+|                                                                                               |
+| +------------------+     +------------------+      +------------------+                       |
+| | Brownfield       | --> | Compliance       | -->  | Remediation      |                       |
+| | Discovery        |     | Evaluation       |      | Planner          |                       |
+| +------------------+     +------------------+      +------------------+                       |
+|          |                        |                          |                                 |
+|          |                        |                          v                                 |
+|          |                        |               +----------------------+                     |
+|          |                        +-------------> | Remediation Engine   |                     |
+|          |                                        +----------+-----------+                     |
+|          |                                                   |                                 |
+|          +---------------------------------------------------+                                 |
+|                                                              |                                 |
++--------------------------------------------------------------|---------------------------------+
+                                                               |
+                                                               v
+                                              Google Cloud Resources
+
+   Compute  Storage  BigQuery  Pub/Sub  Cloud SQL  Secret Manager  Artifact Registry  KMS
+
+                                                               |
+                                                               v
+
+                                            +-------------------------------+
+                                            | Reporting Repository          |
+                                            | BigQuery                      |
+                                            | resource_snapshot             |
+                                            | compliance_snapshot           |
+                                            | remediation_plan             |
+                                            | remediation_execution        |
+                                            +---------------+---------------+
+                                                            |
+                                                            |
+                                                            v
+                                             Executive Governance Dashboard
+
+---
+
+
 # Brownfield Workflow
 
 1. Discover resources
@@ -158,6 +210,50 @@ Supporting Google Cloud services include:
 4. Execute remediation
 5. Persist execution results
 6. Publish governance reports
+
+---
+
+User
+
+   |
+
+POST /brownfield
+
+   |
+
+Cloud Run
+
+   |
+
+Cloud Asset Inventory
+
+   |
+
+Discover Resources
+
+   |
+
+Classification
+
+   |
+
+Compliance Evaluation
+
+   |
+
+Remediation Planning
+
+   |
+
+Remediation Execution
+
+   |
+
+BigQuery Reporting
+
+   |
+
+Dashboard
 
 ---
 
@@ -172,6 +268,50 @@ Supporting Google Cloud services include:
 7. Compliance evaluated
 8. Metadata automatically applied
 9. Results persisted
+
+---
+
+Resource Created
+
+        |
+
+Cloud Audit Logs
+
+        |
+
+Logging Sink
+
+        |
+
+Pub/Sub
+
+        |
+
+Eventarc
+
+        |
+
+Cloud Run
+
+        |
+
+Classification
+
+        |
+
+Compliance
+
+        |
+
+Automatic Labels / Tags
+
+        |
+
+BigQuery
+
+        |
+
+Dashboard
 
 ---
 
@@ -191,6 +331,30 @@ Dashboard supports:
 
 - Organization scope
 - Project scope
+
+---
+
+Brownfield
+                \
+                 \
+                  \
+                   --> resource_snapshot
+                   --> compliance_snapshot
+                   --> remediation_plan
+                   --> remediation_execution
+                               |
+                               |
+                               v
+                    Report Repository
+                               |
+                               |
+                     Reporting Service
+                               |
+                               |
+                      REST API (/reports/*)
+                               |
+                               |
+                     Executive Dashboard
 
 ---
 
