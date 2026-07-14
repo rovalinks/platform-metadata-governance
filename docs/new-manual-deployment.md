@@ -157,30 +157,8 @@ gcloud services list --enabled
 
 ---
 
-# Step 4
 
-Create Runtime Service Account
-
-```bash
-gcloud iam service-accounts create metadata-governance \
---display-name="Metadata Governance Platform"
-```
-
-Verify
-
-```bash
-gcloud iam service-accounts list
-```
-
-Expected
-
-```
-metadata-governance@$PROJECT_ID.iam.gserviceaccount.com
-```
-
----
-
-# Step 5
+# Step 4 & 5
 
 Grant Runtime IAM Roles
 
@@ -203,27 +181,10 @@ Grant the runtime service account the required roles.
 | Resource Manager Tag Viewer | Read Tags |
 
 Apply using:
+apply-iam-permissions.sh
+chmod +x apply-iam-permissions.sh
+./apply-iam-permissions.sh
 
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
---member="serviceAccount:metadata-governance@$PROJECT_ID.iam.gserviceaccount.com" \
---role="ROLE_NAME"
-```
-
-Repeat for every required role or use 
-
-# Metadata Governance Platform Setup Guide
-
-This guide provides the complete setup steps and scripts to configure your project's IAM permissions, create the BigQuery database in `europe-west2`, and deploy the Eventarc trigger.
-
----
-
-## 1. Apply IAM Permissions
-
-This script configures the required IAM roles for your Cloud Run, Eventarc, and Cloud Build service accounts.
-
-### File: `apply-iam-permissions.sh`
-```bash
 #!/usr/bin/env bash
 
 # Exit immediately if any command fails
@@ -234,15 +195,48 @@ set -e
 # ==========================================
 PROJECT_ID="platform-metadata"
 
-# Define Service Account Emails
-RUN_SA="metadata-governance@${PROJECT_ID}.iam.gserviceaccount.com"
-EVENTARC_SA="eventarc-trigger@${PROJECT_ID}.iam.gserviceaccount.com"
-CLOUDBUILD_SA="cloudbuild@${PROJECT_ID}.iam.gserviceaccount.com"
+# Service Account Names
+RUN_SA_NAME="metadata-governance"
+EVENTARC_SA_NAME="eventarc-trigger"
+CLOUDBUILD_SA_NAME="cloudbuild"
 
-echo "Setting up IAM policies for project: ${PROJECT_ID}"
+# Full Service Account Emails
+RUN_SA="${RUN_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+EVENTARC_SA="${EVENTARC_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+CLOUDBUILD_SA="${CLOUDBUILD_SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+
+echo "Using project: ${PROJECT_ID}"
 
 # ==========================================
-# 1. CLOUD RUN RUNTIME PERMISSIONS
+# HELPER FUNCTION: CREATE SA IF NOT EXISTS
+# ==========================================
+create_sa_if_not_exists() {
+  local sa_name=$1
+  local display_name=$2
+  local email="${sa_name}@${PROJECT_ID}.iam.gserviceaccount.com"
+
+  echo "Checking service account: ${email}..."
+  if ! gcloud iam service-accounts describe "${email}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+    echo "Creating service account: ${sa_name}..."
+    gcloud iam service-accounts create "${sa_name}" \
+      --project="${PROJECT_ID}" \
+      --display-name="${display_name}" \
+      --quiet
+  else
+    echo "Service account '${sa_name}' already exists. Skipping creation."
+  fi
+}
+
+# ==========================================
+# 1. CREATE SERVICE ACCOUNTS
+# ==========================================
+echo "Ensuring service accounts exist..."
+create_sa_if_not_exists "${RUN_SA_NAME}" "Metadata Governance Cloud Run SA"
+create_sa_if_not_exists "${EVENTARC_SA_NAME}" "Eventarc Trigger SA"
+create_sa_if_not_exists "${CLOUDBUILD_SA_NAME}" "Cloud Build SA"
+
+# ==========================================
+# 2. CLOUD RUN RUNTIME PERMISSIONS
 # ==========================================
 echo "Applying Cloud Run runtime roles..."
 
@@ -265,7 +259,7 @@ RUNTIME_ROLES=(
 )
 
 for role in "${RUNTIME_ROLES[@]}"; do
-  echo "Granting ${role} to${RUN_SA}..."
+  echo "Granting ${role} to ${RUN_SA}..."
   gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
     --member="serviceAccount:${RUN_SA}" \
     --role="${role}" \
@@ -273,7 +267,7 @@ for role in "${RUNTIME_ROLES[@]}"; do
 done
 
 # ==========================================
-# 2. EVENTARC SERVICE ACCOUNT PERMISSIONS
+# 3. EVENTARC SERVICE ACCOUNT PERMISSIONS
 # ==========================================
 echo "Applying Eventarc receiver role..."
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
@@ -282,7 +276,7 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --quiet > /dev/null
 
 # ==========================================
-# 3. CLOUD BUILD SERVICE ACCOUNT PERMISSIONS
+# 4. CLOUD BUILD SERVICE ACCOUNT PERMISSIONS
 # ==========================================
 echo "Applying Cloud Build roles..."
 CLOUDBUILD_ROLES=(
@@ -291,18 +285,16 @@ CLOUDBUILD_ROLES=(
 )
 
 for role in "${CLOUDBUILD_ROLES[@]}"; do
-  echo "Granting ${role} to${CLOUDBUILD_SA}..."
+  echo "Granting ${role} to ${CLOUDBUILD_SA}..."
   gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
     --member="serviceAccount:${CLOUDBUILD_SA}" \
     --role="${role}" \
     --quiet > /dev/null
 done
 
-echo "IAM policy configuration completed successfully!"
+echo "Service accounts and IAM policy configurations completed successfully!"
 
 
-chmod +x apply-iam-permissions.sh
-./apply-iam-permissions.sh
 
 ---
 
@@ -411,11 +403,13 @@ Verify
 
 Infrastructure deployment is now complete.
 
+Continue with:
 
+Application Deployment Guide
 
 # Enterprise Metadata Governance Platform
 
-# Infrastructure Deployment Guide
+# Application Deployment Guide
 
 Version 1.0
 
@@ -423,316 +417,540 @@ Version 1.0
 
 # Purpose
 
-This document provisions the Google Cloud infrastructure required to host the Enterprise Metadata Governance Platform.
+This document deploys the Enterprise Metadata Governance Platform application into an existing Google Cloud infrastructure.
+
+This guide assumes the infrastructure described in **Infrastructure.md** has already been deployed successfully.
+
+This document does **not** create Google Cloud infrastructure.
+
+It deploys the application using GitHub Actions and Workload Identity Federation.
 
 At the end of this guide the following components will exist.
 
-- Google Cloud Project
-- Billing
-- Required APIs
-- Service Accounts
-- IAM
-- Workload Identity Federation
-- Artifact Registry
-
-No application code is deployed in this document.
+- Cloud Run Service
+- Cloud Run Revision
+- Artifact Registry Image
+- GitHub Actions Deployment Pipeline
+- Health Endpoint
+- Dashboard UI
+- REST APIs
 
 ---
 
 # Deployment Architecture
 
 ```
-Developer
+                  Developer
 
-        │
+                      │
 
-        ▼
+                      ▼
 
-GitHub Repository
+             GitHub Repository
 
-        │
+                      │
 
-        ▼
+                Git Push
 
-Workload Identity Federation
+                      │
 
-        │
+                      ▼
 
-        ▼
+             GitHub Actions
 
-Google Cloud
+                      │
 
-        │
+        Workload Identity Federation
 
-        ▼
+                      │
 
-Artifact Registry
+                      ▼
 
-        │
+              Cloud Build
 
-        ▼
+                      │
 
-Cloud Run
+                      ▼
+
+           Artifact Registry Image
+
+                      │
+
+                      ▼
+
+                Cloud Run
+
+                      │
+
+                      ▼
+
+          Metadata Governance APIs
 ```
 
 ---
 
 # Prerequisites
 
-Install
+Before continuing verify the following.
 
-- Google Cloud SDK
-- Git
-- GitHub CLI (optional)
+| Component | Status |
+|------------|--------|
+| Infrastructure Deployment Completed | ✓ |
+| Artifact Registry Exists | ✓ |
+| Runtime Service Account Exists | ✓ |
+| GitHub OIDC Configured | ✓ |
+| GitHub Secrets Configured | ✓ |
 
-Authenticate
+---
+
+# Step 1 - Clone the Repository
+
+Clone the Metadata Governance Platform repository.
 
 ```bash
-gcloud auth login
+git clone https://github.com/<ORGANIZATION>/platform-metadata-governance.git
+```
 
-gcloud auth application-default login
+Navigate into the repository.
+
+```bash
+cd platform-metadata-governance
 ```
 
 ---
 
-# Required Variables
+# Step 2 - Verify Repository Structure
 
-```bash
-export PROJECT_ID=platform-metadata
+Verify the repository contains the following folders.
 
-export REGION=europe-west2
-
-export SERVICE_ACCOUNT=metadata-governance
-
-export REPOSITORY_NAME=metadata-governance
 ```
+.github/
+
+cloudrun/
+
+registry/
+
+terraform/
+
+validation/
+
+docs/
+```
+
+The GitHub workflow should exist.
+
+```
+.github/workflows/
+
+deploy.yml
+```
+
+If the workflow is missing the deployment cannot continue.
 
 ---
 
-# Step 1
+# Step 3 - Verify GitHub Secrets
 
-Select Project
+Open
 
-```bash
-gcloud config set project $PROJECT_ID
-```
+Repository
 
-Verify
+↓
 
-```bash
-gcloud config get-value project
-```
+Settings
 
----
-
-# Step 2
-
-Verify Billing
-
-```bash
-gcloud beta billing projects describe $PROJECT_ID
-```
-
-Expected
-
-```
-billingEnabled: true
-```
-
----
-
-# Step 3
-
-Enable Required APIs
-
-```bash
-gcloud services enable \
-artifactregistry.googleapis.com \
-bigquery.googleapis.com \
-cloudasset.googleapis.com \
-cloudbuild.googleapis.com \
-cloudresourcemanager.googleapis.com \
-eventarc.googleapis.com \
-iam.googleapis.com \
-iamcredentials.googleapis.com \
-logging.googleapis.com \
-pubsub.googleapis.com \
-run.googleapis.com \
-secretmanager.googleapis.com \
-serviceusage.googleapis.com \
-sqladmin.googleapis.com \
-storage.googleapis.com
-```
-
-Verify
-
-```bash
-gcloud services list --enabled
-```
-
----
-
-# Step 4
-
-Create Runtime Service Account
-
-```bash
-gcloud iam service-accounts create metadata-governance \
---display-name="Metadata Governance Platform"
-```
-
-Verify
-
-```bash
-gcloud iam service-accounts list
-```
-
-Expected
-
-```
-metadata-governance@$PROJECT_ID.iam.gserviceaccount.com
-```
-
----
-
-# Step 5
-
-Grant Runtime IAM Roles
-
-Grant the runtime service account the required roles.
-
-| Role | Purpose |
-|-------|----------|
-| Cloud Asset Viewer | Discovery |
-| BigQuery Data Editor | Reporting |
-| BigQuery Job User | Queries |
-| Logging Viewer | Read Audit Logs |
-| Pub/Sub Subscriber | Greenfield Processing |
-| Storage Admin | Bucket Remediation |
-| Compute Admin | VM/Disk Remediation |
-| Cloud SQL Admin | Cloud SQL Remediation |
-| Secret Manager Admin | Secret Remediation |
-| Artifact Registry Admin | Repository Remediation |
-| Cloud KMS Admin | Key Remediation |
-| Resource Manager Tag User | Apply Tags |
-| Resource Manager Tag Viewer | Read Tags |
-
-Apply using:
-
-```bash
-gcloud projects add-iam-policy-binding $PROJECT_ID \
---member="serviceAccount:metadata-governance@$PROJECT_ID.iam.gserviceaccount.com" \
---role="ROLE_NAME"
-```
-
-Repeat for every required role.
-
----
-
-# Step 6
-
-Configure GitHub Workload Identity Federation
-
-Create Workload Identity Pool
-
-```bash
-gcloud iam workload-identity-pools create github \
---location=global \
---display-name="GitHub Actions"
-```
-
-Retrieve Project Number
-
-```bash
-gcloud projects describe $PROJECT_ID \
---format="value(projectNumber)"
-```
-
-Create OIDC Provider
-
-```bash
-gcloud iam workload-identity-pools providers create-oidc github \
---location=global \
---workload-identity-pool=github \
---issuer-uri=https://token.actions.githubusercontent.com \
---attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
---attribute-condition="assertion.repository=='YOUR_GITHUB_ORG/YOUR_REPOSITORY'"
-```
-
-Allow GitHub to impersonate the runtime service account.
-
-```bash
-gcloud iam service-accounts add-iam-policy-binding \
-metadata-governance@$PROJECT_ID.iam.gserviceaccount.com \
---role=roles/iam.workloadIdentityUser \
---member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/YOUR_GITHUB_ORG/YOUR_REPOSITORY"
-```
-
----
-
-# Step 7
-
-Configure GitHub Secrets
-
-Repository Settings
+↓
 
 Secrets and Variables
 
+↓
+
 Actions
 
-Create
+Verify the following secrets exist.
 
-| Secret | Value |
-|----------|-------|
+| Secret | Description |
+|----------|-------------|
 | WIF_PROVIDER | Workload Identity Provider Resource Name |
-| WIF_SERVICE_ACCOUNT | metadata-governance@$PROJECT_ID.iam.gserviceaccount.com |
+| WIF_SERVICE_ACCOUNT | Runtime Service Account |
+
+Example
+
+```
+projects/123456789/locations/global/workloadIdentityPools/github/providers/github
+```
+
+```
+metadata-governance@platform-metadata.iam.gserviceaccount.com
+```
 
 ---
 
-# Step 8
+# Step 4 - Review GitHub Workflow
 
-Create Artifact Registry
+The deployment workflow should perform the following operations.
 
-```bash
-gcloud artifacts repositories create metadata-governance \
---repository-format=docker \
---location=$REGION \
---description="Enterprise Metadata Governance Images"
+```
+Checkout Repository
+
+↓
+
+Authenticate to Google Cloud
+
+↓
+
+Configure Docker Authentication
+
+↓
+
+Build Container
+
+↓
+
+Push Image
+
+↓
+
+Deploy Cloud Run
+
+↓
+
+Verify Deployment
 ```
 
-Verify
+No manual Docker build should occur.
+
+No manual Cloud Run deployment should occur.
+
+GitHub Actions is the only deployment mechanism.
+
+---
+
+# Step 5 - Deploy the Application
+
+Commit the latest changes.
 
 ```bash
-gcloud artifacts repositories list
+git add .
+```
+
+```bash
+git commit -m "Deploy Metadata Governance Platform"
+```
+
+Push the changes.
+
+```bash
+git push origin main
+```
+
+---
+
+# Step 6 - Monitor GitHub Actions
+
+Open
+
+```
+GitHub
+
+↓
+
+Actions
+```
+
+Monitor the deployment.
+
+Expected stages.
+
+```
+Checkout
+
+↓
+
+Authenticate
+
+↓
+
+Build
+
+↓
+
+Push Image
+
+↓
+
+Deploy Cloud Run
+
+↓
+
+Complete
+```
+
+If any stage fails stop and resolve the error before continuing.
+
+---
+
+# Step 7 - Verify Artifact Registry
+
+Verify the image has been pushed.
+
+```bash
+gcloud artifacts docker images list \
+$REGION-docker.pkg.dev/$PROJECT_ID/metadata-governance
+```
+
+Expected
+
+```
+latest
+
+IMAGE DIGEST
+
+CREATE TIME
+```
+
+---
+
+# Step 8 - Verify Cloud Run
+
+List services.
+
+```bash
+gcloud run services list \
+--region=$REGION
 ```
 
 Expected
 
 ```
 metadata-governance
+
+READY
+```
+
+Describe the service.
+
+```bash
+gcloud run services describe metadata-governance \
+--region=$REGION
+```
+
+Verify.
+
+- Ready
+- URL assigned
+- Revision deployed
+- Runtime Service Account configured
+
+---
+
+# Step 9 - Retrieve the Cloud Run URL
+
+Retrieve the URL.
+
+```bash
+gcloud run services describe metadata-governance \
+--region=$REGION \
+--format="value(status.url)"
+```
+
+Example
+
+```
+https://metadata-governance-xxxxxxxx.europe-west2.run.app
+```
+
+Store this URL.
+
+It will be used throughout the remaining deployment.
+
+---
+
+# Step 10 - Health Check
+
+Retrieve an Identity Token.
+
+```bash
+TOKEN=$(gcloud auth print-identity-token)
+```
+
+Call the Health endpoint.
+
+```bash
+curl \
+-H "Authorization: Bearer $TOKEN" \
+https://YOUR_CLOUD_RUN_URL/health
+```
+
+Expected Response
+
+```json
+{
+    "status":"healthy"
+}
 ```
 
 ---
 
-# Infrastructure Validation
+# Step 11 - Verify Dashboard
+
+Open
+
+```
+https://YOUR_CLOUD_RUN_URL/
+```
+
+The Metadata Governance Dashboard should load successfully.
+
+Initially no reporting data will be displayed because the reporting platform has not yet been configured.
+
+This is expected.
+
+---
+
+# Step 12 - Verify REST APIs
+
+Dashboard API
+
+```bash
+curl \
+-H "Authorization: Bearer $TOKEN" \
+https://YOUR_CLOUD_RUN_URL/reports/dashboard
+```
+
+Expected
+
+HTTP 200
+
+Health API
+
+```bash
+curl \
+-H "Authorization: Bearer $TOKEN" \
+https://YOUR_CLOUD_RUN_URL/health
+```
+
+Expected
+
+HTTP 200
+
+Brownfield API
+
+```bash
+curl \
+-H "Authorization: Bearer $TOKEN" \
+https://YOUR_CLOUD_RUN_URL/brownfield
+```
+
+At this stage the request may fail because the reporting platform has not yet been configured.
+
+This is expected.
+
+---
+
+# Step 13 - Verify Cloud Run Logs
+
+Monitor the application logs.
+
+```bash
+gcloud beta run services logs tail metadata-governance \
+--region=$REGION
+```
+
+Verify.
+
+- Application Started
+- Flask Started
+- Dispatcher Loaded
+- No Python Exceptions
+- No Import Errors
+
+---
+
+# Troubleshooting
+
+## GitHub Authentication Failed
 
 Verify
 
-✓ Project configured
+- WIF_PROVIDER
+- WIF_SERVICE_ACCOUNT
 
-✓ Billing enabled
+Verify the Workload Identity Provider.
 
-✓ APIs enabled
+---
 
-✓ Runtime Service Account exists
+## Artifact Registry Permission Denied
 
-✓ IAM configured
+Verify
 
-✓ GitHub OIDC configured
+Artifact Registry IAM.
 
-✓ Artifact Registry created
+Verify the runtime service account has the required permissions.
 
-Infrastructure deployment is now complete.
+---
+
+## Cloud Run Deployment Failed
+
+Verify.
+
+- Container build completed.
+- Image exists in Artifact Registry.
+- Cloud Run API enabled.
+- Runtime Service Account exists.
+
+---
+
+## Health Endpoint Returns 403
+
+Cloud Run is configured to require authentication.
+
+Always use an Identity Token.
+
+Example.
+
+```bash
+TOKEN=$(gcloud auth print-identity-token)
+```
+
+---
+
+## Health Endpoint Returns 500
+
+Review Cloud Run logs.
+
+```bash
+gcloud beta run services logs tail metadata-governance \
+--region=$REGION
+```
+
+Resolve all startup exceptions before continuing.
+
+---
+
+# Application Deployment Validation
+
+Verify.
+
+✓ GitHub Actions Completed
+
+✓ Container Built
+
+✓ Image Stored in Artifact Registry
+
+✓ Cloud Run Ready
+
+✓ Health Endpoint Responding
+
+✓ Dashboard Accessible
+
+✓ REST APIs Available
+
+Application deployment is complete.
+
+Continue with
+
+Platform Configuration & Validation Guide
 
 
 # Enterprise Metadata Governance Platform
@@ -836,7 +1054,7 @@ metadata_governance_dataset
 
 ---
 
-# Step 2 - Create Reporting Tables
+# Step 2 - Create Bigquery Tables
 
 The platform requires four reporting tables.
 
@@ -847,90 +1065,8 @@ The platform requires four reporting tables.
 | remediation_plan | Planned remediation |
 | remediation_execution | Execution history |
 
-Verify.
 
-```bash
-bq ls metadata_governance_dataset
-```
-
-Expected.
-
-```
-resource_snapshot
-
-compliance_snapshot
-
-remediation_plan
-
-remediation_execution
-```
-
----
-
-# BigQuery Table Definitions
-
-## resource_snapshot
-
-| Column | Type |
-|----------|------|
-| run_id | STRING |
-| snapshot_time | TIMESTAMP |
-| project_id | STRING |
-| asset_type | STRING |
-| resource_name | STRING |
-| location | STRING |
-| labels | JSON |
-| tags | JSON |
-
----
-
-## compliance_snapshot
-
-| Column | Type |
-|----------|------|
-| run_id | STRING |
-| evaluated_time | TIMESTAMP |
-| project_id | STRING |
-| asset_type | STRING |
-| resource_name | STRING |
-| compliant | BOOLEAN |
-| missing_labels | JSON |
-| incorrect_labels | JSON |
-
----
-
-## remediation_plan
-
-| Column | Type |
-|----------|------|
-| remediation_id | STRING |
-| run_id | STRING |
-| project_id | STRING |
-| asset_type | STRING |
-| resource_name | STRING |
-| status | STRING |
-| planned_time | TIMESTAMP |
-
----
-
-## remediation_execution
-
-| Column | Type |
-|----------|------|
-| execution_id | STRING |
-| run_id | STRING |
-| project_id | STRING |
-| asset_type | STRING |
-| resource_name | STRING |
-| status | STRING |
-| executed_at | TIMESTAMP |
-| error_message | STRING |
-
----
-
-# Create BigQuery Governance Tables
-
-This guide provides the complete, copy-pasteable script to set up your BigQuery dataset in London (`europe-west2`) and create the four requested governance tables: `resource_snapshot`, `compliance_snapshot`, `remediation_plan`, and `remediation_execution`[cite: 3, 5, 6, 7].
+Copy-pasteable script to set up your BigQuery dataset in London (`europe-west2`) and create the four requested governance tables: `resource_snapshot`, `compliance_snapshot`, `remediation_plan`, and `remediation_execution`[cite: 3, 5, 6, 7].
 
 The script is specifically designed to stream the schemas safely using standard input, preventing any unexpected script terminations when running under `set -e`.
 
@@ -1193,22 +1329,91 @@ EOF
 
 echo "All BigQuery tables created successfully in region ${LOCATION}!"
 
-```Create and edit the file:
 
-```Bash
-vi create-bq-tables.sh
-(Paste the script contents, then save and exit using ESC, then type :wq, Hit Enter)
-
-```Make the file executable:
-
-```Bash
 chmod +x create-bq-tables.sh
-Run the script:
 
-```Bash
 ./create-bq-tables.sh
 
+```Verify.
 
+```bash
+bq ls metadata_governance_dataset
+```
+
+Expected.
+
+```
+resource_snapshot
+
+compliance_snapshot
+
+remediation_plan
+
+remediation_execution
+```
+
+---
+
+# BigQuery Table Definitions
+
+## resource_snapshot
+
+| Column | Type |
+|----------|------|
+| run_id | STRING |
+| snapshot_time | TIMESTAMP |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| location | STRING |
+| labels | JSON |
+| tags | JSON |
+
+---
+
+## compliance_snapshot
+
+| Column | Type |
+|----------|------|
+| run_id | STRING |
+| evaluated_time | TIMESTAMP |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| compliant | BOOLEAN |
+| missing_labels | JSON |
+| incorrect_labels | JSON |
+
+---
+
+## remediation_plan
+
+| Column | Type |
+|----------|------|
+| remediation_id | STRING |
+| run_id | STRING |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| status | STRING |
+| planned_time | TIMESTAMP |
+
+---
+
+## remediation_execution
+
+| Column | Type |
+|----------|------|
+| execution_id | STRING |
+| run_id | STRING |
+| project_id | STRING |
+| asset_type | STRING |
+| resource_name | STRING |
+| status | STRING |
+| executed_at | TIMESTAMP |
+| error_message | STRING |
+
+---
 
 # Step 3 - Configure Governance Registry
 
